@@ -1,70 +1,30 @@
-# Getting Started with Create React App
+# OCR & Analysis Service — AWS Starter Pack (Infra + Contracts)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This repo gives AWS Code Assist enough context to scaffold:
+- S3 buckets (raw uploads, artifacts, results) with lifecycle
+- RDS PostgreSQL (Operational Data v1.2)
+- Cognito (auth), API Gateway, and Lambda stubs
+- Queues/topics for batch processing (SQS/SNS)
+- Minimal OpenAPI for /precheck, /analyze, /batches
 
-## Available Scripts
+## What this app does (one paragraph)
+Provides OCR + summary + risk checks for credit applications (individual or commercial). Supports one-by-one, batch, and API. Uses S3 for documents/artifacts, RDS for operational data, and Cognito for user auth.
 
-In the project directory, you can run:
+## Deploy (dev, example)
+1. Install Terraform 1.6+ and AWS CLI; set AWS_PROFILE/region.
+2. `cd infra/terraform`
+3. Copy `dev.tfvars.example` to `dev.tfvars` and edit values.
+4. `terraform init`
+5. `terraform apply -var-file=dev.tfvars`
+6. After RDS is up, run `psql` and execute `../db/ods_schema_v1_2_full.sql` to create schema.
+7. Import API (`/api/openapi.yaml`) into API Gateway (HTTP API) if not using Terraform for routes yet.
 
-### `npm start`
+## Buckets & prefixes
+- s3://<prefix>-raw-<env>/obo=<id>/case=<id>/...
+- s3://<prefix>-artifacts-<env>/obo=<id>/case=<id>/...
+- s3://<prefix>-results-<env>/obo=<id>/case=<id>/...
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Next steps
+- Wire Lambdas/containers to Step Functions for OCR pipeline.
+- Implement Pre-OCR checks against RDS (entitlements/credits).
+- Enable webhooks and audit logging.

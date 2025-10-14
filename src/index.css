@@ -2,5 +2,5 @@
 @tailwind components;
 @tailwind utilities;
 
-/* optional: import brand tokens below if you split files */
-/* @import './styles/globals.css'; */
+/* Import your main styles */
+@import './styles/globals.css';

@@ -2,92 +2,47 @@ import React, { useState, useEffect } from 'react';
 
 export default function DocumentSelector({ initialData = [], onComplete, onBack }) {
   const [selectedDocuments, setSelectedDocuments] = useState([]);
-  const [customDocument, setCustomDocument] = useState('');
 
-  // Document types with descriptions
+  // YOUR ACTUAL DOCUMENT TYPES
   const documentTypes = [
     {
-      id: 'bank-statements',
-      name: 'Bank Statements',
-      description: 'Personal or business bank account statements',
-      icon: '🏦',
-      popular: true
-    },
-    {
-      id: 'profit-loss',
-      name: 'Profit & Loss Statement',
-      description: 'Business income and expense summary',
-      icon: '📊',
-      popular: true
-    },
-    {
-      id: 'balance-sheet',
-      name: 'Balance Sheet',
-      description: 'Assets, liabilities, and equity statement',
-      icon: '⚖️',
-      popular: true
-    },
-    {
-      id: 'tax-return',
-      name: 'Tax Returns',
-      description: 'Individual or business tax returns',
-      icon: '📋',
-      popular: true
-    },
-    {
-      id: 'payslips',
-      name: 'Payslips',
-      description: 'Employee salary and wage statements',
+      id: 'payslip',
+      name: 'Payslip',
+      description: 'Employee payslip documents',
       icon: '💰',
+      requiredFields: ['Name', 'Employer', 'Gross Income', 'Net Income'],
+      popular: true
+    },
+    {
+      id: 'individual-bank-statements',
+      name: 'Individual Bank Statements',
+      description: 'Personal bank account statements',
+      icon: '🏦',
+      requiredFields: ['Name', 'Account Balance', 'Transaction History'],
+      popular: true
+    },
+    {
+      id: 'business-bank-statements',
+      name: 'Business Bank Statements',
+      description: 'Business bank account statements',
+      icon: '🏢',
+      requiredFields: ['Business Name', 'Account Balance', 'Transaction History'],
+      popular: true
+    },
+    {
+      id: 'audited-financial-statements',
+      name: 'Audited Financial Statements',
+      description: 'Professionally audited financial reports',
+      icon: '📊',
+      requiredFields: ['Business Name', 'Revenue', 'Expenses', 'Assets', 'Liabilities'],
       popular: false
     },
     {
-      id: 'invoices',
-      name: 'Invoices',
-      description: 'Sales invoices and billing documents',
-      icon: '🧾',
-      popular: false
-    },
-    {
-      id: 'receipts',
-      name: 'Receipts',
-      description: 'Purchase receipts and expense records',
-      icon: '🧾',
-      popular: false
-    },
-    {
-      id: 'cash-flow',
-      name: 'Cash Flow Statement',
-      description: 'Cash inflows and outflows analysis',
-      icon: '💸',
-      popular: false
-    },
-    {
-      id: 'trial-balance',
-      name: 'Trial Balance',
-      description: 'Accounting trial balance reports',
+      id: 'unaudited-interim-statements',
+      name: 'Unaudited Interim Statements',
+      description: 'Internal financial statements (unaudited)',
       icon: '📈',
-      popular: false
-    },
-    {
-      id: 'aged-debtors',
-      name: 'Aged Debtors Report',
-      description: 'Outstanding customer payments analysis',
-      icon: '📅',
-      popular: false
-    },
-    {
-      id: 'aged-creditors',
-      name: 'Aged Creditors Report',
-      description: 'Outstanding supplier payments analysis',
-      icon: '📆',
-      popular: false
-    },
-    {
-      id: 'loan-statements',
-      name: 'Loan Statements',
-      description: 'Business or personal loan documents',
-      icon: '🏛️',
+      requiredFields: ['Business Name', 'Revenue', 'Expenses', 'Assets', 'Liabilities'],
       popular: false
     }
   ];
@@ -109,17 +64,6 @@ export default function DocumentSelector({ initialData = [], onComplete, onBack 
     });
   };
 
-  const handleAddCustomDocument = () => {
-    if (customDocument.trim() && !selectedDocuments.includes(customDocument.trim())) {
-      setSelectedDocuments(prev => [...prev, customDocument.trim()]);
-      setCustomDocument('');
-    }
-  };
-
-  const handleRemoveCustomDocument = (docName) => {
-    setSelectedDocuments(prev => prev.filter(doc => doc !== docName));
-  };
-
   const handleContinue = () => {
     if (selectedDocuments.length > 0) {
       onComplete(selectedDocuments);
@@ -128,9 +72,6 @@ export default function DocumentSelector({ initialData = [], onComplete, onBack 
 
   const popularDocuments = documentTypes.filter(doc => doc.popular);
   const otherDocuments = documentTypes.filter(doc => !doc.popular);
-  const customDocuments = selectedDocuments.filter(doc => 
-    !documentTypes.some(type => type.id === doc)
-  );
 
   return (
     <div>
@@ -145,9 +86,9 @@ export default function DocumentSelector({ initialData = [], onComplete, onBack 
       <div className="mb-8">
         <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
           <span className="mr-2">⭐</span>
-          Most Popular
+          Most Common
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {popularDocuments.map((doc) => (
             <div
               key={doc.id}
@@ -168,6 +109,11 @@ export default function DocumentSelector({ initialData = [], onComplete, onBack 
                     )}
                   </div>
                   <p className="text-sm text-gray-600 mt-1">{doc.description}</p>
+                  <div className="mt-2">
+                    <div className="text-xs text-gray-500">
+                      <strong>Extracts:</strong> {doc.requiredFields.join(', ')}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -177,26 +123,32 @@ export default function DocumentSelector({ initialData = [], onComplete, onBack 
 
       {/* Other Documents */}
       <div className="mb-8">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Other Document Types</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Business Documents</h3>
+        <div className="grid grid-cols-1 gap-4">
           {otherDocuments.map((doc) => (
             <div
               key={doc.id}
               onClick={() => handleDocumentToggle(doc.id)}
-              className={`p-3 rounded-lg border cursor-pointer transition-all ${
+              className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                 selectedDocuments.includes(doc.id)
                   ? 'border-blue-500 bg-blue-50'
                   : 'border-gray-200 hover:border-gray-300 bg-white'
               }`}
             >
-              <div className="flex items-center">
-                <div className="text-lg mr-2">{doc.icon}</div>
+              <div className="flex items-start">
+                <div className="text-2xl mr-3">{doc.icon}</div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-900">{doc.name}</span>
+                    <h4 className="font-medium text-gray-900">{doc.name}</h4>
                     {selectedDocuments.includes(doc.id) && (
-                      <div className="text-blue-500">✓</div>
+                      <div className="text-blue-500 text-xl">✓</div>
                     )}
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">{doc.description}</p>
+                  <div className="mt-2">
+                    <div className="text-xs text-gray-500">
+                      <strong>Extracts:</strong> {doc.requiredFields.join(', ')}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -204,54 +156,6 @@ export default function DocumentSelector({ initialData = [], onComplete, onBack 
           ))}
         </div>
       </div>
-
-      {/* Custom Document Input */}
-      <div className="mb-8">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Add Custom Document Type</h3>
-        <div className="flex space-x-3">
-          <input
-            type="text"
-            value={customDocument}
-            onChange={(e) => setCustomDocument(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleAddCustomDocument()}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-[rgb(var(--surface))]"
-            placeholder="Enter custom document type..."
-          />
-          <button
-            onClick={handleAddCustomDocument}
-            disabled={!customDocument.trim()}
-            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Add
-          </button>
-        </div>
-      </div>
-
-      {/* Custom Documents List */}
-      {customDocuments.length > 0 && (
-        <div className="mb-8">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Custom Documents</h3>
-          <div className="space-y-2">
-            {customDocuments.map((doc, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-              >
-                <div className="flex items-center">
-                  <span className="text-lg mr-2">📄</span>
-                  <span className="font-medium text-gray-900">{doc}</span>
-                </div>
-                <button
-                  onClick={() => handleRemoveCustomDocument(doc)}
-                  className="text-red-500 hover:text-red-700 text-sm"
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Selected Summary */}
       {selectedDocuments.length > 0 && (
@@ -295,4 +199,3 @@ export default function DocumentSelector({ initialData = [], onComplete, onBack 
     </div>
   );
 }
-

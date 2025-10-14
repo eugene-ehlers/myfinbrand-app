@@ -1,6 +1,7 @@
 import './styles/globals.css';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import FileUpload from './components/FileUpload';
 
 export default function App() {
   return (
@@ -47,6 +48,12 @@ export default function App() {
             <button className="mt-4 w-full btn-primary px-4 py-2 rounded-md">Continue</button>
           </div>
         </div>
+          {/* ADD THIS NEW SECTION - AFTER your existing dashboard content */}
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Upload Documents</h2>
+            <FileUpload />
+          </div>
+
       </main>
 
       <Footer />

@@ -1,77 +1,10 @@
-import React, { useState, useCallback } from 'react';
-import { s3, BUCKET_NAME } from '../aws-config';
+import React, { useState } from 'react';
 
 const FileUpload = () => {
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [dragActive, setDragActive] = useState(false);
 
-  // Handle file upload to S3
-  const uploadToS3 = async (file) => {
-    const fileName = `${Date.now()}-${file.name}`;
-    
-    const params = {
-      Bucket: BUCKET_NAME,
-      Key: fileName,
-      Body: file,
-      ContentType: file.type,
-    };
-
-    try {
-      setUploading(true);
-      
-      const upload = s3.upload(params);
-      
-      // Track upload progress
-      upload.on('httpUploadProgress', (progress) => {
-        const percentage = Math.round((progress.loaded / progress.total) * 100);
-        setUploadProgress(percentage);
-      });
-
-      const result = await upload.promise();
-      
-      setUploadedFiles(prev => [...prev, {
-        name: file.name,
-        size: file.size,
-        url: result.Location,
-        key: result.Key
-      }]);
-      
-      setUploading(false);
-      setUploadProgress(0);
-      
-      return result;
-    } catch (error) {
-      console.error('Upload failed:', error);
-      setUploading(false);
-      setUploadProgress(0);
-      throw error;
-    }
-  };
-
-  // Handle file selection
-  const handleFiles = (files) => {
-    Array.from(files).forEach(file => {
-      // Validate file type
-      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
-      if (!allowedTypes.includes(file.type)) {
-        alert('Please upload PDF, JPG, or PNG files only');
-        return;
-      }
-      
-      // Validate file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        alert('File size must be less than 10MB');
-        return;
-      }
-      
-      uploadToS3(file);
-    });
-  };
-
-  // Drag and drop handlers
-  const handleDrag = useCallback((e) => {
+  const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (e.type === "dragenter" || e.type === "dragover") {
@@ -79,113 +12,127 @@ const FileUpload = () => {
     } else if (e.type === "dragleave") {
       setDragActive(false);
     }
-  }, []);
+  };
 
-  const handleDrop = useCallback((e) => {
+  const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFiles(e.dataTransfer.files);
+      setSelectedFiles(Array.from(e.dataTransfer.files));
     }
-  }, []);
+  };
+
+  const handleChange = (e) => {
+    e.preventDefault();
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFiles(Array.from(e.target.files));
+    }
+  };
+
+  const handleDownload = () => {
+    // Add download logic here
+    console.log('Download clicked');
+  };
+
+  const handleCancel = () => {
+    setSelectedFiles([]);
+  };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      {/* Upload Area */}
-      <div
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-          dragActive 
-            ? 'border-blue-500 bg-blue-50' 
-            : 'border-gray-300 hover:border-gray-400'
-        }`}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
-      >
-        <div className="space-y-4">
-          <div className="text-6xl text-gray-400">📄</div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Upload Financial Documents
-            </h3>
-            <p className="text-gray-600">
-              Drag and drop files here, or click to select
-            </p>
-            <p className="text-sm text-gray-500">
-              Supports PDF, JPG, PNG (max 10MB)
-            </p>
-          </div>
-          
+    <div className="bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-lg shadow-sm">
+      {/* Card Header */}
+      <div className="px-6 py-4 border-b border-[rgb(var(--border))]">
+        <h3 className="text-lg font-semibold text-[rgb(var(--ink))]">
+          Document Upload
+        </h3>
+        <p className="text-sm text-[rgb(var(--ink-dim))] mt-1">
+          Upload financial documents for OCR processing
+        </p>
+      </div>
+
+      {/* Card Body - Upload Area */}
+      <div className="p-6">
+        <div
+          className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+            dragActive
+              ? 'border-[rgb(var(--primary))] bg-[rgb(var(--primary))]/5'
+              : 'border-[rgb(var(--border))] hover:border-[rgb(var(--primary))]/50'
+          }`}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+        >
           <input
             type="file"
             multiple
+            onChange={handleChange}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             accept=".pdf,.jpg,.jpeg,.png"
-            onChange={(e) => handleFiles(e.target.files)}
-            className="hidden"
-            id="file-upload"
           />
           
-          <label
-            htmlFor="file-upload"
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer"
-          >
-            Select Files
-          </label>
-        </div>
-      </div>
-
-      {/* Upload Progress */}
-      {uploading && (
-        <div className="mt-6 bg-white rounded-lg shadow p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">Uploading...</span>
-            <span className="text-sm text-gray-500">{uploadProgress}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${uploadProgress}%` }}
-            ></div>
+          <div className="space-y-4">
+            <div className="w-12 h-12 mx-auto bg-[rgb(var(--accent))]/10 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-[rgb(var(--accent))]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </div>
+            
+            <div>
+              <p className="text-[rgb(var(--ink))] font-medium">
+                Choose files or drag and drop
+              </p>
+              <p className="text-sm text-[rgb(var(--ink-dim))] mt-1">
+                PDF, JPG, PNG up to 10MB
+              </p>
+            </div>
           </div>
         </div>
-      )}
 
-      {/* Uploaded Files List */}
-      {uploadedFiles.length > 0 && (
-        <div className="mt-6 bg-white rounded-lg shadow">
-          <div className="px-4 py-3 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Uploaded Files</h3>
-          </div>
-          <div className="divide-y divide-gray-200">
-            {uploadedFiles.map((file, index) => (
-              <div key={index} className="px-4 py-3 flex items-center justify-between">
+        {/* Selected Files */}
+        {selectedFiles.length > 0 && (
+          <div className="mt-4 space-y-2">
+            <h4 className="text-sm font-medium text-[rgb(var(--ink))]">Selected Files:</h4>
+            {selectedFiles.map((file, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-[rgb(var(--surface-2))] rounded-lg">
                 <div className="flex items-center space-x-3">
-                  <div className="text-2xl">📄</div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{file.name}</p>
-                    <p className="text-sm text-gray-500">
-                      {(file.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
+                  <div className="w-8 h-8 bg-[rgb(var(--primary))]/10 rounded flex items-center justify-center">
+                    <svg className="w-4 h-4 text-[rgb(var(--primary))]" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                    </svg>
                   </div>
-                </div>
-                <div className="flex space-x-2">
-                  <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                    Process OCR
-                  </button>
-                  <button className="text-red-600 hover:text-red-800 text-sm font-medium">
-                    Delete
-                  </button>
+                  <div>
+                    <p className="text-sm font-medium text-[rgb(var(--ink))]">{file.name}</p>
+                    <p className="text-xs text-[rgb(var(--ink-dim))]">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
+
+      {/* Card Actions */}
+      <div className="px-6 py-4 bg-[rgb(var(--surface-2))] border-t border-[rgb(var(--border))] rounded-b-lg flex justify-end space-x-3">
+        <button
+          onClick={handleCancel}
+          className="px-4 py-2 text-sm font-medium text-[rgb(var(--ink-dim))] hover:text-[rgb(var(--ink))] transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleDownload}
+          disabled={selectedFiles.length === 0}
+          className="px-4 py-2 bg-[rgb(var(--primary))] text-[rgb(var(--primary-fg))] text-sm font-medium rounded-lg hover:bg-[rgb(var(--primary))]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          Process Files
+        </button>
+      </div>
     </div>
   );
 };
 
 export default FileUpload;
+

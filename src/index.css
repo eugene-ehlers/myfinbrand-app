@@ -2,5 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import your main styles */
-@import './styles/globals.css';
+/* ---- Global tokens & resets in Tailwind layers ---- */
+@layer base {
+  :root {
+    /* example brand token – change later if needed */
+    --brand: #B87333;
+  }
+  html, body, #root { height: 100%; }
+}
+
+/* Optional component primitives */
+@layer components {
+  .btn {
+    @apply inline-flex items-center gap-2 px-3 py-2 rounded-lg
+           text-white bg-[color:var(--brand)] border border-black/10
+           hover:opacity-95;
+  }
+}

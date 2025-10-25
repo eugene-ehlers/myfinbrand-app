@@ -1,3 +1,6 @@
+// src/pages/Landing.jsx
+import { Link } from "react-router-dom";
+
 export default function Landing() {
   return (
     <section className="rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))] p-6">
@@ -7,19 +10,20 @@ export default function Landing() {
       </p>
 
       <div className="mt-5 flex gap-3">
-        <a
-          href="/dashboard"
+        <Link
+          to="/dashboard"
           className="btn-primary inline-flex items-center px-3 py-2 rounded-lg"
         >
           Go to Dashboard
-        </a>
-        <a
-          href="/admin"
+        </Link>
+        <Link
+          to="/admin"
           className="inline-flex items-center px-3 py-2 rounded-lg border border-[rgb(var(--border))]"
         >
           Admin
-        </a>
+        </Link>
       </div>
     </section>
   );
 }
+

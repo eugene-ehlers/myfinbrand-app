@@ -1,3 +1,4 @@
+/* src/index.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,7 +36,7 @@
   }
 }
 
-/* ---- Components & utilities built on tokens ---- */
+/* ---- Components built on tokens ---- */
 @layer components {
   .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
 
@@ -81,4 +82,3 @@
     background: linear-gradient(90deg, rgba(179,83,45,.35) 0%, rgba(43,212,224,.20) 100%);
   }
 }
-

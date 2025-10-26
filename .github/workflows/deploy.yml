@@ -18,11 +18,21 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      - name: Show Node/npm versions
+        run: |
+          node -v
+          npm -v
+
       - name: Install deps
         run: npm ci
 
       - name: Build (Vite)
         run: npm run build
+
+      - name: Verify build output exists
+        run: |
+          echo "Listing dist/"
+          ls -la dist || (echo "❌ dist/ missing — build step failed" && exit 1)
 
       - name: Configure AWS credentials (access keys)
         uses: aws-actions/configure-aws-credentials@v4
@@ -30,19 +40,29 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }} # optional
-          aws-region: ${{ secrets.AWS_REGION }}               # af-south-1
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Setup AWS CLI
         uses: aws-actions/setup-aws-cli@v2
 
+      - name: Who am I? (STS)
+        run: aws sts get-caller-identity
+
       - name: Echo targets
         run: |
-          echo "Region: ${{ secrets.AWS_REGION }}"
-          echo "Bucket: ${{ secrets.S3_BUCKET }}"
+          echo "Region:       ${{ secrets.AWS_REGION }}"
+          echo "Bucket name:  ${{ secrets.S3_BUCKET }}"
           echo "Distribution: ${{ secrets.DISTRIBUTION_ID }}"
 
+      - name: Check bucket exists and region
+        run: |
+          aws s3api head-bucket --bucket "${{ secrets.S3_BUCKET }}" || (echo "❌ Bucket not accessible" && exit 1)
+          aws s3api get-bucket-location --bucket "${{ secrets.S3_BUCKET }}"
+
       - name: Sync to S3 (hosting bucket)
-        run: aws s3 sync dist/ s3://${{ secrets.S3_BUCKET }} --delete --region ${{ secrets.AWS_REGION }}
+        run: |
+          aws s3 sync dist/ "s3://${{ secrets.S3_BUCKET }}" --delete --region "${{ secrets.AWS_REGION }}" --only-show-errors
 
       - name: Invalidate CloudFront
-        run: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+        run: |
+          aws cloudfront create-invalidation --distribution-id "${{ secrets.DISTRIBUTION_ID }}" --paths "/*"

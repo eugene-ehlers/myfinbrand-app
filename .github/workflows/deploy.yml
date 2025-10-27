@@ -1,4 +1,4 @@
-name: Deploy to S3 + CloudFront (diagnostic)
+name: Deploy to S3 + CloudFront
 
 on:
   push:
@@ -20,14 +20,10 @@ jobs:
 
       - name: Show env & files
         run: |
-          echo "Node:"
-          node -v
-          echo "npm:"
-          npm -v
-          echo "Repo root:"
-          ls -la
-          echo "package.json:"
-          cat package.json
+          echo "Node:"; node -v
+          echo "npm:"; npm -v
+          echo "Repo root:"; ls -la
+          echo "package.json:"; cat package.json
 
       - name: Verify Vite present
         run: |
@@ -86,6 +82,3 @@ jobs:
           echo "--- invalidating CloudFront ---"
           aws cloudfront create-invalidation --distribution-id "${{ secrets.DISTRIBUTION_ID }}" --paths "/*"
           echo "✅ invalidation requested"
-
-        run: |
-          aws cloudfront create-invalidation --distribution-id "${{ secrets.DISTRIBUTION_ID }}" --paths "/*"

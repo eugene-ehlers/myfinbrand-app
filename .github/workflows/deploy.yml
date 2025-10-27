@@ -83,4 +83,3 @@ jobs:
           echo "--- invalidating CloudFront ---"
           aws cloudfront create-invalidation --distribution-id "${{ secrets.DISTRIBUTION_ID }}" --paths "/*"
           echo "✅ invalidation requested"
-YAML

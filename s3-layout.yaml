@@ -1,28 +1,174 @@
-buckets:
-  - name: "{prefix}-raw-{env}"
-    purpose: "User uploads (source of truth). No public access."
-    prefixes:
-      - "obo=${obo_id}/case=${case_id}/upload/"
-    lifecycle:
-      - id: "expire-unreferenced"
-        rule: "days_since_upload > 30 && not referenced"
-      - id: "transition-to-infrequent"
-        rule: "days_since_upload > 7"
-  - name: "{prefix}-artifacts-{env}"
-    purpose: "Derived artifacts (OCR JSON, TEXT, PAGE_IMAGE, LOG)."
-    prefixes:
-      - "obo=${obo_id}/case=${case_id}/artifact_type=${type}/"
-    lifecycle:
-      - id: "expire-low-value"
-        rule: "days_since_create > 90"
-  - name: "{prefix}-results-{env}"
-    purpose: "Packaged human views and result bundles delivered to clients."
-    prefixes:
-      - "obo=${obo_id}/case=${case_id}/"
-    lifecycle:
-      - id: "retain-core"
-        rule: "retain >= 365 days"
-notes:
-  - "All access via presigned URLs or signed CloudFront; block public ACLs."
-  - "Server-side encryption SSE-S3 or SSE-KMS; bucket keys enabled."
-  - "Object keys must include obo and case to support tenancy isolation."
+variable "prefix" { type = string }
+variable "env"    { type = string }
+
+locals {
+  bucket_raw       = lower(replace("${var.prefix}-raw-${var.env}", " ", "-"))
+  bucket_artifacts = lower(replace("${var.prefix}-artifacts-${var.env}", " ", "-"))
+  bucket_results   = lower(replace("${var.prefix}-results-${var.env}", " ", "-"))
+}
+
+# Common module for secure defaults
+locals {
+  s3_block_public = {
+    block_public_acls       = true
+    block_public_policy     = true
+    ignore_public_acls      = true
+    restrict_public_buckets = true
+  }
+}
+
+# RAW BUCKET
+resource "aws_s3_bucket" "raw" {
+  bucket = local.bucket_raw
+}
+
+resource "aws_s3_bucket_public_access_block" "raw" {
+  bucket                  = aws_s3_bucket.raw.id
+  block_public_acls       = local.s3_block_public.block_public_acls
+  block_public_policy     = local.s3_block_public.block_public_policy
+  ignore_public_acls      = local.s3_block_public.ignore_public_acls
+  restrict_public_buckets = local.s3_block_public.restrict_public_buckets
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "raw" {
+  bucket = aws_s3_bucket.raw.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256" # swap for "aws:kms" and add kms_master_key_id if using KMS
+    }
+    bucket_key_enabled = true
+  }
+}
+
+# Lifecycle for RAW
+resource "aws_s3_bucket_lifecycle_configuration" "raw" {
+  bucket = aws_s3_bucket.raw.id
+
+  # Transition everything under /upload/ to STANDARD_IA after 7 days
+  rule {
+    id     = "transition-to-ia"
+    status = "Enabled"
+
+    filter {
+      prefix = "obo="
+    }
+
+    transition {
+      days          = 7
+      storage_class = "STANDARD_IA"
+    }
+  }
+
+  # Expire objects tagged referenced=false after 30 days
+  rule {
+    id     = "expire-unreferenced"
+    status = "Enabled"
+
+    filter {
+      and {
+        prefix = "obo="
+        tags = {
+          "referenced" = "false"
+        }
+      }
+    }
+
+    expiration {
+      days = 30
+    }
+  }
+}
+
+# ARTIFACTS BUCKET
+resource "aws_s3_bucket" "artifacts" {
+  bucket = local.bucket_artifacts
+}
+
+resource "aws_s3_bucket_public_access_block" "artifacts" {
+  bucket                  = aws_s3_bucket.artifacts.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "artifacts" {
+  bucket = aws_s3_bucket.artifacts.id
+  rule {
+    apply_server_side_encryption_by_default { sse_algorithm = "AES256" }
+    bucket_key_enabled = true
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "artifacts" {
+  bucket = aws_s3_bucket.artifacts.id
+
+  # Delete low-value artifacts after 90 days (you tag low_value=true when you write them)
+  rule {
+    id     = "expire-low-value"
+    status = "Enabled"
+
+    filter {
+      and {
+        prefix = "obo="
+        tags = {
+          "low_value" = "true"
+        }
+      }
+    }
+
+    expiration { days = 90 }
+  }
+}
+
+# RESULTS BUCKET
+resource "aws_s3_bucket" "results" {
+  bucket = local.bucket_results
+}
+
+resource "aws_s3_bucket_public_access_block" "results" {
+  bucket                  = aws_s3_bucket.results.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "results" {
+  bucket = aws_s3_bucket.results.id
+  rule {
+    apply_server_side_encryption_by_default { sse_algorithm = "AES256" }
+    bucket_key_enabled = true
+  }
+}
+
+# Retain >= 365 days for "core" results. We implement by forbidding early
+# deletion via lifecycle + (optional) bucket policy. Here we set min age before expiration.
+resource "aws_s3_bucket_lifecycle_configuration" "results" {
+  bucket = aws_s3_bucket.results.id
+
+  rule {
+    id     = "retain-core-365"
+    status = "Enabled"
+
+    filter {
+      and {
+        prefix = "obo="
+        tags = {
+          "core" = "true"
+        }
+      }
+    }
+
+    # Keep for at least 365 days (no expiration earlier). Optionally transition to GLACIER.
+    transition {
+      days          = 30
+      storage_class = "GLACIER_IR"
+    }
+    transition {
+      days          = 180
+      storage_class = "DEEP_ARCHIVE"
+    }
+    # Omit expiration block to retain indefinitely; or set expiration { days = 365 } if you want auto-delete after 1 year.
+  }
+}

@@ -1,1 +1,31 @@
-
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowCloudFrontReadViaOAC",
+      "Effect": "Allow",
+      "Principal": { "Service": "cloudfront.amazonaws.com" },
+      "Action": ["s3:GetObject"],
+      "Resource": "arn:aws:s3:::myfinbrand-site-prod-us/*",
+      "Condition": {
+        "StringEquals": {
+          "AWS:SourceArn": "arn:aws:cloudfront::026465780614:distribution/E152M5P4Z7VM3F"
+        }
+      }
+    },
+    {
+      "Sid": "AllowDeployUserList",
+      "Effect": "Allow",
+      "Principal": { "AWS": "arn:aws:iam::026465780614:user/github-deploy-bot" },
+      "Action": ["s3:ListBucket"],
+      "Resource": "arn:aws:s3:::myfinbrand-site-prod-us"
+    },
+    {
+      "Sid": "AllowDeployUserWrite",
+      "Effect": "Allow",
+      "Principal": { "AWS": "arn:aws:iam::026465780614:user/github-deploy-bot" },
+      "Action": ["s3:PutObject","s3:DeleteObject"],
+      "Resource": "arn:aws:s3:::myfinbrand-site-prod-us/*"
+    }
+  ]
+}

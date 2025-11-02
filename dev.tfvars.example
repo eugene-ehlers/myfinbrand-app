@@ -1,9 +1,0 @@
-region = "af-south-1"
-app_name = "ocrsvc"
-env = "dev"
-
-db_subnet_ids = ["subnet-xxxxxxxx","subnet-yyyyyyyy"]
-db_sg_id      = "sg-zzzzzzzz"
-db_username   = "ocradmin"
-db_password   = "CHANGE_ME_STRONG"
-db_name       = "ocr_ops"

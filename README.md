@@ -13,8 +13,31 @@ It includes a shared header, footer, and routing. We’ll add OCR features and A
 - Tailwind CSS
 
 ## Quick start
-```bash
-npm ci        # or: npm install
-npm run dev   # open the printed localhost URL
+- Install dependencies
+- Run the local dev server
+- Open the printed localhost URL
 
+## Build
+- Create a production build
+- Preview the static build locally
 
+## Structure (target)
+index.html
+package.json
+postcss.config.js
+tailwind.config.js
+vite.config.js
+/src
+  main.jsx
+  App.jsx
+  index.css
+  /components
+    Header.jsx
+    Footer.jsx
+  /pages
+    Landing.jsx
+    PageTwo.jsx
+    PageThree.jsx
+
+## Infrastructure docs
+See infra/README.md for Terraform/AWS/API details.

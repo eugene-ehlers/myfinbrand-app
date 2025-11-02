@@ -1,11 +1,20 @@
 # OCR & Analysis Service — Frontend Foundation
 
-This repository hosts the **frontend foundation** for the OCR & Analysis Service.
-It provides a clean 3-page React (Vite) app structure with a shared header, footer, and routing.
+This repository contains a minimal **3-page React (Vite) app** to establish a stable base:
+- Landing (Home)
+- Page Two
+- Page Three
 
-The goal of this setup is to establish a minimal, stable base before layering in OCR features, data flows, and integrations.
+It includes a shared header, footer, and routing. We’ll add OCR features and AWS integrations later.
 
----
+## Tech
+- React 18 + Vite
+- React Router
+- Tailwind CSS
 
-## 🧱 Current structure
+## Quick start
+```bash
+npm ci        # or: npm install
+npm run dev   # open the printed localhost URL
+
 

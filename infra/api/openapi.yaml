@@ -1,0 +1,110 @@
+openapi: 3.0.3
+info:
+  title: OCR & Analysis Service API
+  version: 0.1.0
+servers:
+  - url: https://api.example.com
+paths:
+  /precheck:
+    post:
+      summary: Pre-OCR entitlement/credit check and reservation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrecheckRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrecheckResponse'
+  /analyze:
+    post:
+      summary: Analyze a single document (sync) using prior reservations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyzeRequest'
+      responses:
+        '200':
+          description: OK
+  /batches:
+    post:
+      summary: Create a batch container
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBatchRequest'
+      responses:
+        '201':
+          description: Created
+components:
+  securitySchemes:
+    cognitoAuthorizer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    PrecheckRequest:
+      type: object
+      required: [obo_id, requested_services, doc_type, est_units, idempotency_key]
+      properties:
+        obo_id: { type: string, format: uuid }
+        env: { type: string, enum: [sandbox, prod] }
+        requested_services:
+          type: array
+          items: { type: string, enum: [ocr_raw, ocr_summary, risk] }
+        doc_type: { type: string }
+        est_units: { type: integer }
+        idempotency_key: { type: string }
+    PrecheckResponse:
+      type: object
+      properties:
+        ok: { type: boolean }
+        reservations:
+          type: array
+          items:
+            type: object
+            properties:
+              reservation_id: { type: string, format: uuid }
+              service: { type: string }
+              units: { type: integer }
+              expires_at: { type: string, format: date-time }
+        correlation_id: { type: string, format: uuid }
+    AnalyzeRequest:
+      type: object
+      required: [correlation_id, documents]
+      properties:
+        correlation_id: { type: string, format: uuid }
+        application_id: { type: string, format: uuid }
+        applicant_type: { type: string, enum: [individual, commercial] }
+        documents:
+          type: array
+          items:
+            type: object
+            required: [doc_type, file_url]
+            properties:
+              doc_type:
+                type: string
+                enum: [payslip, bank_statement, audited_full_year, audited_interim, unaudited_interim, management_accounts]
+              file_url: { type: string, format: uri }
+              captured_fields:
+                type: object
+                additionalProperties: true
+    CreateBatchRequest:
+      type: object
+      properties:
+        name: { type: string }
+        env: { type: string, enum: [sandbox, prod] }
+        modules:
+          type: array
+          items: { type: string }
+security:
+  - cognitoAuthorizer: []

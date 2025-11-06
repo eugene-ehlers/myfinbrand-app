@@ -9,7 +9,7 @@ export default function Header() {
       <div className="container flex items-center justify-between py-3">
         <Link to="/" className="text-lg font-semibold">MyFinBrand</Link>
         <nav className="flex items-center gap-2">
-          <NavLink to="/dashboard" className={active}>Dashboard</NavLink>
+          <NavLink to="/dashboard" className={({isActive}) => isActive ? "active" : ""}>Dashboard</NavLink>
           <NavLink to="/results" className={active}>Results</NavLink>
           <NavLink to="/admin" className={active}>Admin</NavLink>
           <button className="header-cta">Sign in</button>

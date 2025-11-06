@@ -32,11 +32,14 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }} # remove if not used
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ secrets.AWS_REGION }}
-
+      
       - name: Setup AWS CLI
         uses: aws-actions/setup-aws-cli@v2
+      
+      - name: Who am I? (STS)
+        run: aws sts get-caller-identity
 
       - name: Echo targets
         run: |

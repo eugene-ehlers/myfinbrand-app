@@ -27,25 +27,26 @@ jobs:
       - name: Verify dist/
         run: ls -la dist
 
+      # Configure credentials (keep this action)
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }} # remove if not used
           aws-region: ${{ secrets.AWS_REGION }}
-      
-      - name: Setup AWS CLI
-        uses: aws-actions/setup-aws-cli@v2
-      
+
+      # Ensure AWS CLI exists without marketplace action
+      - name: Ensure AWS CLI
+        run: |
+          if ! command -v aws >/dev/null 2>&1; then
+            sudo apt-get update -y
+            sudo apt-get install -y awscli
+          fi
+          aws --version
+
       - name: Who am I? (STS)
         run: aws sts get-caller-identity
-
-      - name: Echo targets
-        run: |
-          echo "Region:       ${{ secrets.AWS_REGION }}"
-          echo "Bucket name:  ${{ secrets.S3_BUCKET }}"
-          echo "Distribution: ${{ secrets.DISTRIBUTION_ID }}"
 
       - name: Check bucket exists
         run: aws s3api head-bucket --bucket "${{ secrets.S3_BUCKET }}"
@@ -59,11 +60,8 @@ jobs:
           aws s3 sync dist/assets/ "s3://${{ secrets.S3_BUCKET }}/assets/" --delete \
             --cache-control "public,max-age=31536000,immutable" --only-show-errors
           aws s3 cp dist/index.html "s3://${{ secrets.S3_BUCKET }}/index.html" \
-            --cache-control "no-cache" --content-type "text/html" --only-show-errors
+            --cache-control "no-cache, no-store, must-revalidate" --content-type "text/html" --only-show-errors
           echo "✅ upload + caching complete"
-
-      - name: List uploaded files (sanity)
-        run: aws s3 ls "s3://${{ secrets.S3_BUCKET }}/" --recursive | head -n 20
 
       - name: Invalidate CloudFront
         run: aws cloudfront create-invalidation --distribution-id "${{ secrets.DISTRIBUTION_ID }}" --paths "/*"

@@ -1,2 +1,8 @@
 /* src/index.css */
-@import "./styles/globals.css";
+@import "./styles/globals.css";  /* leave as-is if you already have it */
+
+/* optional base Tailwind if not included inside globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+

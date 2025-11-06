@@ -40,8 +40,15 @@ body {
 .page-container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
 
 /* Buttons */
-.btn-primary { background: rgb(var(--primary)); color: rgb(var(--primary-fg)); }
+/* add to styles/globals.css */
+.btn-primary {
+  background: rgb(var(--primary));
+  color: rgb(var(--primary-fg));
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
 .btn-primary:hover { filter: brightness(.95); }
+
 
 /* Header (dark navy bar, cream text; rust on hover) */
 .site-header {

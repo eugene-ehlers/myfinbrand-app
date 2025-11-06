@@ -57,3 +57,4 @@ terraform.tfstate.backup
 Thumbs.db
 .idea/
 .vscode/
+*.bak

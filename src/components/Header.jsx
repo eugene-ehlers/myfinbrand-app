@@ -6,7 +6,10 @@ export default function Header() {
 
   return (
     <header className="site-header">
-      <div className="container flex items-center justify-between py-3">
+      // App.jsx / Header.jsx / pages/*
+        <main className="page-container flex-1 py-10">…</main>
+        <div className="page-container flex items-center …">…</div>
+
         <Link to="/" className="text-lg font-semibold">MyFinBrand</Link>
         <nav className="flex items-center gap-2">
           <NavLink to="/dashboard" className={({isActive}) => isActive ? "active" : ""}>Dashboard</NavLink>

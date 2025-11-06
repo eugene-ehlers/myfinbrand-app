@@ -12,7 +12,9 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-[rgb(var(--bg))] text-[rgb(var(--ink))]">
       <Header />
-      <main className="container flex-1 py-10">
+      // App.jsx / Header.jsx / pages/*
+        <main className="page-container flex-1 py-10">…</main>
+        <div className="page-container flex items-center …">…</div>
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/dashboard" element={<Dashboard />} />

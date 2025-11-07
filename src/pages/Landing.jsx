@@ -4,10 +4,14 @@ import { Link } from "react-router-dom";
 
 export default function Landing() {
   const [file, setFile] = useState(null);
+
+  // Presign Lambda URL
   const functionUrl =
-    "https://rip7ft5vrq6ltl7r7btoop4whm0fqcnp.lambda-url.us-east-1.on.aws/"; // presign Lambda URL
+    "https://rip7ft5vrq6ltl7r7btoop4whm0fqcnp.lambda-url.us-east-1.on.aws/";
 
   async function startUpload() {
+    alert("clicked"); // TEMP sanity check so we know the handler fires
+
     try {
       if (!file) {
         alert("Please choose a file first.");
@@ -24,10 +28,13 @@ export default function Landing() {
           originalFilename: file.name,
         }),
       });
+
       if (!presignRes.ok) {
+        console.error("Presign failed", presignRes.status);
         alert("Presign failed.");
         return;
       }
+
       const { url, fields } = await presignRes.json();
 
       // 2) Upload to S3
@@ -40,6 +47,8 @@ export default function Landing() {
       if (s3Res.status === 204) {
         alert("✅ Uploaded to S3");
       } else {
+        const text = await s3Res.text().catch(() => "");
+        console.error("S3 upload failed", s3Res.status, text);
         alert(`❌ Upload failed (status ${s3Res.status})`);
       }
     } catch (err) {
@@ -53,13 +62,20 @@ export default function Landing() {
       <div>
         <h1 className="text-2xl font-semibold mb-2">Financial OCR</h1>
         <p className="opacity-80">
-          Upload financial statements, run OCR, and view risk metrics and summaries.
+          Upload financial statements, run OCR, and view risk metrics and
+          summaries.
         </p>
         <div className="mt-5 flex gap-3">
-          <Link to="/dashboard" className="btn-primary inline-flex items-center px-3 py-2 rounded-lg">
+          <Link
+            to="/dashboard"
+            className="btn-primary inline-flex items-center px-3 py-2 rounded-lg"
+          >
             Go to Dashboard
           </Link>
-          <Link to="/admin" className="inline-flex items-center px-3 py-2 rounded-lg border border-[rgb(var(--border))]">
+          <Link
+            to="/admin"
+            className="inline-flex items-center px-3 py-2 rounded-lg border border-[rgb(var(--border))]"
+          >
             Admin
           </Link>
         </div>
@@ -75,8 +91,7 @@ export default function Landing() {
         />
         <button
           onClick={startUpload}
-          className="px-4 py-2 rounded bg-black text-white disabled:opacity-50"
-          disabled={!file}
+          className="px-4 py-2 rounded bg-black text-white"
         >
           Start OCR (upload)
         </button>

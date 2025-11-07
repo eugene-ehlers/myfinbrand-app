@@ -1,16 +1,24 @@
 // src/pages/Landing.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 export default function Landing() {
   const [file, setFile] = useState(null);
 
+  // TEMP build marker so we can verify this component is on the page
+  const buildMarker = "BUILD MARKER v1 — " + new Date().toISOString();
+
   // Presign Lambda URL
   const functionUrl =
     "https://rip7ft5vrq6ltl7r7btoop4whm0fqcnp.lambda-url.us-east-1.on.aws/";
 
+  useEffect(() => {
+    // TEMP: log on mount so we know the JS ran (if console stays blank, the code isn't loaded)
+    console.log("Landing mounted:", buildMarker);
+  }, []);
+
   async function startUpload() {
-    alert("clicked"); // TEMP sanity check so we know the handler fires
+    alert("clicked"); // TEMP: sanity check
 
     try {
       if (!file) {
@@ -18,7 +26,6 @@ export default function Landing() {
         return;
       }
 
-      // 1) Get presigned POST from Lambda
       const presignRes = await fetch(functionUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -37,7 +44,6 @@ export default function Landing() {
 
       const { url, fields } = await presignRes.json();
 
-      // 2) Upload to S3
       const form = new FormData();
       Object.entries(fields).forEach(([k, v]) => form.append(k, v));
       form.append("file", file);
@@ -59,11 +65,15 @@ export default function Landing() {
 
   return (
     <section className="rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))] p-6 space-y-6">
+      {/* BIG TEMP MARKER */}
+      <div style={{ background: "#ffdddd", color: "#b00020", padding: "12px", borderRadius: "8px", fontWeight: 700 }}>
+        {buildMarker}
+      </div>
+
       <div>
         <h1 className="text-2xl font-semibold mb-2">Financial OCR</h1>
         <p className="opacity-80">
-          Upload financial statements, run OCR, and view risk metrics and
-          summaries.
+          Upload financial statements, run OCR, and view risk metrics and summaries.
         </p>
         <div className="mt-5 flex gap-3">
           <Link

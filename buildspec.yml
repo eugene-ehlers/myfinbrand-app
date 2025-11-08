@@ -8,11 +8,6 @@ env:
     - IMAGE_TAG
 
 phases:
-  install:
-    runtime-versions:
-      docker: 20
-    commands:
-      - echo "Install phase..."
   pre_build:
     commands:
       - echo "Logging in to Amazon ECR..."
@@ -31,14 +26,10 @@ phases:
       - echo "Pushing image to ECR..."
       - docker push ${ECR_URI}/${REPO_NAME}:${IMAGE_TAG}
       - IMAGE_URI=${ECR_URI}/${REPO_NAME}:${IMAGE_TAG}
-      - echo "IMAGE_URI=$IMAGE_URI" >> $CODEBUILD_SRC_DIR/imageDetail.txt
+      - echo "IMAGE_URI=$IMAGE_URI" > imageDetail.txt
       - printf '{"ImageURI":"%s"}' "$IMAGE_URI" > imageDetail.json
 
 artifacts:
   files:
     - imageDetail.json
     - imageDetail.txt
-
-cache:
-  paths:
-    - '/root/.cache/docker/layer-cache/**/*'

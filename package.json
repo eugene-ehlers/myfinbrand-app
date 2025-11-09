@@ -11,6 +11,8 @@
   "dependencies": {
     "@aws-amplify/core": "^6.13.3",
     "@aws-amplify/storage": "^6.10.0",
+    "framer-motion": "^11.11.0",
+    "lucide-react": "^0.469.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.4"
@@ -26,4 +28,3 @@
     "node": ">=20"
   }
 }
-

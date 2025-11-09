@@ -60,10 +60,16 @@ export default function Landing() {
                 We help organisations across industries turn data into a strategic asset—using advanced analytics and decision automation to drive growth, reduce risk, and achieve operational excellence.
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-3">
-                <a href="#capabilities" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-900 text-white hover:bg-slate-800 shadow">
+                <a
+                  href="#capabilities"
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[rgb(var(--primary))] text-[rgb(var(--primary-fg))] hover:brightness-95 shadow"
+                >
                   Explore how we help you grow <ArrowRight className="h-5 w-5" />
                 </a>
-                <a href="#contact" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border bg-white hover:bg-slate-50">
+                <a
+                  href="#contact"
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border bg-white hover:bg-slate-50"
+                >
                   Request a consultation
                 </a>
               </div>
@@ -222,7 +228,10 @@ export default function Landing() {
             <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">Ready to modernise your decisions?</h2>
             <p className="mt-3 text-slate-700 max-w-2xl">Let’s discuss where analytics and automation can create measurable advantage in your organisation. We’ll start with a short assessment and a practical plan.</p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href="mailto:info@tsdg.co.za" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-900 text-white hover:bg-slate-800 shadow">
+              <a
+                href="mailto:info@tsdg.co.za"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[rgb(var(--primary))] text-[rgb(var(--primary-fg))] hover:brightness-95 shadow"
+              >
                 Email us <ArrowRight className="h-5 w-5" />
               </a>
               <a href="#" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border bg-white hover:bg-slate-50">
@@ -243,7 +252,10 @@ export default function Landing() {
                 <input className="px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-slate-300" placeholder="Your name" />
                 <input className="px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-slate-300" placeholder="Company" />
                 <input type="email" className="px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-slate-300" placeholder="Email" />
-                <button type="button" className="mt-1 inline-flex justify-center items-center gap-2 px-5 py-3 rounded-xl bg-slate-900 text-white hover:bg-slate-800">
+                <button
+                  type="button"
+                  className="mt-1 inline-flex justify-center items-center gap-2 px-5 py-3 rounded-xl bg-[rgb(var(--primary))] text-[rgb(var(--primary-fg))] hover:brightness-95"
+                >
                   Get my readiness snapshot <ArrowRight className="h-5 w-5" />
                 </button>
                 <p className="text-xs text-slate-500">By submitting, you agree to our privacy notice.</p>

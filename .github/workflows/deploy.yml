@@ -1,68 +1,53 @@
 name: Deploy to S3 + CloudFront
-
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ "main" ]
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
-
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      S3_BUCKET: ${{ secrets.S3_BUCKET }}
+      DISTRIBUTION_ID: ${{ secrets.DISTRIBUTION_ID }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Node setup
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: '20'
 
-      - name: Install deps
-        run: npm ci
+      - name: Install & Build
+        run: |
+          npm ci
+          npm run build
 
-      - name: Build (Vite)
-        run: npm run build
-
-      - name: Verify dist/
-        run: ls -la dist
-
-      # Configure credentials (keep this action)
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }} # remove if not used
-          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      # Ensure AWS CLI exists without marketplace action
-      - name: Ensure AWS CLI
+      - name: Upload assets (long cache)
         run: |
-          if ! command -v aws >/dev/null 2>&1; then
-            sudo apt-get update -y
-            sudo apt-get install -y awscli
-          fi
-          aws --version
+          aws s3 cp build/ "s3://$S3_BUCKET/" --recursive \
+            --exclude "*.html" \
+            --cache-control "public, max-age=31536000, immutable"
 
-      - name: Who am I? (STS)
-        run: aws sts get-caller-identity
-
-      - name: Check bucket exists
-        run: aws s3api head-bucket --bucket "${{ secrets.S3_BUCKET }}"
-
-      - name: Sync to S3 (root)
+      - name: Upload HTML (no cache)
         run: |
-          set -e
-          echo "--- syncing dist/ to s3://${{ secrets.S3_BUCKET }} ---"
-          aws s3 sync dist/ "s3://${{ secrets.S3_BUCKET }}" --delete --only-show-errors
-          echo "--- setting cache headers ---"
-          aws s3 sync dist/assets/ "s3://${{ secrets.S3_BUCKET }}/assets/" --delete \
-            --cache-control "public,max-age=31536000,immutable" --only-show-errors
-          aws s3 cp dist/index.html "s3://${{ secrets.S3_BUCKET }}/index.html" \
-            --cache-control "no-cache, no-store, must-revalidate" --content-type "text/html" --only-show-errors
-          echo "✅ upload + caching complete"
+          aws s3 cp build/ "s3://$S3_BUCKET/" --recursive \
+            --exclude "*" --include "*.html" \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --content-type "text/html"
 
-      - name: Invalidate CloudFront
-        run: aws cloudfront create-invalidation --distribution-id "${{ secrets.DISTRIBUTION_ID }}" --paths "/*"
+      - name: Invalidate HTML
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "$DISTRIBUTION_ID" \
+            --paths "/index.html" "/"

@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, CheckCircle2, LineChart, Shield, Layers, Bot, Gauge, Building2, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
@@ -32,7 +32,7 @@ const ListItem = ({ children }) => (
   <li className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-5 w-5" /><span className="text-slate-700 leading-relaxed">{children}</span></li>
 );
 
-// ---------- Header (navy) ----------
+// ---------- Header ----------
 function SiteHeader() {
   return (
     <header className="site-header">
@@ -55,7 +55,7 @@ function SiteHeader() {
   );
 }
 
-// ---------- Footer (navy + accent) ----------
+// ---------- Footer ----------
 function SiteFooter() {
   return (
     <footer className="site-footer">
@@ -77,38 +77,59 @@ function SiteFooter() {
 }
 
 export default function Landing() {
-  // --- refs + submit handler for mailto ---
-  const nameRef = useRef(null);
-  const companyRef = useRef(null);
-  const emailRef = useRef(null);
+  // ---- Formspree wiring ----
+  const FORMSPREE_ID = "YOUR_FORMSPREE_ID"; // <-- replace with your ID
+  const endpoint = `https://formspree.io/f/${FORMSPREE_ID}`;
 
-  const handleEmailSubmit = (e) => {
+  const formRef = useRef(null);
+  const [status, setStatus] = useState({ state: "idle", msg: "" }); // idle | loading | success | error
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const name = (nameRef.current?.value || "").trim();
-    const company = (companyRef.current?.value || "").trim();
-    const email = (emailRef.current?.value || "").trim();
+    if (!formRef.current) return;
 
-    if (!name || !email) {
-      alert("Please enter your name and email.");
-      return;
+    setStatus({ state: "loading", msg: "" });
+
+    try {
+      const formData = new FormData(formRef.current);
+      // Optional: add a subject that some inboxes use
+      formData.append("_subject", `TSDG enquiry from ${formData.get("name") || "Website"}`);
+      // Optional: a simple honeypot field (hidden input in form)
+      // If filled, we can bail.
+      if (formData.get("company_website")) {
+        setStatus({ state: "success", msg: "Thanks! If you’re human, we got your note 😊" });
+        formRef.current.reset();
+        return;
+      }
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { Accept: "application/json" },
+        body: formData,
+      });
+
+      if (res.ok) {
+        setStatus({ state: "success", msg: "Thanks! We’ll be in touch shortly." });
+        formRef.current.reset();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        const errText =
+          (data && data.errors && data.errors.map((e) => e.message).join(", ")) ||
+          "Submission failed. Please try again or email info@tsdg.co.za.";
+        setStatus({ state: "error", msg: errText });
+      }
+    } catch (err) {
+      setStatus({ state: "error", msg: "Network error. Please try again or email info@tsdg.co.za." });
     }
-
-    const subject = encodeURIComponent(`TSDG enquiry from ${name}`);
-    const body = encodeURIComponent(
-      `Name: ${name}\nCompany: ${company}\nEmail: ${email}\n\nHi TSDG team,\nI'm interested in a readiness snapshot.`
-    );
-
-    window.location.href = `mailto:info@tsdg.co.za?subject=${subject}&body=${body}`;
   };
 
   return (
     <div className="min-h-screen text-slate-900" style={{ background: "rgb(var(--surface))" }}>
       <SiteHeader />
 
-      {/* HERO with navy→teal contrast glow */}
+      {/* HERO */}
       <header className="relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          {/* Large soft glow using your tokens */}
           <div
             className="absolute -top-40 -right-40 h-[36rem] w-[36rem] rounded-full blur-3xl opacity-70"
             style={{ background: "radial-gradient(60% 60% at 50% 50%, rgba(2,6,23,0.65) 0%, rgba(2,6,23,0.0) 70%)" }}
@@ -322,33 +343,50 @@ export default function Landing() {
                   <div className="text-slate-600 text-sm">5 questions → readiness snapshot</div>
                 </div>
               </div>
-              <form className="mt-4 grid gap-3" onSubmit={handleEmailSubmit}>
+
+              {/* Hidden honeypot: real users won't see/fill this if you hide via CSS */}
+              <style>{`.hp-field{position:absolute;left:-5000px;height:0;overflow:hidden}`}</style>
+
+              <form ref={formRef} onSubmit={handleSubmit} className="mt-4 grid gap-3" noValidate>
                 <input
-                  ref={nameRef}
+                  name="name"
                   required
                   className="px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-slate-300"
                   placeholder="Your name"
                 />
                 <input
-                  ref={companyRef}
+                  name="company"
                   className="px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-slate-300"
                   placeholder="Company"
                 />
                 <input
-                  ref={emailRef}
+                  name="email"
                   required
                   type="email"
                   className="px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-slate-300"
                   placeholder="Email"
                 />
+                {/* Honeypot field (spam mitigation) */}
+                <input className="hp-field" tabIndex="-1" autoComplete="off" name="company_website" placeholder="Company website" />
+
                 <button
                   type="submit"
-                  className="mt-1 inline-flex justify-center items-center gap-2 px-5 py-3 rounded-xl"
+                  disabled={status.state === "loading"}
+                  className="mt-1 inline-flex justify-center items-center gap-2 px-5 py-3 rounded-xl disabled:opacity-60"
                   style={{ background: "rgb(var(--primary))", color: "rgb(var(--primary-fg))" }}
                 >
-                  Get my readiness snapshot <ArrowRight className="h-5 w-5" />
+                  {status.state === "loading" ? "Submitting..." : "Get my readiness snapshot"} <ArrowRight className="h-5 w-5" />
                 </button>
-                <p className="text-xs text-slate-500">By submitting, you agree to our privacy notice.</p>
+
+                {status.state === "success" && (
+                  <p className="text-sm text-green-700">✅ {status.msg}</p>
+                )}
+                {status.state === "error" && (
+                  <p className="text-sm text-red-700">❌ {status.msg}</p>
+                )}
+                {status.state === "idle" && (
+                  <p className="text-xs text-slate-500">By submitting, you agree to our privacy notice.</p>
+                )}
               </form>
             </div>
           </div>

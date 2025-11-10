@@ -60,10 +60,18 @@ jobs:
       # Finally force no-cache on HTML (so updates show immediately)
       - name: Upload HTML (no cache)
         run: |
-          find dist -name "*.html" -type f -print0 | xargs -0 -I {} \
-            aws s3 cp "{}" "s3://${S3_BUCKET}/$(realpath --relative-to=dist "{}")" \
-            --cache-control "no-cache, no-store, must-revalidate" \
-            --content-type "text/html" --only-show-errors
+          set -euo pipefail
+          shopt -s globstar nullglob
+          # Copy every .html from dist/ to the bucket at the same relative path,
+          # overriding cache headers so updates show immediately.
+          for f in dist/**/*.html dist/*.html; do
+            key="${f#dist/}"   # strip leading "dist/"
+            aws s3 cp "$f" "s3://${S3_BUCKET}/${key}" \
+              --cache-control "no-cache, no-store, must-revalidate" \
+              --content-type "text/html" \
+              --only-show-errors
+          done
+
 
       - name: Invalidate CloudFront
         run: |

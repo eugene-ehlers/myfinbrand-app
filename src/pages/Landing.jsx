@@ -78,7 +78,7 @@ function SiteFooter() {
 
 export default function Landing() {
   // ---- Formspree wiring ----
-  const FORMSPREE_ID = "YOUR_FORMSPREE_ID"; // <-- replace with your ID
+  const FORMSPREE_ID = "mabcdxyz";
   const endpoint = `https://formspree.io/f/${FORMSPREE_ID}`;
 
   const formRef = useRef(null);

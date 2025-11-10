@@ -1,5 +1,4 @@
-// src/pages/Landing.jsx
-import React from "react";
+import React, { useRef } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, CheckCircle2, LineChart, Shield, Layers, Bot, Gauge, Building2, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
@@ -78,6 +77,30 @@ function SiteFooter() {
 }
 
 export default function Landing() {
+  // --- refs + submit handler for mailto ---
+  const nameRef = useRef(null);
+  const companyRef = useRef(null);
+  const emailRef = useRef(null);
+
+  const handleEmailSubmit = (e) => {
+    e.preventDefault();
+    const name = (nameRef.current?.value || "").trim();
+    const company = (companyRef.current?.value || "").trim();
+    const email = (emailRef.current?.value || "").trim();
+
+    if (!name || !email) {
+      alert("Please enter your name and email.");
+      return;
+    }
+
+    const subject = encodeURIComponent(`TSDG enquiry from ${name}`);
+    const body = encodeURIComponent(
+      `Name: ${name}\nCompany: ${company}\nEmail: ${email}\n\nHi TSDG team,\nI'm interested in a readiness snapshot.`
+    );
+
+    window.location.href = `mailto:info@tsdg.co.za?subject=${subject}&body=${body}`;
+  };
+
   return (
     <div className="min-h-screen text-slate-900" style={{ background: "rgb(var(--surface))" }}>
       <SiteHeader />
@@ -299,12 +322,27 @@ export default function Landing() {
                   <div className="text-slate-600 text-sm">5 questions → readiness snapshot</div>
                 </div>
               </div>
-              <form className="mt-4 grid gap-3">
-                <input className="px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-slate-300" placeholder="Your name" />
-                <input className="px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-slate-300" placeholder="Company" />
-                <input type="email" className="px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-slate-300" placeholder="Email" />
+              <form className="mt-4 grid gap-3" onSubmit={handleEmailSubmit}>
+                <input
+                  ref={nameRef}
+                  required
+                  className="px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-slate-300"
+                  placeholder="Your name"
+                />
+                <input
+                  ref={companyRef}
+                  className="px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-slate-300"
+                  placeholder="Company"
+                />
+                <input
+                  ref={emailRef}
+                  required
+                  type="email"
+                  className="px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-slate-300"
+                  placeholder="Email"
+                />
                 <button
-                  type="button"
+                  type="submit"
                   className="mt-1 inline-flex justify-center items-center gap-2 px-5 py-3 rounded-xl"
                   style={{ background: "rgb(var(--primary))", color: "rgb(var(--primary-fg))" }}
                 >
@@ -321,3 +359,4 @@ export default function Landing() {
     </div>
   );
 }
+

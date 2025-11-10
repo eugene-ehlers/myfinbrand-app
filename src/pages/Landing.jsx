@@ -47,7 +47,7 @@ function SiteHeader() {
           <Link to="/">Home</Link>
           <a href="#capabilities">Solutions</a>
           <a href="#contact">Contact</a>
-          <a href="mailto:info@tsdg.co.za" className="header-cta">Get in touch</a>
+          <a href="mailto:eugeneehl@outlook.com" className="header-cta">Get in touch</a>
           <Link to="/dashboard" className="header-cta">Sign in</Link>
           <Link to="/admin" className="header-cta">Register</Link>
         </nav>

@@ -1,3 +1,4 @@
+// src/pages/Landing.jsx
 import React, { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, CheckCircle2, LineChart, Shield, Layers, Bot, Gauge, Building2, Sparkles } from "lucide-react";
@@ -32,7 +33,7 @@ const ListItem = ({ children }) => (
   <li className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-5 w-5" /><span className="text-slate-700 leading-relaxed">{children}</span></li>
 );
 
-// ---------- Header ----------
+// ---------- Header (navy) ----------
 function SiteHeader() {
   return (
     <header className="site-header">
@@ -43,20 +44,20 @@ function SiteHeader() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-2">
-          <Link to="/">Home</Link>
+          <Link to="/" className="header-cta">Home</Link>
           <a href="#capabilities" className="header-cta">Solutions</a>
           <a href="#contact" className="header-cta">Contact</a>
+          <Link to="/insights" className="header-cta">Insights</Link>
           <a href="mailto:eugeneehl@outlook.com" className="header-cta">Get in touch</a>
           <Link to="/dashboard" className="header-cta">Sign in</Link>
           <Link to="/admin" className="header-cta">Register</Link>
-          <Link to="/insights" className="header-cta>Insights</Link>
         </nav>
       </div>
     </header>
   );
 }
 
-// ---------- Footer ----------
+// ---------- Footer (navy + accent) ----------
 function SiteFooter() {
   return (
     <footer className="site-footer">
@@ -68,9 +69,9 @@ function SiteFooter() {
         </div>
         <div className="text-sm opacity-80">© {new Date().getFullYear()} TSDG • All rights reserved</div>
         <div className="text-sm">
-          <a href="#" className="hover:underline">Privacy</a>
+          <a href="/privacy" className="hover:underline">Privacy</a>
           <span className="mx-2">•</span>
-          <a href="#" className="hover:underline">Terms</a>
+          <a href="/terms" className="hover:underline">Terms</a>
         </div>
       </div>
     </footer>
@@ -93,10 +94,9 @@ export default function Landing() {
 
     try {
       const formData = new FormData(formRef.current);
-      // Optional: add a subject that some inboxes use
       formData.append("_subject", `TSDG enquiry from ${formData.get("name") || "Website"}`);
-      // Optional: a simple honeypot field (hidden input in form)
-      // If filled, we can bail.
+
+      // honeypot
       if (formData.get("company_website")) {
         setStatus({ state: "success", msg: "Thanks! If you’re human, we got your note 😊" });
         formRef.current.reset();
@@ -115,7 +115,7 @@ export default function Landing() {
       } else {
         const data = await res.json().catch(() => ({}));
         const errText =
-          (data && data.errors && data.errors.map((e) => e.message).join(", ")) ||
+          (data && data.errors && data.errors.map((x) => x.message).join(", ")) ||
           "Submission failed. Please try again or email eugeneehl@outlook.com.";
         setStatus({ state: "error", msg: errText });
       }
@@ -128,7 +128,7 @@ export default function Landing() {
     <div className="min-h-screen text-slate-900" style={{ background: "rgb(var(--surface))" }}>
       <SiteHeader />
 
-      {/* HERO */}
+      {/* HERO with navy→teal contrast glow */}
       <header className="relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div
@@ -350,7 +350,7 @@ export default function Landing() {
                 </div>
               </div>
 
-              {/* Hidden honeypot: real users won't see/fill this if you hide via CSS */}
+              {/* Hidden honeypot */}
               <style>{`.hp-field{position:absolute;left:-5000px;height:0;overflow:hidden}`}</style>
 
               <form ref={formRef} onSubmit={handleSubmit} className="mt-4 grid gap-3" noValidate>
@@ -372,7 +372,6 @@ export default function Landing() {
                   className="px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-slate-300"
                   placeholder="Email"
                 />
-                {/* Honeypot field (spam mitigation) */}
                 <input className="hp-field" tabIndex="-1" autoComplete="off" name="company_website" placeholder="Company website" />
 
                 <button
@@ -403,3 +402,4 @@ export default function Landing() {
     </div>
   );
 }
+

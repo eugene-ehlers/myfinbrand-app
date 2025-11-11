@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>The Smart Decision Group — Insights</title>
+    <link>https://www.tsdg.co.za/insights</link>
+    <description>White papers and practical guides on decision engines, credit origination automation, and analytics ROI.</description>
+    <language>en-za</language>
+    <lastBuildDate>Tue, 11 Nov 2025 00:00:00 +0200</lastBuildDate>
+
+    <item>
+      <title>Decision Engines 101: From Rules to ROI</title>
+      <link>https://www.tsdg.co.za/insights/decision-engines-101</link>
+      <guid isPermaLink="true">https://www.tsdg.co.za/insights/decision-engines-101</guid>
+      <pubDate>Tue, 11 Nov 2025 00:00:00 +0200</pubDate>
+      <description>A practical primer: what a decision engine is, target architecture, governance, and a 90-day rollout plan for credit, fraud, and pricing.</description>
+    </item>
+  </channel>
+</rss>

@@ -8,6 +8,11 @@ import Admin from "./pages/Admin.jsx";
 import Insights from "./pages/Insights.jsx";
 import DecisionEngines101 from "./pages/articles/DecisionEngines101.jsx";
 
+import AIDrivenBusinessAdvantage from "./pages/articles/AIDrivenBusinessAdvantage.jsx";
+
+
+
+
 export default function App() {
   return (
     <Routes>
@@ -20,6 +25,8 @@ export default function App() {
       {/* NEW: Insights hub + article */}
       <Route path="/insights" element={<Insights />} />
       <Route path="/insights/decision-engines-101" element={<DecisionEngines101 />} />
+
+      <Route path="/insights/ai-driven-business-advantage" element={<AIDrivenBusinessAdvantage />} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

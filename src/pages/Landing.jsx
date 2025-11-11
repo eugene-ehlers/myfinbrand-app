@@ -44,12 +44,12 @@ function SiteHeader() {
 
         <nav className="hidden md:flex items-center gap-2">
           <Link to="/">Home</Link>
-          <a href="#capabilities">Solutions</a>
-          <a href="#contact">Contact</a>
+          <a href="#capabilities" className="header-cta>Solutions</a>
+          <a href="#contact" className="header-cta>Contact</a>
           <a href="mailto:eugeneehl@outlook.com" className="header-cta">Get in touch</a>
           <Link to="/dashboard" className="header-cta">Sign in</Link>
           <Link to="/admin" className="header-cta">Register</Link>
-          <Link to="/insights">Insights</Link>
+          <Link to="/insights" className="header-cta>Insights</Link>
         </nav>
       </div>
     </header>
@@ -116,11 +116,11 @@ export default function Landing() {
         const data = await res.json().catch(() => ({}));
         const errText =
           (data && data.errors && data.errors.map((e) => e.message).join(", ")) ||
-          "Submission failed. Please try again or email info@tsdg.co.za.";
+          "Submission failed. Please try again or email eugeneehl@outlook.com.";
         setStatus({ state: "error", msg: errText });
       }
     } catch (err) {
-      setStatus({ state: "error", msg: "Network error. Please try again or email info@tsdg.co.za." });
+      setStatus({ state: "error", msg: "Network error. Please try again or email eugeneehl@outlook.com." });
     }
   };
 
@@ -324,13 +324,18 @@ export default function Landing() {
             <p className="mt-3 text-slate-700 max-w-2xl">Let’s discuss where analytics and automation can create measurable advantage in your organisation. We’ll start with a short assessment and a practical plan.</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <a
-                href="mailto:info@tsdg.co.za"
+                href="mailto:eugeneehl@outlook.com"
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-xl shadow"
                 style={{ background: "rgb(var(--primary))", color: "rgb(var(--primary-fg))" }}
               >
                 Email us <ArrowRight className="h-5 w-5" />
               </a>
-              <a href="#" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border bg-white hover:bg-slate-50">
+              <a
+                href="/company-profile.pdf"
+                target="_blank"
+                rel="noopener"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border bg-white hover:bg-slate-50"
+              >
                 Download company profile
               </a>
             </div>

@@ -49,6 +49,7 @@ function SiteHeader() {
           <a href="mailto:eugeneehl@outlook.com" className="header-cta">Get in touch</a>
           <Link to="/dashboard" className="header-cta">Sign in</Link>
           <Link to="/admin" className="header-cta">Register</Link>
+          <Link to="/insights">Insights</Link>
         </nav>
       </div>
     </header>

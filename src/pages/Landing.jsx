@@ -330,14 +330,14 @@ export default function Landing() {
               >
                 Email us <ArrowRight className="h-5 w-5" />
               </a>
-              <a
+              {/*<a
                 href="/company-profile.pdf"
                 target="_blank"
                 rel="noopener"
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border bg-white hover:bg-slate-50"
               >
                 Download company profile
-              </a>
+              </a>*/}
             </div>
           </div>
           <div className="md:col-span-5">

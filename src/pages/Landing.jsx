@@ -49,8 +49,8 @@ function SiteHeader() {
           <a href="#contact" className="header-cta">Contact</a>
           <Link to="/insights" className="header-cta">Insights</Link>
           <a href="mailto:eugeneehl@outlook.com" className="header-cta">Get in touch</a>
-          <Link to="/dashboard" className="header-cta">Sign in</Link>
-          <Link to="/admin" className="header-cta">Register</Link>
+          {/*<Link to="/dashboard" className="header-cta">Sign in</Link>
+          <Link to="/admin" className="header-cta">Register</Link>*/}
         </nav>
       </div>
     </header>

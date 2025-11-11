@@ -44,8 +44,8 @@ function SiteHeader() {
 
         <nav className="hidden md:flex items-center gap-2">
           <Link to="/">Home</Link>
-          <a href="#capabilities" className="header-cta>Solutions</a>
-          <a href="#contact" className="header-cta>Contact</a>
+          <a href="#capabilities" className="header-cta">Solutions</a>
+          <a href="#contact" className="header-cta">Contact</a>
           <a href="mailto:eugeneehl@outlook.com" className="header-cta">Get in touch</a>
           <Link to="/dashboard" className="header-cta">Sign in</Link>
           <Link to="/admin" className="header-cta">Register</Link>

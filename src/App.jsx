@@ -1,17 +1,17 @@
 // src/App.jsx
-
-import React from "react";
-import { Routes, Route } from "react-router-dom";
-import Landing from "./pages/Landing";
-import Insights from "./pages/Insights"; // <-- add this
-import DecisionEngines101 from "./pages/articles/DecisionEngines101"; // already exists from earlier
+import { Routes, Route, Navigate } from "react-router-dom";
+import Landing from "./pages/Landing.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
+import Admin from "./pages/Admin.jsx";
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
-      <Route path="/insights" element={<Insights />} /> {/* <-- add this */}
-      <Route path="/insights/decision-engines-101" element={<DecisionEngines101 />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/admin" element={<Admin />} />
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

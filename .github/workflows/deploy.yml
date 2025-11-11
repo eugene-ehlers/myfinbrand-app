@@ -71,6 +71,23 @@ jobs:
               --content-type "text/html" \
               --only-show-errors
           done
+          
+      - name: Upload SEO files (no cache)
+        run: |
+          for f in sitemap.xml robots.txt feed.xml; do
+            if [ -f "dist/$f" ]; then
+              # content-type per file
+              if [ "$f" = "robots.txt" ]; then
+                CT="text/plain"
+              else
+                CT="application/xml"
+              fi
+              aws s3 cp "dist/$f" "s3://${S3_BUCKET}/$f" \
+                --cache-control "no-cache, no-store, must-revalidate" \
+                --content-type "$CT" \
+                --only-show-errors
+            fi
+          done
 
 
       - name: Invalidate CloudFront

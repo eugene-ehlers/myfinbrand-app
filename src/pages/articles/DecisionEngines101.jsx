@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import Seo from "../components/Seo";
+import Seo from "../../components/Seo";
 
 export default function Insights() {
   const articles = [

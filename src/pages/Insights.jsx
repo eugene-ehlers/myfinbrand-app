@@ -13,6 +13,15 @@ export default function Insights() {
       read: "8 min read",
       tags: ["Decision Automation", "Credit", "Risk"],
     },
+    {
+  title: "From Buzzword to Bottom Line: AI-Driven Business Advantage",
+  summary: "A step-by-step executive framework to align AI investments with strategy and ROI.",
+  path: "/insights/ai-driven-business-advantage",
+  date: "2025-11-11",
+  read: "10 min read",
+  tags: ["AI Strategy", "Transformation", "ROI"]
+   },
+
   ];
 
   return (

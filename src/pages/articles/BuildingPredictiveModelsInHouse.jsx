@@ -9,7 +9,7 @@ export default function BuildingPredictiveModelsInHouse() {
     <div className="min-h-screen bg-white text-slate-900">
       <Seo
         title="Building Predictive Models In-House: What Your Business Needs"
-        description="Executive guide to what a business needs to build, deploy, and govern its own predictive models, and when to use bureau, specialist, or scorecard-as-a-service alternatives."
+        description="An executive guide to the organisational capabilities, data, governance, and alternatives for building and running predictive models."
         canonical="https://www.tsdg.co.za/insights/building-predictive-models-in-house"
         ogType="article"
       />
@@ -24,20 +24,19 @@ export default function BuildingPredictiveModelsInHouse() {
           Building Predictive Models In-House: What Your Business Needs
         </h1>
         <p className="mt-3 text-slate-600">
-          A business-level guide to the skills, data, infrastructure and governance
-          required to build your own ML or logistic regression models — and how this
-          compares to bureau, specialist, and scorecard-as-a-service options.
+          This paper explains what it really takes to build, deploy, and maintain
+          your own predictive models, and when it makes more sense to rely on
+          bureau models, specialist providers, or scorecard-as-a-service.
         </p>
 
         <div className="mt-8 p-6 border rounded-2xl bg-slate-50">
           <h2 className="text-xl font-semibold">Download the white paper</h2>
           <p className="mt-2 text-slate-700">
-            The full white paper is available as a print-friendly PDF for executive
-            use, ExCo packs, and board discussions.
+            Download the print-ready PDF for executive and governance discussions.
           </p>
 
           <a
-            href="/docs/building-predictive-models-in-house-v1-nov25.pdf"
+            href="/docs/building-predictive-models-in-house.pdf"
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 inline-flex items-center gap-2 px-5 py-3 rounded-xl shadow"

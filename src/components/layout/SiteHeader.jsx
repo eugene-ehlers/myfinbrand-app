@@ -1,6 +1,5 @@
 // src/components/layout/SiteHeader.jsx
 import { Link } from "react-router-dom";
-import { Building2 } from "lucide-react";
 
 export default function SiteHeader() {
   return (
@@ -21,9 +20,19 @@ export default function SiteHeader() {
           <Link to="/" className="header-cta">
             Home
           </Link>
+
           <a href="#capabilities" className="header-cta">
             Solutions
           </a>
+
+          {/* New productised offers in the nav */}
+          <a href="#decision-engine" className="header-cta">
+            Decision Engine
+          </a>
+          <a href="#models-as-a-service" className="header-cta">
+            Models-as-a-Service
+          </a>
+
           <a href="#contact" className="header-cta">
             Contact
           </a>

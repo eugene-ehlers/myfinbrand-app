@@ -40,7 +40,7 @@ export const INSIGHTS = [
   title: "Building Predictive Models In-House: What Your Business Needs",
   summary:
     "A practical executive guide covering skills, infrastructure, model governance, and alternative options such as bureau models and scorecard rental.",
-  path: "/docs/building-predictive-models-in-house-v1-nov25.pdf",
+  path: "/docs/building-predictive-models-in-house-v1-nov25",
   date: "2025-11-15",
   read: "8 min read",
   tags: ["Predictive Models", "Scorecards", "Analytics"],

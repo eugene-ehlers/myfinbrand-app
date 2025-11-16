@@ -9,8 +9,7 @@ import Insights from "./pages/Insights.jsx";
 import DecisionEngines101 from "./pages/articles/DecisionEngines101.jsx";
 
 import AIDrivenBusinessAdvantage from "./pages/articles/AIDrivenBusinessAdvantage.jsx";
-
-
+import BuildingPredictiveModelsInHouse from "./pages/articles/BuildingPredictiveModelsInHouse.jsx";
 
 
 export default function App() {

@@ -1,7 +1,7 @@
 // src/pages/Insights.jsx
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import Seo from "../components/Seo";
+import Seo from "../components/Seo.jsx";
 import SiteHeader from "../components/layout/SiteHeader.jsx";
 import SiteFooter from "../components/layout/SiteFooter.jsx";
 import { INSIGHTS, CATEGORIES, TYPES } from "../data/insightsContent";
@@ -10,7 +10,16 @@ export default function Insights() {
   const [category, setCategory] = useState("All");
   const [type, setType] = useState("All");
 
-  const filtered = INSIGHTS.filter((item) => {
+  // Sort newest → oldest on every render; cheap enough for a small list
+  const sortedInsights = useMemo(() => {
+    return [...INSIGHTS].sort((a, b) => {
+      // Expecting YYYY-MM-DD strings; fallback to original order if missing
+      if (!a.date || !b.date) return 0;
+      return b.date.localeCompare(a.date);
+    });
+  }, []);
+
+  const filtered = sortedInsights.filter((item) => {
     const matchCategory = category === "All" || item.category === category;
     const matchType = type === "All" || item.type === type;
     return matchCategory && matchType;
@@ -35,12 +44,14 @@ export default function Insights() {
         </p>
 
         {/* Filters */}
-        <div className="mt-6 flex flex-wrap gap-3 items-center">
+        <div className="mt-6 flex flex-wrap gap-4 items-center">
+          {/* Category filter */}
           <div className="flex flex-wrap gap-2 items-center">
             <span className="text-xs uppercase tracking-wide text-slate-500">
               Category
             </span>
             <button
+              type="button"
               onClick={() => setCategory("All")}
               className={`text-xs px-3 py-1 rounded-full border ${
                 category === "All"
@@ -52,6 +63,7 @@ export default function Insights() {
             </button>
             {CATEGORIES.map((c) => (
               <button
+                type="button"
                 key={c}
                 onClick={() => setCategory(c)}
                 className={`text-xs px-3 py-1 rounded-full border ${
@@ -65,11 +77,13 @@ export default function Insights() {
             ))}
           </div>
 
+          {/* Type filter */}
           <div className="flex flex-wrap gap-2 items-center">
             <span className="text-xs uppercase tracking-wide text-slate-500">
               Type
             </span>
             <button
+              type="button"
               onClick={() => setType("All")}
               className={`text-xs px-3 py-1 rounded-full border ${
                 type === "All"
@@ -81,6 +95,7 @@ export default function Insights() {
             </button>
             {TYPES.map((t) => (
               <button
+                type="button"
                 key={t}
                 onClick={() => setType(t)}
                 className={`text-xs px-3 py-1 rounded-full border ${
@@ -88,7 +103,7 @@ export default function Insights() {
                     ? "bg-slate-900 text-white"
                     : "bg-white text-slate-700"
                 }`}
-            >
+              >
                 {t}
               </button>
             ))}
@@ -105,30 +120,41 @@ export default function Insights() {
           <div className="grid gap-5 sm:grid-cols-2">
             {filtered.map((a) => (
               <Link
-                key={a.slug}
+                key={a.slug || a.path}
                 to={a.path}
                 className="rounded-2xl border p-5 hover:shadow transition-shadow"
               >
                 <div className="flex items-center justify-between text-xs text-slate-500">
                   <span>
-                    {a.date} • {a.read}
+                    {a.date} {a.read ? `• ${a.read}` : null}
                   </span>
-                  <span className="rounded-full border px-2 py-0.5">
-                    {a.type}
-                  </span>
+                  <div className="flex items-center gap-1">
+                    {a.category && (
+                      <span className="hidden sm:inline text-[10px] rounded-full border px-2 py-0.5">
+                        {a.category}
+                      </span>
+                    )}
+                    {a.type && (
+                      <span className="text-[10px] rounded-full border px-2 py-0.5">
+                        {a.type}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <h2 className="mt-2 text-xl font-semibold">{a.title}</h2>
                 <p className="mt-2 text-slate-700">{a.summary}</p>
-                <div className="mt-3 flex gap-2 flex-wrap">
-                  {a.tags.map((t) => (
-                    <span
-                      key={t}
-                      className="text-xs rounded-full border px-2 py-0.5"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
+                {a.tags && a.tags.length > 0 && (
+                  <div className="mt-3 flex gap-2 flex-wrap">
+                    {a.tags.map((t) => (
+                      <span
+                        key={t}
+                        className="text-xs rounded-full border px-2 py-0.5"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </Link>
             ))}
           </div>

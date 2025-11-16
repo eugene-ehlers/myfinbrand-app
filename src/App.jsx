@@ -26,6 +26,8 @@ export default function App() {
       <Route path="/insights/decision-engines-101" element={<DecisionEngines101 />} />
 
       <Route path="/insights/ai-driven-business-advantage" element={<AIDrivenBusinessAdvantage />} />
+      <Route path="/insights/building-predictive-models-in-house" element={<BuildingPredictiveModelsInHouse />} />
+
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -173,7 +173,7 @@ export default function Landing() {
                   Empowering Businesses with Intelligent, Data-Driven Decisions
                 </h1>
                 <p className="mt-4 text-lg leading-relaxed max-w-2xl opacity-90">
-                We help organisations across industries turn data into a strategic asset—using advanced analytics, decision engines, and managed scorecards/models-as-a-service to drive growth, reduce risk, and achieve operational excellence.
+                We help organisations deploy governed, audit-ready decision engines and predictive models—hosted in your environment or ours, with optional integration into XDS for bureau data, verifications, and scorecards.
 
                 </p>
                 <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -320,9 +320,10 @@ export default function Landing() {
 
           <Pillar
             icon={Bot}
-            title="Decision-Engine Automation"
-            text="Automate approvals, pricing, routing, and policies—fast, consistent, and audit-ready."
+            title="Decision Engine Platform"
+            text="A production-ready decision engine that we configure, host, and manage. Deploy in your cloud or ours, with built-in governance, audit trails, and bureau integrations."
           />
+
           <Pillar
             icon={Shield}
             title="Governance & Compliance"
@@ -384,6 +385,93 @@ export default function Landing() {
           >
             Read the white paper: Building Predictive Models In-House
           </a>
+        </div>
+      </Section>
+
+            {/* DECISION ENGINE PLATFORM */}
+      <Section id="decision-engine" className="py-12 md:py-16">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
+            The TSDG Decision Engine Platform
+          </h2>
+          <p className="mt-3 text-slate-700">
+            A fully managed, production-ready decision engine designed for credit, onboarding,
+            fraud, pricing, KYC, and operational decisioning. Deploy in your cloud, on-prem,
+            or in our hosted environment.
+          </p>
+        </div>
+      
+        <div className="mt-10 grid md:grid-cols-3 gap-5">
+          <div className="p-6 rounded-2xl border bg-white">
+            <h3 className="text-lg font-semibold">Proven & Production-Ready</h3>
+            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
+              A configurable engine used across industries for credit, affordability,
+              onboarding, and verification flows—built for reliability and auditability.
+            </p>
+          </div>
+      
+          <div className="p-6 rounded-2xl border bg-white">
+            <h3 className="text-lg font-semibold">Deploy Anywhere</h3>
+            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
+              Host in your infrastructure, in our managed cloud environment, or through
+              our partnership with XDS for direct bureau data and service integration.
+            </p>
+          </div>
+      
+          <div className="p-6 rounded-2xl border bg-white">
+            <h3 className="text-lg font-semibold">Governed & Audit-Ready</h3>
+            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
+              Every decision is logged with reason codes, model versions, policy versions,
+              and a full audit trail—aligned with operational risk and compliance needs.
+            </p>
+          </div>
+        </div>
+      
+        <div className="mt-8 text-center">
+          <a
+            href="/docs/decision-engines-101.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl shadow"
+            style={{
+              background: "rgb(var(--primary))",
+              color: "rgb(var(--primary-fg))",
+            }}
+          >
+            Read the white paper: Decision Engines 101
+          </a>
+        </div>
+      </Section>
+
+      {/* XDS PARTNERSHIP */}
+      <Section id="xds" className="py-12 md:py-16">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
+            Powered by Partnership: Decisioning with XDS
+          </h2>
+          <p className="mt-3 text-slate-700">
+            We partner with XDS, one of South Africa’s major credit bureaus, to offer
+            hosted decision engines inside their secure environment—leveraging their
+            data, verifications, and analytics services.
+          </p>
+        </div>
+      
+        <div className="mt-10 grid md:grid-cols-2 gap-5">
+          <div className="p-6 rounded-2xl border bg-white">
+            <h3 className="text-lg font-semibold">Hosted Inside XDS</h3>
+            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
+              Deploy your decisioning workflows directly within XDS’s infrastructure,
+              reducing integration effort and enabling direct access to bureau data.
+            </p>
+          </div>
+      
+          <div className="p-6 rounded-2xl border bg-white">
+            <h3 className="text-lg font-semibold">End-to-End Credit Decisioning</h3>
+            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
+              Combine bureau data, your models, our decision engine, and real-time rules
+              to deliver instant, governed credit decisions with full audit trails.
+            </p>
+          </div>
         </div>
       </Section>
 

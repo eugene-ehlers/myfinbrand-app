@@ -167,16 +167,14 @@ export default function Landing() {
                   }}
                 >
                   <Sparkles className="h-4 w-4" />
-                  <span>Decision intelligence for modern enterprises</span>
+                  <span>Decision intelligence & models-as-a-service</span>
                 </div>
                 <h1 className="mt-5 text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight">
                   Empowering Businesses with Intelligent, Data-Driven Decisions
                 </h1>
                 <p className="mt-4 text-lg leading-relaxed max-w-2xl opacity-90">
-                  We help organisations across industries turn data into a
-                  strategic asset—using advanced analytics and decision
-                  automation to drive growth, reduce risk, and achieve
-                  operational excellence.
+                We help organisations across industries turn data into a strategic asset—using advanced analytics, decision engines, and managed scorecards/models-as-a-service to drive growth, reduce risk, and achieve operational excellence.
+
                 </p>
                 <div className="mt-8 flex flex-wrap items-center gap-3">
                   <a
@@ -316,9 +314,10 @@ export default function Landing() {
           />
           <Pillar
             icon={LineChart}
-            title="Predictive & Prescriptive Models"
-            text="Score risk, forecast demand, optimise pricing, and prioritise actions that move the needle."
+            title="Scorecards & Models-as-a-Service"
+            text="Rent proven credit and risk scorecards or ML models with Champion/Challenger management, monitoring, and governance handled for you."
           />
+
           <Pillar
             icon={Bot}
             title="Decision-Engine Automation"
@@ -331,6 +330,63 @@ export default function Landing() {
           />
         </div>
       </Section>
+
+            {/* MODELS-AS-A-SERVICE */}
+      <Section id="models-as-a-service" className="py-12 md:py-16">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
+            Scorecards & Models as a Service
+          </h2>
+          <p className="mt-3 text-slate-700">
+            Not ready to build a full in-house modelling team? We design, host, and
+            manage predictive models and scorecards for you—so you get the uplift
+            without the overhead.
+          </p>
+        </div>
+
+        <div className="mt-10 grid md:grid-cols-3 gap-5">
+          <div className="p-6 rounded-2xl border bg-white">
+            <h3 className="text-lg font-semibold">Designed for Your Portfolio</h3>
+            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
+              We build or adapt scorecards and ML models for your context, using
+              your data where available and industry data where needed.
+            </p>
+          </div>
+
+          <div className="p-6 rounded-2xl border bg-white">
+            <h3 className="text-lg font-semibold">Champion & Challenger Built-In</h3>
+            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
+              Every deployment includes a Champion and a Challenger. We review
+              performance on an agreed cycle and promote the best model, then
+              design the next Challenger.
+            </p>
+          </div>
+
+          <div className="p-6 rounded-2xl border bg-white">
+            <h3 className="text-lg font-semibold">Fully Managed & Governed</h3>
+            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
+              Hosting, monitoring, documentation, and governance are handled by us.
+              You receive clear dashboards, reason codes, and audit-ready reports.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 text-center">
+          <a
+            href="/docs/building-predictive-models-in-house.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl shadow"
+            style={{
+              background: "rgb(var(--primary))",
+              color: "rgb(var(--primary-fg))",
+            }}
+          >
+            Read the white paper: Building Predictive Models In-House
+          </a>
+        </div>
+      </Section>
+
 
       {/* OUTCOMES */}
       <Section className="py-12 md:py-16">

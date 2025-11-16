@@ -3,6 +3,8 @@ import React, { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, CheckCircle2, LineChart, Shield, Layers, Bot, Gauge, Building2, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import SiteHeader from "../components/layout/SiteHeader.jsx";
+import SiteFooter from "../components/layout/SiteFooter.jsx";
 
 const Section = ({ id, className = "", children }) => (
   <section id={id} className={`w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${className}`}>{children}</section>

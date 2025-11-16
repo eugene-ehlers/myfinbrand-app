@@ -19,7 +19,7 @@ export const INSIGHTS = [
     read: "8 min read",
     tags: ["Decision Automation", "Credit", "Risk"],
     category: "Decision Automation & Use Cases",
-    type: "White Paper",          // 💡 you can distinguish white papers here
+    type: "White Paper",
     audience: "Risk & Operations",
   },
   {
@@ -35,19 +35,19 @@ export const INSIGHTS = [
     type: "White Paper",
     audience: "Executives & Boards",
   },
-{
-  slug: "building-predictive-models-in-house",
-  title: "Building Predictive Models In-House: What Your Business Needs",
-  summary:
-    "A practical executive guide covering skills, infrastructure, model governance, and alternative options such as bureau models and scorecard rental.",
-  path: "/docs/building-predictive-models-in-house-v1-nov25",
-  date: "2025-11-15",
-  read: "8 min read",
-  tags: ["Predictive Models", "Scorecards", "Analytics"],
-  category: "Technology & Implementation",
-  type: "White Paper",
-  audience: "Risk, Data & IT Leaders",
-},
+  {
+    slug: "building-predictive-models-in-house",
+    title: "Building Predictive Models In-House: What Your Business Needs",
+    summary:
+      "A practical executive guide covering skills, infrastructure, model governance, and alternative options such as bureau models, specialist providers, and scorecard rental.",
+    path: "/insights/building-predictive-models-in-house",
+    date: "2025-11-15",
+    read: "8 min read",
+    tags: ["Predictive Models", "Scorecards", "Analytics"],
+    category: "Technology & Implementation",
+    type: "White Paper",
+    audience: "Risk, Data & IT Leaders",
+  },
 
   // Example of a future technical guide:
   // {

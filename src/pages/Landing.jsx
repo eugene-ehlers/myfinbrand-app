@@ -425,8 +425,17 @@ export default function Landing() {
               and a full audit trail—aligned with operational risk and compliance needs.
             </p>
           </div>
+          <div className="p-6 rounded-2xl border bg-white">
+            <h3 className="text-lg font-semibold">Agentic-Ready</h3>
+            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
+              AI is evolving fast — but even the most advanced agentic systems need a governed, deterministic decision layer. 
+              Our decision engine is built for this new era: API-driven, model-agnostic, explainable, and fully compatible with agentic AI workflows. 
+              Agents can orchestrate tasks, gather information, and recommend actions — while our engine ensures every final decision is consistent, compliant, auditable, and aligned with policy.
+              In short: we bring the intelligence of AI together with the governance of enterprise-grade decisioning.
+            </p>
+          </div>
         </div>
-      
+
         <div className="mt-8 text-center">
           <a
             href="/docs/decision-engines-101.pdf"

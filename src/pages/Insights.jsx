@@ -5,6 +5,7 @@ import Seo from "../components/Seo.jsx";
 import SiteHeader from "../components/layout/SiteHeader.jsx";
 import SiteFooter from "../components/layout/SiteFooter.jsx";
 import { INSIGHTS, CATEGORIES, TYPES } from "../data/insightsContent";
+import FounderBio from "../components/FounderBio.jsx";
 
 export default function Insights() {
   const [category, setCategory] = useState("All");
@@ -159,6 +160,9 @@ export default function Insights() {
             ))}
           </div>
         )}
+
+        {/* Founder bio below the insights list */}
+        <FounderBio />
       </main>
 
       <SiteFooter />

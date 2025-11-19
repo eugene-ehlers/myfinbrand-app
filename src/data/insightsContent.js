@@ -15,7 +15,7 @@ export const INSIGHTS = [
     summary:
       "A practical primer on decision automation: architecture, governance, and a 90-day rollout plan.",
     // Route to the article page (with PDF download link inside)
-    path: "/insights/decision-engines-101",
+    path: "/insights/decisionengines101",
     date: "2025-11-10",
     read: "8 min read",
     tags: ["Decision Automation", "Credit", "Risk"],

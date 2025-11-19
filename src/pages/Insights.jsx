@@ -5,7 +5,6 @@ import Seo from "../components/Seo.jsx";
 import SiteHeader from "../components/layout/SiteHeader.jsx";
 import SiteFooter from "../components/layout/SiteFooter.jsx";
 import { INSIGHTS, CATEGORIES, TYPES } from "../data/insightsContent";
-import FounderBio from "../components/FounderBio.jsx";
 
 export default function Insights() {
   const [category, setCategory] = useState("All");
@@ -30,7 +29,7 @@ export default function Insights() {
     <div className="min-h-screen bg-white text-slate-900">
       <Seo
         title="Insights | The Smart Decision Group"
-        description="White papers and practical guides on AI strategy, decision engines, and analytics ROI."
+        description="Executive summaries, white papers, and practical guides on AI, decision engines, and analytics ROI."
         canonical="https://www.tsdg.co.za/insights"
         ogType="website"
         rssHref="https://www.tsdg.co.za/feed.xml"
@@ -41,11 +40,16 @@ export default function Insights() {
       <header className="page-container mx-auto max-w-5xl px-4 pt-10 pb-6">
         <h1 className="text-3xl font-semibold tracking-tight">Insights</h1>
         <p className="mt-2 text-slate-600">
-          Research notes, white papers, and how-tos for decision intelligence leaders.
+          Short executive summaries and deeper white papers on decision engines,
+          scorecards, AI strategy, and analytics-driven growth.
+        </p>
+        <p className="mt-1 text-xs text-slate-500">
+          Tip: select <span className="font-semibold">White Paper</span> under
+          “Type” to see the more in-depth pieces.
         </p>
 
         {/* Filters */}
-        <div className="mt-6 flex flex-wrap gap-4 items-center">
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           {/* Category filter */}
           <div className="flex flex-wrap gap-2 items-center">
             <span className="text-xs uppercase tracking-wide text-slate-500">
@@ -123,8 +127,9 @@ export default function Insights() {
               <Link
                 key={a.slug || a.path}
                 to={a.path}
-                className="rounded-2xl border p-5 hover:shadow transition-shadow"
+                className="rounded-2xl border p-5 hover:shadow transition-shadow flex flex-col"
               >
+                {/* Meta row */}
                 <div className="flex items-center justify-between text-xs text-slate-500">
                   <span>
                     {a.date} {a.read ? `• ${a.read}` : null}
@@ -142,11 +147,18 @@ export default function Insights() {
                     )}
                   </div>
                 </div>
+
+                {/* Title & summary */}
                 <h2 className="mt-2 text-xl font-semibold">{a.title}</h2>
-                <p className="mt-2 text-slate-700">{a.summary}</p>
-                {a.tags && a.tags.length > 0 && (
-                  <div className="mt-3 flex gap-2 flex-wrap">
-                    {a.tags.map((t) => (
+                <p className="mt-2 text-slate-700 text-sm leading-relaxed flex-1">
+                  {a.summary}
+                </p>
+
+                {/* Tags & hint */}
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {a.tags &&
+                    a.tags.length > 0 &&
+                    a.tags.map((t) => (
                       <span
                         key={t}
                         className="text-xs rounded-full border px-2 py-0.5"
@@ -154,15 +166,16 @@ export default function Insights() {
                         {t}
                       </span>
                     ))}
-                  </div>
-                )}
+                  {a.audience && (
+                    <span className="text-[10px] uppercase tracking-wide text-slate-500 ml-auto">
+                      For: {a.audience}
+                    </span>
+                  )}
+                </div>
               </Link>
             ))}
           </div>
         )}
-
-        {/* Founder bio below the insights list */}
-        {/*<FounderBio />*/}
       </main>
 
       <SiteFooter />

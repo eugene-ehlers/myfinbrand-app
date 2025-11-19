@@ -16,6 +16,11 @@ export default function SiteHeader() {
           <strong>The Smart Decision Group</strong>
         </Link>
 
+        <Link to="/founder" className="header-cta">
+          Founder
+        </Link>
+
+
         <nav className="hidden md:flex items-center gap-2">
           <Link to="/" className="header-cta">
             Home

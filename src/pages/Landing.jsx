@@ -191,17 +191,6 @@ export default function Landing() {
                     Explore how we help you grow{" "}
                     <ArrowRight className="h-5 w-5" />
                   </a>
-                  <a
-                    href="#contact"
-                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border"
-                    style={{
-                      background: "rgba(252,250,247,0.08)",
-                      borderColor: "rgba(255,255,255,0.35)",
-                      color: "rgb(var(--cream))",
-                    }}
-                  >
-                    Request a consultation
-                  </a>
                 </div>
                 <div className="mt-10 grid grid-cols-3 gap-6 text-[rgb(var(--cream))]">
                   <Stat value="2.5×–4×" label="Typical ROI uplift" />
@@ -320,13 +309,11 @@ export default function Landing() {
             title="Scorecards & Models-as-a-Service"
             text="Rent proven credit and risk scorecards or ML models with Champion/Challenger management, monitoring, and governance handled for you."
           />
-
           <Pillar
             icon={Bot}
             title="Decision Engine Platform"
             text="A production-ready decision engine that we configure, host, and manage. Deploy in your cloud or ours, with built-in governance, audit trails, and bureau integrations."
           />
-
           <Pillar
             icon={Shield}
             title="Governance & Compliance"
@@ -341,11 +328,6 @@ export default function Landing() {
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
             Scorecards & Models as a Service
           </h2>
-          <p className="mt-3 text-slate-700">
-            Not ready to build a full in-house modelling team? We design, host,
-            and manage predictive models and scorecards for you—so you get the
-            uplift without the overhead.
-          </p>
         </div>
 
         <div className="mt-10 grid md:grid-cols-3 gap-5">
@@ -435,7 +417,7 @@ export default function Landing() {
               compliance needs.
             </p>
           </div>
-          <div className="p-6 rounded-2xl border bg-white">
+          <div className="p-6 rounded-2xl border bg-white md:col-span-3">
             <h3 className="text-lg font-semibold">Agentic-Ready</h3>
             <p className="mt-2 text-slate-700 text-sm leading-relaxed">
               AI is evolving fast — but even the most advanced agentic systems
@@ -504,7 +486,10 @@ export default function Landing() {
       </Section>
 
       {/* EXECUTIVE BRIEFINGS / WHITE PAPERS */}
-      <Section id="executive-briefings" className="py-12 md:py-16 bg-slate-50">
+      <Section
+        id="executive-briefings"
+        className="py-12 md:py-16 bg-slate-50 rounded-t-3xl"
+      >
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
             Executive Briefings & White Papers
@@ -527,8 +512,8 @@ export default function Landing() {
             </h3>
             <p className="mt-2 text-sm text-slate-700 leading-relaxed flex-1">
               A practical overview of what a decision engine is, how it differs
-              from rules engines and manual underwriting, and how to get from
-              idea to live deployment in around 90 days.
+              from rules engines and manual underwriting, and how to move from
+              PowerPoint to production in around 90 days.
             </p>
             <div className="mt-4 flex flex-col gap-2 text-sm">
               <Link
@@ -554,7 +539,7 @@ export default function Landing() {
               White Paper
             </div>
             <h3 className="mt-2 text-lg font-semibold">
-              AI-Driven Business Advantage
+              From Buzzword to Bottom Line
             </h3>
             <p className="mt-2 text-sm text-slate-700 leading-relaxed flex-1">
               A step-by-step framework for aligning AI investments with strategy,
@@ -589,8 +574,8 @@ export default function Landing() {
             </h3>
             <p className="mt-2 text-sm text-slate-700 leading-relaxed flex-1">
               What it really takes to build and host your own scorecards or ML
-              models—from data, skills, and governance to alternatives such as
-              bureau models and models-as-a-service.
+              models—from skills, data, and infrastructure to alternatives such
+              as bureau models and models-as-a-service.
             </p>
             <div className="mt-4 flex flex-col gap-2 text-sm">
               <a
@@ -600,6 +585,56 @@ export default function Landing() {
                 className="inline-flex items-center gap-1 text-slate-900 underline-offset-2 hover:underline"
               >
                 Download the full white paper (PDF)
+              </a>
+            </div>
+          </div>
+
+          {/* Agentic vs Decision Engine */}
+          <div className="p-6 rounded-2xl border bg-white flex flex-col md:col-span-2 lg:col-span-1">
+            <div className="text-xs uppercase tracking-wide text-slate-500">
+              White Paper
+            </div>
+            <h3 className="mt-2 text-lg font-semibold">
+              Agentic AI vs Decision Engines
+            </h3>
+            <p className="mt-2 text-sm text-slate-700 leading-relaxed flex-1">
+              A clear view for executives on what agentic AI can and cannot do,
+              why it doesn&apos;t replace a governed decision engine, and how to
+              design &quot;agentic-ready&quot; architectures without increasing
+              risk.
+            </p>
+            <div className="mt-4 flex flex-col gap-2 text-sm">
+              <a
+                href="/docs/Agentic-vs-decisionengine-v1-Nov25.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-slate-900 underline-offset-2 hover:underline"
+              >
+                Download the full white paper (PDF)
+              </a>
+            </div>
+          </div>
+
+          {/* Why ML */}
+          <div className="p-6 rounded-2xl border bg-white flex flex-col md:col-span-2 lg:col-span-1">
+            <div className="text-xs uppercase tracking-wide text-slate-500">
+              Briefing
+            </div>
+            <h3 className="mt-2 text-lg font-semibold">Why Machine Learning?</h3>
+            <p className="mt-2 text-sm text-slate-700 leading-relaxed flex-1">
+              A concise explanation of how credit and risk modelling evolved
+              from manual rules to logistic regression and now ML—including when
+              simple models still win and how to decide what is right for your
+              portfolio.
+            </p>
+            <div className="mt-4 flex flex-col gap-2 text-sm">
+              <a
+                href="/docs/why_ml_v1_nov25.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-slate-900 underline-offset-2 hover:underline"
+              >
+                Download the briefing (PDF)
               </a>
             </div>
           </div>
@@ -732,14 +767,6 @@ export default function Landing() {
               >
                 Email us <ArrowRight className="h-5 w-5" />
               </a>
-              {/*<a
-                href="/company-profile.pdf"
-                target="_blank"
-                rel="noopener"
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border bg-white hover:bg-slate-50"
-              >
-                Download company profile
-              </a>*/}
             </div>
           </div>
           <div className="md:col-span-5">

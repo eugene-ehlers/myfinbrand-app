@@ -11,6 +11,9 @@ import Insights from "./pages/Insights.jsx";
 import DecisionEngines101 from "./pages/articles/DecisionEngines101.jsx";
 import AIDrivenBusinessAdvantage from "./pages/articles/AIDrivenBusinessAdvantage.jsx";
 import BuildingPredictiveModelsInHouse from "./pages/articles/BuildingPredictiveModelsInHouse.jsx";
+import WhyML from "./pages/articles/WhyML.jsx";
+import AgenticVsDecisionEngine from "./pages/articles/AgenticVsDecisionEngine.jsx";
+
 import Founder from "./pages/Founder.jsx";
 
 
@@ -28,6 +31,7 @@ export default function App() {
 
       {/* NEW: Insights hub + article */}
       <Route path="/insights" element={<Insights />} />
+      <Route path="/insights/why-ml" element={<WhyML />} />
 
 
             {/* Article detail pages */}
@@ -42,6 +46,11 @@ export default function App() {
       <Route
         path="/insights/building-predictive-models-in-house"
         element={<BuildingPredictiveModelsInHouse />}
+      />
+
+      <Route
+        path="/insights/agentic-vs-decision-engine"
+        element={<AgenticVsDecisionEngine />}
       />
 
       {/* Fallback */}

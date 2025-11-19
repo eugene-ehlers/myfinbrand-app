@@ -47,7 +47,7 @@ export default function SiteHeader() {
             Contact
           </a>
 
-          <a href="mailto:eugeneehl@outlook.com" className="header-cta">
+          <a href="mailto:contact@tsdg.co.za" className="header-cta">
             Get in touch
           </a>
         </nav>

@@ -11,11 +11,16 @@ import Insights from "./pages/Insights.jsx";
 import DecisionEngines101 from "./pages/articles/DecisionEngines101.jsx";
 import AIDrivenBusinessAdvantage from "./pages/articles/AIDrivenBusinessAdvantage.jsx";
 import BuildingPredictiveModelsInHouse from "./pages/articles/BuildingPredictiveModelsInHouse.jsx";
+import Founder from "./pages/Founder.jsx";
+
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
+
+            {/* Founder page */}
+      <Route path="/founder" element={<Founder />} />
 
       {/* Existing routes */}
       <Route path="/dashboard" element={<Dashboard />} />
@@ -23,6 +28,7 @@ export default function App() {
 
       {/* NEW: Insights hub + article */}
       <Route path="/insights" element={<Insights />} />
+
 
             {/* Article detail pages */}
       <Route

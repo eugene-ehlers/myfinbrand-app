@@ -42,46 +42,24 @@ export const INSIGHTS = [
   {
     slug: "building-predictive-models-in-house",
     title: "Building Predictive Models In-House: What Your Business Needs",
-    summary:
-      "A practical executive guide covering skills, infrastructure, governance, and alternatives such as bureau scorecards and scorecard rental.",
-    // Direct PDF download in public/docs
-    path: "/docs/building-predictive-models-in-house.pdf",
-    date: "2025-11-15",
-    read: "8 min read",
-    tags: ["Predictive Models", "Scorecards", "Analytics"],
-    category: "Technology & Implementation",
-    type: "White Paper",
-    audience: "Risk, Data & IT Leaders",
+    summary: "...",
+    path: "/insights/building-predictive-models-in-house",
+    // ...
   },
 
   {
     slug: "agentic-vs-decision-engines",
     title: "Agentic AI vs Decision Engines: Why You Still Need a Governed Core",
-    summary:
-      "Explains why agentic AI agents are powerful orchestrators but cannot replace a deterministic, governed decision engine for regulated decisions.",
-    // Direct PDF download – ensure the file name matches exactly in /public/docs
-    path: "/docs/Agentic-vs-decisionengine-v1-Nov25.pdf",
-    date: "2025-11-18",
-    read: "9 min read",
-    tags: ["Agentic AI", "Decision Engines", "Governance"],
-    category: "Decision Automation & Use Cases",
-    type: "White Paper",
-    audience: "Executives, Risk & Compliance",
+    summary: "...",
+    path: "/insights/agentic-vs-decision-engine",
+    // ...
   },
-
   {
     slug: "why-machine-learning",
     title: "Why Machine Learning? From Manual Decisions to Modern Models",
-    summary:
-      "Traces the evolution from manual decisions to logistic regression scorecards to modern ML, and explains when simpler models still win in practice.",
-    // Direct PDF download – ensure the file name matches exactly in /public/docs
-    path: "/docs/why_ml_v1_nov25.pdf",
-    date: "2025-11-18",
-    read: "7 min read",
-    tags: ["Machine Learning", "Scorecards", "Model Evolution"],
-    category: "Strategy & Transformation",
-    type: "White Paper",
-    audience: "Executives & Senior Management",
+    summary: "...",
+    path: "/insights/why-ml",
+    // ...
   },
 
   // Example of a future technical guide:

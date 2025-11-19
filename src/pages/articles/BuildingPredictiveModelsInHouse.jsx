@@ -1,53 +1,103 @@
 // src/pages/articles/BuildingPredictiveModelsInHouse.jsx
 import React from "react";
+import { Link } from "react-router-dom";
 import Seo from "../../components/Seo.jsx";
 import SiteHeader from "../../components/layout/SiteHeader.jsx";
 import SiteFooter from "../../components/layout/SiteFooter.jsx";
 
 export default function BuildingPredictiveModelsInHouse() {
+  const pdfHref = "/docs/building-predictive-models-in-house.pdf";
+
   return (
     <div className="min-h-screen bg-white text-slate-900">
       <Seo
-        title="Building Predictive Models In-House: What Your Business Needs"
-        description="An executive guide to the organisational capabilities, data, governance, and alternatives for building and running predictive models."
+        title="Building Predictive Models In-House | The Smart Decision Group"
+        description="An executive guide to what it really takes to build and host your own scorecards and ML models – plus alternatives like bureau models and models-as-a-service."
         canonical="https://www.tsdg.co.za/insights/building-predictive-models-in-house"
         ogType="article"
       />
 
       <SiteHeader />
 
-      <main className="page-container mx-auto max-w-4xl px-4 py-12">
-        <p className="text-xs font-medium tracking-wide text-slate-500 uppercase">
-          White Paper • Predictive Models & Scorecards
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+      <main className="page-container mx-auto max-w-3xl px-4 py-10">
+        <Link
+          to="/insights"
+          className="text-xs text-slate-500 hover:underline"
+        >
+          ← Back to Insights
+        </Link>
+
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight">
           Building Predictive Models In-House: What Your Business Needs
         </h1>
-        <p className="mt-3 text-slate-600">
-          This paper explains what it really takes to build, deploy, and maintain
-          your own predictive models, and when it makes more sense to rely on
-          bureau models, specialist providers, or scorecard-as-a-service.
+        <p className="mt-2 text-sm text-slate-500">
+          White Paper • For Risk, Data, and IT Leaders
         </p>
 
-        <div className="mt-8 p-6 border rounded-2xl bg-slate-50">
-          <h2 className="text-xl font-semibold">Download the white paper</h2>
-          <p className="mt-2 text-slate-700">
-            Download the print-ready PDF for executive and governance discussions.
-          </p>
+        <p className="mt-4 text-slate-700 leading-relaxed">
+          Many organisations are asking whether they should build their own
+          scorecards and ML models, rely on bureau models, or use a managed
+          “models-as-a-service” approach. This white paper sets out the
+          practical capabilities, infrastructure, and governance you need for
+          each option.
+        </p>
 
+        <section className="mt-8 space-y-4">
+          <h2 className="text-xl font-semibold">
+            Inside the in-house vs. outsourced decision
+          </h2>
+          <ul className="list-disc pl-5 text-slate-700 space-y-2 text-sm">
+            <li>
+              What an in-house modelling capability actually requires (skills,
+              data, tooling, infrastructure, and governance).
+            </li>
+            <li>
+              When a bureau general scorecard is sufficient—and where its
+              limitations appear.
+            </li>
+            <li>
+              Pros and cons of bureau-hosted and third-party customised
+              scorecards.
+            </li>
+            <li>
+              How “renting” scorecards or models works in a
+              Champion/Challenger framework with managed monitoring.
+            </li>
+            <li>
+              Practical migration paths: from external scorecards today to
+              hybrid or in-house capabilities over time.
+            </li>
+          </ul>
+        </section>
+
+        <section className="mt-8 space-y-3">
+          <h2 className="text-xl font-semibold">Who should read this</h2>
+          <p className="text-slate-700 text-sm leading-relaxed">
+            This paper is aimed at credit risk, data, and IT leaders who need to
+            advise Exco on whether to invest in internal modelling teams,
+            partner with bureaus, or use managed model services — and how to
+            structure governance in each case.
+          </p>
+        </section>
+
+        <section className="mt-10">
           <a
-            href="/docs/building-predictive-models-in-house.pdf"
+            href={pdfHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-4 inline-flex items-center gap-2 px-5 py-3 rounded-xl shadow"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl shadow text-sm font-medium"
             style={{
               background: "rgb(var(--primary))",
               color: "rgb(var(--primary-fg))",
             }}
           >
-            Download PDF
+            Download the white paper (PDF)
           </a>
-        </div>
+          <p className="mt-2 text-xs text-slate-500">
+            Use this as a reference when planning your modelling roadmap or
+            engaging with bureaus and third-party providers.
+          </p>
+        </section>
       </main>
 
       <SiteFooter />

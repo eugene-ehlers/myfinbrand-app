@@ -106,13 +106,13 @@ export default function Landing() {
           (data &&
             data.errors &&
             data.errors.map((x) => x.message).join(", ")) ||
-          "Submission failed. Please try again or email eugeneehl@outlook.com.";
+          "Submission failed. Please try again or email contact@tsdg.co.za.";
         setStatus({ state: "error", msg: errText });
       }
     } catch (err) {
       setStatus({
         state: "error",
-        msg: "Network error. Please try again or email eugeneehl@outlook.com.",
+        msg: "Network error. Please try again or email contact@tsdg.co.za.",
       });
     }
   };
@@ -587,7 +587,7 @@ export default function Landing() {
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <a
-                href="mailto:eugeneehl@outlook.com"
+                href="mailto:contact@tsdg.co.za"
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-xl shadow"
                 style={{
                   background: "rgb(var(--primary))",

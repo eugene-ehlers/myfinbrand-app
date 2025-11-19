@@ -1,11 +1,12 @@
 // src/components/layout/SiteHeader.jsx
 import { Link } from "react-router-dom";
+import { Linkedin } from "lucide-react";
 
 export default function SiteHeader() {
   return (
     <header className="site-header">
       <div className="page-container flex items-center justify-between py-3">
-        {/* Logo + Brand */}
+        {/* Logo + brand */}
         <Link to="/" className="flex items-center gap-2">
           <div
             className="h-8 w-8 rounded-md"
@@ -17,22 +18,14 @@ export default function SiteHeader() {
           <strong>The Smart Decision Group</strong>
         </Link>
 
-        {/* Nav: visible on mobile + desktop, just changes size/wrapping */}
-        <nav className="flex flex-wrap items-center justify-end gap-2 text-sm md:text-base">
+        {/* Main navigation */}
+        <nav className="flex items-center gap-2 text-sm">
           <Link to="/" className="header-cta">
             Home
           </Link>
 
           <a href="#capabilities" className="header-cta">
             Solutions
-          </a>
-
-          {/* Productised offers */}
-          <a href="#decision-engine" className="header-cta">
-            Decision Engine
-          </a>
-          <a href="#models-as-a-service" className="header-cta">
-            Models-as-a-Service
           </a>
 
           <Link to="/insights" className="header-cta">
@@ -47,8 +40,23 @@ export default function SiteHeader() {
             Contact
           </a>
 
-          <a href="mailto:contact@tsdg.co.za" className="header-cta">
-            Get in touch
+          {/* LinkedIn (open in new tab) */}
+          <a
+            href="https://www.linkedin.com" // TODO: replace with your profile or company URL
+            target="_blank"
+            rel="noreferrer"
+            className="header-cta flex items-center gap-1"
+          >
+            <Linkedin className="h-4 w-4" />
+            <span className="hidden sm:inline">LinkedIn</span>
+          </a>
+
+          {/* Primary CTA */}
+          <a
+            href="mailto:contact@tsdg.co.za"
+            className="ml-2 header-cta"
+          >
+            Email us
           </a>
         </nav>
       </div>

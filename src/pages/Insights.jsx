@@ -162,7 +162,7 @@ export default function Insights() {
         )}
 
         {/* Founder bio below the insights list */}
-        <FounderBio />
+        {/*<FounderBio />*/}
       </main>
 
       <SiteFooter />

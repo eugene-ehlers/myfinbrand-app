@@ -5,6 +5,7 @@ export default function SiteHeader() {
   return (
     <header className="site-header">
       <div className="page-container flex items-center justify-between py-3">
+        {/* Logo + Brand */}
         <Link to="/" className="flex items-center gap-2">
           <div
             className="h-8 w-8 rounded-md"
@@ -16,12 +17,8 @@ export default function SiteHeader() {
           <strong>The Smart Decision Group</strong>
         </Link>
 
-        <Link to="/founder" className="header-cta">
-          Founder
-        </Link>
-
-
-        <nav className="hidden md:flex items-center gap-2">
+        {/* Nav: visible on mobile + desktop, just changes size/wrapping */}
+        <nav className="flex flex-wrap items-center justify-end gap-2 text-sm md:text-base">
           <Link to="/" className="header-cta">
             Home
           </Link>
@@ -30,7 +27,7 @@ export default function SiteHeader() {
             Solutions
           </a>
 
-          {/* New productised offers in the nav */}
+          {/* Productised offers */}
           <a href="#decision-engine" className="header-cta">
             Decision Engine
           </a>
@@ -38,12 +35,18 @@ export default function SiteHeader() {
             Models-as-a-Service
           </a>
 
-          <a href="#contact" className="header-cta">
-            Contact
-          </a>
           <Link to="/insights" className="header-cta">
             Insights
           </Link>
+
+          <Link to="/founder" className="header-cta">
+            Founder
+          </Link>
+
+          <a href="#contact" className="header-cta">
+            Contact
+          </a>
+
           <a href="mailto:eugeneehl@outlook.com" className="header-cta">
             Get in touch
           </a>

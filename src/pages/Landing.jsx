@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import SiteHeader from "../components/layout/SiteHeader.jsx";
 import SiteFooter from "../components/layout/SiteFooter.jsx";
 
@@ -173,8 +174,10 @@ export default function Landing() {
                   Empowering Businesses with Intelligent, Data-Driven Decisions
                 </h1>
                 <p className="mt-4 text-lg leading-relaxed max-w-2xl opacity-90">
-                We help organisations deploy governed, audit-ready decision engines and predictive models—hosted in your environment or ours, with optional integration into XDS for bureau data, verifications, and scorecards.
-
+                  We help organisations deploy governed, audit-ready decision
+                  engines and predictive models—hosted in your environment or
+                  ours, with optional integration into XDS for bureau data,
+                  verifications, and scorecards.
                 </p>
                 <div className="mt-8 flex flex-wrap items-center gap-3">
                   <a
@@ -332,16 +335,16 @@ export default function Landing() {
         </div>
       </Section>
 
-            {/* MODELS-AS-A-SERVICE */}
+      {/* MODELS-AS-A-SERVICE */}
       <Section id="models-as-a-service" className="py-12 md:py-16">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
             Scorecards & Models as a Service
           </h2>
           <p className="mt-3 text-slate-700">
-            Not ready to build a full in-house modelling team? We design, host, and
-            manage predictive models and scorecards for you—so you get the uplift
-            without the overhead.
+            Not ready to build a full in-house modelling team? We design, host,
+            and manage predictive models and scorecards for you—so you get the
+            uplift without the overhead.
           </p>
         </div>
 
@@ -355,7 +358,9 @@ export default function Landing() {
           </div>
 
           <div className="p-6 rounded-2xl border bg-white">
-            <h3 className="text-lg font-semibold">Champion & Challenger Built-In</h3>
+            <h3 className="text-lg font-semibold">
+              Champion & Challenger Built-In
+            </h3>
             <p className="mt-2 text-slate-700 text-sm leading-relaxed">
               Every deployment includes a Champion and a Challenger. We review
               performance on an agreed cycle and promote the best model, then
@@ -366,8 +371,9 @@ export default function Landing() {
           <div className="p-6 rounded-2xl border bg-white">
             <h3 className="text-lg font-semibold">Fully Managed & Governed</h3>
             <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-              Hosting, monitoring, documentation, and governance are handled by us.
-              You receive clear dashboards, reason codes, and audit-ready reports.
+              Hosting, monitoring, documentation, and governance are handled by
+              us. You receive clear dashboards, reason codes, and audit-ready
+              reports.
             </p>
           </div>
         </div>
@@ -388,50 +394,59 @@ export default function Landing() {
         </div>
       </Section>
 
-            {/* DECISION ENGINE PLATFORM */}
+      {/* DECISION ENGINE PLATFORM */}
       <Section id="decision-engine" className="py-12 md:py-16">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
             The TSDG Decision Engine Platform
           </h2>
           <p className="mt-3 text-slate-700">
-            A fully managed, production-ready decision engine designed for credit, onboarding,
-            fraud, pricing, KYC, and operational decisioning. Deploy in your cloud, on-prem,
-            or in our hosted environment.
+            A fully managed, production-ready decision engine designed for
+            credit, onboarding, fraud, pricing, KYC, and operational
+            decisioning. Deploy in your cloud, on-prem, or in our hosted
+            environment.
           </p>
         </div>
-      
+
         <div className="mt-10 grid md:grid-cols-3 gap-5">
           <div className="p-6 rounded-2xl border bg-white">
             <h3 className="text-lg font-semibold">Proven & Production-Ready</h3>
             <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-              A configurable engine used across industries for credit, affordability,
-              onboarding, and verification flows—built for reliability and auditability.
+              A configurable engine used across industries for credit,
+              affordability, onboarding, and verification flows—built for
+              reliability and auditability.
             </p>
           </div>
-      
+
           <div className="p-6 rounded-2xl border bg-white">
             <h3 className="text-lg font-semibold">Deploy Anywhere</h3>
             <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-              Host in your infrastructure, in our managed cloud environment, or through
-              our partnership with XDS for direct bureau data and service integration.
+              Host in your infrastructure, in our managed cloud environment, or
+              through our partnership with XDS for direct bureau data and
+              service integration.
             </p>
           </div>
-      
+
           <div className="p-6 rounded-2xl border bg-white">
             <h3 className="text-lg font-semibold">Governed & Audit-Ready</h3>
             <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-              Every decision is logged with reason codes, model versions, policy versions,
-              and a full audit trail—aligned with operational risk and compliance needs.
+              Every decision is logged with reason codes, model versions, policy
+              versions, and a full audit trail—aligned with operational risk and
+              compliance needs.
             </p>
           </div>
           <div className="p-6 rounded-2xl border bg-white">
             <h3 className="text-lg font-semibold">Agentic-Ready</h3>
             <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-              AI is evolving fast — but even the most advanced agentic systems need a governed, deterministic decision layer. 
-              Our decision engine is built for this new era: API-driven, model-agnostic, explainable, and fully compatible with agentic AI workflows. 
-              Agents can orchestrate tasks, gather information, and recommend actions — while our engine ensures every final decision is consistent, compliant, auditable, and aligned with policy.
-              In short: we bring the intelligence of AI together with the governance of enterprise-grade decisioning.
+              AI is evolving fast — but even the most advanced agentic systems
+              need a governed, deterministic decision layer. Our decision engine
+              is built for this new era: API-driven, model-agnostic,
+              explainable, and fully compatible with agentic AI workflows.
+              Agents can orchestrate tasks, gather information, and recommend
+              actions — while our engine ensures every final decision is
+              consistent, compliant, auditable, and aligned with policy. In
+              short: we bring the intelligence of AI together with the
+              governance of enterprise-grade decisioning.
             </p>
           </div>
         </div>
@@ -459,31 +474,146 @@ export default function Landing() {
             Powered by Partnership: Decisioning with XDS
           </h2>
           <p className="mt-3 text-slate-700">
-            We partner with XDS, one of South Africa’s major credit bureaus, to offer
-            hosted decision engines inside their secure environment—leveraging their
-            data, verifications, and analytics services.
+            We partner with XDS, one of South Africa’s major credit bureaus, to
+            offer hosted decision engines inside their secure environment—
+            leveraging their data, verifications, and analytics services.
           </p>
         </div>
-      
+
         <div className="mt-10 grid md:grid-cols-2 gap-5">
           <div className="p-6 rounded-2xl border bg-white">
             <h3 className="text-lg font-semibold">Hosted Inside XDS</h3>
             <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-              Deploy your decisioning workflows directly within XDS’s infrastructure,
-              reducing integration effort and enabling direct access to bureau data.
+              Deploy your decisioning workflows directly within XDS’s
+              infrastructure, reducing integration effort and enabling direct
+              access to bureau data.
             </p>
           </div>
-      
+
           <div className="p-6 rounded-2xl border bg-white">
-            <h3 className="text-lg font-semibold">End-to-End Credit Decisioning</h3>
+            <h3 className="text-lg font-semibold">
+              End-to-End Credit Decisioning
+            </h3>
             <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-              Combine bureau data, your models, our decision engine, and real-time rules
-              to deliver instant, governed credit decisions with full audit trails.
+              Combine bureau data, your models, our decision engine, and
+              real-time rules to deliver instant, governed credit decisions with
+              full audit trails.
             </p>
           </div>
         </div>
       </Section>
 
+      {/* EXECUTIVE BRIEFINGS / WHITE PAPERS */}
+      <Section id="executive-briefings" className="py-12 md:py-16 bg-slate-50">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
+            Executive Briefings & White Papers
+          </h2>
+          <p className="mt-3 text-slate-700">
+            Short, practical summaries for senior leaders who need to understand
+            the &quot;why&quot; and &quot;how&quot;—with full white papers
+            available for teams who want the technical detail.
+          </p>
+        </div>
+
+        <div className="mt-10 grid gap-5 md:grid-cols-3">
+          {/* Decision Engines 101 */}
+          <div className="p-6 rounded-2xl border bg-white flex flex-col">
+            <div className="text-xs uppercase tracking-wide text-slate-500">
+              White Paper
+            </div>
+            <h3 className="mt-2 text-lg font-semibold">
+              Decision Engines 101
+            </h3>
+            <p className="mt-2 text-sm text-slate-700 leading-relaxed flex-1">
+              A practical overview of what a decision engine is, how it differs
+              from rules engines and manual underwriting, and how to get from
+              idea to live deployment in around 90 days.
+            </p>
+            <div className="mt-4 flex flex-col gap-2 text-sm">
+              <Link
+                to="/insights/decision-engines-101"
+                className="inline-flex items-center gap-1 text-slate-900 underline-offset-2 hover:underline"
+              >
+                Read the executive summary
+              </Link>
+              <a
+                href="/docs/decision-engines-101.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-slate-700 underline-offset-2 hover:underline"
+              >
+                Download the full white paper (PDF)
+              </a>
+            </div>
+          </div>
+
+          {/* AI-Driven Business Advantage */}
+          <div className="p-6 rounded-2xl border bg-white flex flex-col">
+            <div className="text-xs uppercase tracking-wide text-slate-500">
+              White Paper
+            </div>
+            <h3 className="mt-2 text-lg font-semibold">
+              AI-Driven Business Advantage
+            </h3>
+            <p className="mt-2 text-sm text-slate-700 leading-relaxed flex-1">
+              A step-by-step framework for aligning AI investments with strategy,
+              governance, and measurable ROI—written for executives, boards, and
+              transformation leaders.
+            </p>
+            <div className="mt-4 flex flex-col gap-2 text-sm">
+              <Link
+                to="/insights/ai-driven-business-advantage"
+                className="inline-flex items-center gap-1 text-slate-900 underline-offset-2 hover:underline"
+              >
+                Read the executive summary
+              </Link>
+              <a
+                href="/docs/ai-driven-business-advantage.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-slate-700 underline-offset-2 hover:underline"
+              >
+                Download the full white paper (PDF)
+              </a>
+            </div>
+          </div>
+
+          {/* Building Predictive Models In-House */}
+          <div className="p-6 rounded-2xl border bg-white flex flex-col">
+            <div className="text-xs uppercase tracking-wide text-slate-500">
+              White Paper
+            </div>
+            <h3 className="mt-2 text-lg font-semibold">
+              Building Predictive Models In-House
+            </h3>
+            <p className="mt-2 text-sm text-slate-700 leading-relaxed flex-1">
+              What it really takes to build and host your own scorecards or ML
+              models—from data, skills, and governance to alternatives such as
+              bureau models and models-as-a-service.
+            </p>
+            <div className="mt-4 flex flex-col gap-2 text-sm">
+              <a
+                href="/docs/building-predictive-models-in-house.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-slate-900 underline-offset-2 hover:underline"
+              >
+                Download the full white paper (PDF)
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 text-center text-sm">
+          <Link
+            to="/insights"
+            className="inline-flex items-center gap-1 underline underline-offset-2"
+          >
+            View all insights and white papers
+          </Link>
+        </div>
+      </Section>
 
       {/* OUTCOMES */}
       <Section className="py-12 md:py-16">
@@ -540,8 +670,12 @@ export default function Landing() {
                   </thead>
                   <tbody className="align-top">
                     <tr className="border-t">
-                      <td className="py-3 pr-4">Manual reviews & siloed data</td>
-                      <td className="py-3 pr-4">Automated, model-driven decisions</td>
+                      <td className="py-3 pr-4">
+                        Manual reviews & siloed data
+                      </td>
+                      <td className="py-3 pr-4">
+                        Automated, model-driven decisions
+                      </td>
                       <td className="py-3">Speed & consistency</td>
                     </tr>
                     <tr className="border-t">
@@ -559,7 +693,9 @@ export default function Landing() {
                       <td className="py-3">Regulatory confidence</td>
                     </tr>
                     <tr className="border-t">
-                      <td className="py-3 pr-4">Unpredictable operating costs</td>
+                      <td className="py-3 pr-4">
+                        Unpredictable operating costs
+                      </td>
                       <td className="py-3 pr-4">
                         Managed platforms & SLAs
                       </td>

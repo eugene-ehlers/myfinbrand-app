@@ -66,6 +66,9 @@ export default function Landing() {
   const formRef = useRef(null);
   const [status, setStatus] = useState({ state: "idle", msg: "" }); // idle | loading | success | error
 
+  // NEW: simple dropdown state for "Where we help"
+  const [solutionsOpen, setSolutionsOpen] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formRef.current) return;
@@ -179,10 +182,13 @@ export default function Landing() {
                   ours, with optional integration into XDS for bureau data,
                   verifications, and scorecards.
                 </p>
+
+                {/* HERO CTAs */}
                 <div className="mt-8 flex flex-wrap items-center gap-3">
+                  {/* Primary CTA */}
                   <a
                     href="#capabilities"
-                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl shadow"
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl shadow text-sm font-medium"
                     style={{
                       background: "rgb(var(--primary))",
                       color: "rgb(var(--primary-fg))",
@@ -191,7 +197,51 @@ export default function Landing() {
                     Explore how we help you grow{" "}
                     <ArrowRight className="h-5 w-5" />
                   </a>
+
+                  {/* Secondary: “Where we help” dropdown */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setSolutionsOpen((open) => !open)}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium bg-white/10 backdrop-blur"
+                      style={{
+                        borderColor: "rgba(148,163,184,0.7)",
+                      }}
+                    >
+                      Where we help
+                      <span className="text-xs">▾</span>
+                    </button>
+
+                    {solutionsOpen && (
+                      <div className="absolute mt-2 w-56 rounded-xl border bg-white shadow-lg text-sm text-slate-800 z-20">
+                        <Link
+                          to="/solutions/collections"
+                          className="block px-4 py-2 hover:bg-slate-50 rounded-t-xl"
+                          onClick={() => setSolutionsOpen(false)}
+                        >
+                          Collections optimisation
+                        </Link>
+                        <Link
+                          to="/solutions/originations"
+                          className="block px-4 py-2 hover:bg-slate-50 rounded-b-xl"
+                          onClick={() => setSolutionsOpen(false)}
+                        >
+                          Originations & onboarding
+                        </Link>
+                        {/* Later you can add more:
+                        <Link
+                          to="/solutions/leads"
+                          className="block px-4 py-2 hover:bg-slate-50"
+                          onClick={() => setSolutionsOpen(false)}
+                        >
+                          Leads & growth
+                        </Link>
+                        */}
+                      </div>
+                    )}
+                  </div>
                 </div>
+
                 <div className="mt-10 grid grid-cols-3 gap-6 text-[rgb(var(--cream))]">
                   <Stat value="2.5×–4×" label="Typical ROI uplift" />
                   <Stat value="3–4 min" label="Automated decision cycles" />

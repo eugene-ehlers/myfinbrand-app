@@ -39,14 +39,12 @@ export default function SiteHeader() {
             </button>
 
             {solutionsOpen && (
-              <div
-                className="absolute right-0 mt-2 w-56 rounded-xl border bg-white shadow-lg text-sm z-30"
-                style={{ color: "#0f172a" }} // force dark text inside dropdown
-              >
+              <div className="absolute right-0 mt-2 w-56 rounded-xl border bg-white shadow-lg text-sm z-30">
                 {/* Overview on the home page */}
                 <a
                   href="/#capabilities"
-                  className="block px-4 py-2 hover:bg-slate-50 rounded-t-xl text-slate-800"
+                  className="block px-4 py-2 hover:bg-slate-50 rounded-t-xl"
+                  style={{ color: "rgb(15 23 42)" }} // dark text
                   onClick={() => setSolutionsOpen(false)}
                 >
                   Overview: What we do
@@ -55,7 +53,8 @@ export default function SiteHeader() {
                 {/* Collections solution */}
                 <Link
                   to="/solutions/collections"
-                  className="block px-4 py-2 hover:bg-slate-50 text-slate-800"
+                  className="block px-4 py-2 hover:bg-slate-50"
+                  style={{ color: "rgb(15 23 42)" }} // dark text
                   onClick={() => setSolutionsOpen(false)}
                 >
                   Collections optimisation
@@ -64,7 +63,8 @@ export default function SiteHeader() {
                 {/* Originations solution */}
                 <Link
                   to="/solutions/originations"
-                  className="block px-4 py-2 hover:bg-slate-50 rounded-b-xl text-slate-800"
+                  className="block px-4 py-2 hover:bg-slate-50 rounded-b-xl"
+                  style={{ color: "rgb(15 23 42)" }} // dark text
                   onClick={() => setSolutionsOpen(false)}
                 >
                   Originations &amp; onboarding

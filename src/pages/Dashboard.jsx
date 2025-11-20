@@ -3,8 +3,10 @@ import React, { useState } from "react";
 
 export default function Dashboard() {
   const [caseName, setCaseName] = useState("");
+  const [docType, setDocType] = useState("bank_statements");
   const [file, setFile] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState(null); // { type: "info" | "success" | "error", message: string }
 
   // Presign Lambda URL
   const functionUrl =
@@ -12,34 +14,51 @@ export default function Dashboard() {
 
   async function startUpload(e) {
     e?.preventDefault?.();
+
     if (!file) {
-      alert("Please choose a file first.");
+      setStatus({ type: "error", message: "Please choose a file first." });
+      return;
+    }
+
+    if (!caseName.trim()) {
+      setStatus({
+        type: "error",
+        message: "Please enter a case name to group this upload.",
+      });
       return;
     }
 
     setBusy(true);
+    setStatus({ type: "info", message: "Requesting upload slot…" });
+
     try {
       // 1) Get presigned POST from Lambda
       const presignRes = await fetch(functionUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          docType: "bank_statements", // TODO: make dynamic later
+          docType, // dynamic now
           mimeType: file.type || "application/pdf",
           originalFilename: file.name,
-          // You can include metadata here later (e.g., caseName)
+          caseName: caseName.trim(), // 👈 include case name so backend can use it
+          // TODO: add user ID / other metadata later if needed
         }),
       });
 
       if (!presignRes.ok) {
         console.error("Presign failed", presignRes.status);
-        alert("Presign failed.");
+        setStatus({
+          type: "error",
+          message: `Presign failed (HTTP ${presignRes.status}).`,
+        });
         return;
       }
 
       const { url, fields } = await presignRes.json();
 
       // 2) Upload directly to S3 with the returned form fields
+      setStatus({ type: "info", message: "Uploading file to secure storage…" });
+
       const form = new FormData();
       Object.entries(fields).forEach(([k, v]) => form.append(k, v));
       form.append("file", file);
@@ -47,20 +66,37 @@ export default function Dashboard() {
       const s3Res = await fetch(url, { method: "POST", body: form });
 
       if (s3Res.status === 204) {
-        alert("✅ Uploaded to S3");
+        setStatus({
+          type: "success",
+          message:
+            "Upload complete. OCR will start automatically in the background.",
+        });
         // (Optional) clear file after success
         setFile(null);
       } else {
         const text = await s3Res.text().catch(() => "");
         console.error("S3 upload failed", s3Res.status, text);
-        alert(`❌ Upload failed (status ${s3Res.status})`);
+        setStatus({
+          type: "error",
+          message: `Upload failed (status ${s3Res.status}).`,
+        });
       }
     } catch (err) {
       console.error(err);
-      alert("Unexpected error during upload.");
+      setStatus({
+        type: "error",
+        message: "Unexpected error during upload. Please try again.",
+      });
     } finally {
       setBusy(false);
     }
+  }
+
+  function statusClasses() {
+    if (!status) return "";
+    if (status.type === "success") return "text-green-600";
+    if (status.type === "error") return "text-red-600";
+    return "text-[rgb(var(--ink-dim))]";
   }
 
   return (
@@ -71,6 +107,7 @@ export default function Dashboard() {
       </p>
 
       <form className="mt-6 space-y-4" onSubmit={startUpload}>
+        {/* Case name */}
         <div className="grid gap-2">
           <label htmlFor="caseName" className="font-medium">
             Case name
@@ -84,8 +121,31 @@ export default function Dashboard() {
             className="border rounded-lg px-3 py-2 bg-[rgb(var(--surface))] border-[rgb(var(--border))] focus:outline-none"
             placeholder="e.g., ACME_2025_11_BankStmt"
           />
+          <p className="text-xs text-[rgb(var(--ink-dim))]">
+            Used to group uploads and OCR results for this client.
+          </p>
         </div>
 
+        {/* Document type selector */}
+        <div className="grid gap-2">
+          <label htmlFor="docType" className="font-medium">
+            Document type
+          </label>
+          <select
+            id="docType"
+            name="docType"
+            value={docType}
+            onChange={(e) => setDocType(e.target.value)}
+            className="border rounded-lg px-3 py-2 bg-[rgb(var(--surface))] border-[rgb(var(--border))] focus:outline-none"
+          >
+            <option value="bank_statements">Bank statement</option>
+            <option value="id_documents">ID / Passport</option>
+            <option value="payslips">Payslip</option>
+            <option value="generic">Other / Generic</option>
+          </select>
+        </div>
+
+        {/* File input */}
         <div className="grid gap-2">
           <label htmlFor="file" className="font-medium">
             Upload PDF/Images
@@ -105,6 +165,12 @@ export default function Dashboard() {
           )}
         </div>
 
+        {/* Status message */}
+        {status && (
+          <div className={`text-sm ${statusClasses()}`}>{status.message}</div>
+        )}
+
+        {/* Submit */}
         <button
           type="submit"
           className="btn-primary rounded-lg px-4 py-2 disabled:opacity-50"

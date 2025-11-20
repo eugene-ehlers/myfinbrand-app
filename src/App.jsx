@@ -9,6 +9,10 @@ import Insights from "./pages/Insights.jsx";
 // Solutions
 import Collections from "./pages/solutions/Collections.jsx";
 import Originations from "./pages/solutions/Originations.jsx";
+import Fraud from "./pages/solutions/Fraud.jsx";
+import KycFica from "./pages/solutions/KycFica.jsx";
+import PricingOptimisation from "./pages/solutions/PricingOptimisation.jsx";
+import CustomerManagement from "./pages/solutions/CustomerManagement.jsx";
 
 // Article pages
 import DecisionEngines101 from "./pages/articles/DecisionEngines101.jsx";
@@ -35,6 +39,16 @@ export default function App() {
       {/* Solutions */}
       <Route path="/solutions/collections" element={<Collections />} />
       <Route path="/solutions/originations" element={<Originations />} />
+      <Route path="/solutions/fraud" element={<Fraud />} />
+      <Route path="/solutions/kyc-fica" element={<KycFica />} />
+      <Route
+        path="/solutions/pricing-optimisation"
+        element={<PricingOptimisation />}
+      />
+      <Route
+        path="/solutions/customer-management"
+        element={<CustomerManagement />}
+      />
 
       {/* Insights hub + articles */}
       <Route path="/insights" element={<Insights />} />

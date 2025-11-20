@@ -4,13 +4,11 @@ import Landing from "./pages/Landing.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Admin from "./pages/Admin.jsx";
 
-// NEW: Insights hub + first article
 import Insights from "./pages/Insights.jsx";
 
-// Soliutions
+// Solutions
 import Collections from "./pages/solutions/Collections.jsx";
 import Originations from "./pages/solutions/Originations.jsx";
-
 
 // Article pages
 import DecisionEngines101 from "./pages/articles/DecisionEngines101.jsx";
@@ -21,34 +19,26 @@ import AgenticVsDecisionEngine from "./pages/articles/AgenticVsDecisionEngine.js
 
 import Founder from "./pages/Founder.jsx";
 
-
 export default function App() {
   return (
     <Routes>
+      {/* Landing */}
       <Route path="/" element={<Landing />} />
 
-            {/* Founder page */}
+      {/* Founder page */}
       <Route path="/founder" element={<Founder />} />
 
       {/* Existing routes */}
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/admin" element={<Admin />} />
 
-      {/* NEW: Insights hub + article */}
-      <Routes>
-      <Route path="/" element={<Landing />} />
+      {/* Solutions */}
       <Route path="/solutions/collections" element={<Collections />} />
       <Route path="/solutions/originations" element={<Originations />} />
-      {/* keep your other routes */}
-      </Routes>
 
-
-      {/* NEW: Insights hub + article */}
+      {/* Insights hub + articles */}
       <Route path="/insights" element={<Insights />} />
       <Route path="/insights/why-ml" element={<WhyML />} />
-
-
-            {/* Article detail pages */}
       <Route
         path="/insights/decision-engines-101"
         element={<DecisionEngines101 />}
@@ -61,7 +51,6 @@ export default function App() {
         path="/insights/building-predictive-models-in-house"
         element={<BuildingPredictiveModelsInHouse />}
       />
-
       <Route
         path="/insights/agentic-vs-decision-engine"
         element={<AgenticVsDecisionEngine />}
@@ -72,5 +61,3 @@ export default function App() {
     </Routes>
   );
 }
-
-

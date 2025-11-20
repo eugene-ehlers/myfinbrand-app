@@ -32,6 +32,9 @@ export default function SiteHeader() {
             Collections
           </Link>
 
+          <Link to="/solutions/originations" className="...">
+            Originations &amp; Onboarding
+          </Link>
 
           <Link to="/insights" className="header-cta">
             Insights

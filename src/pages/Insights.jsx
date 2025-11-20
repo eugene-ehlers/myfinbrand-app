@@ -5,15 +5,15 @@ import Seo from "../components/Seo.jsx";
 import SiteHeader from "../components/layout/SiteHeader.jsx";
 import SiteFooter from "../components/layout/SiteFooter.jsx";
 import { INSIGHTS, CATEGORIES, TYPES } from "../data/insightsContent";
+// import FounderBio from "../components/FounderBio.jsx";
 
 export default function Insights() {
   const [category, setCategory] = useState("All");
   const [type, setType] = useState("All");
 
-  // Sort newest → oldest on every render; cheap enough for a small list
+  // Sort newest → oldest
   const sortedInsights = useMemo(() => {
     return [...INSIGHTS].sort((a, b) => {
-      // Expecting YYYY-MM-DD strings; fallback to original order if missing
       if (!a.date || !b.date) return 0;
       return b.date.localeCompare(a.date);
     });
@@ -25,11 +25,13 @@ export default function Insights() {
     return matchCategory && matchType;
   });
 
+  const featuredInsights = sortedInsights.filter((i) => i.featured);
+
   return (
     <div className="min-h-screen bg-white text-slate-900">
       <Seo
         title="Insights | The Smart Decision Group"
-        description="Executive summaries, white papers, and practical guides on AI, decision engines, and analytics ROI."
+        description="White papers and practical guides on AI strategy, decision engines, and analytics ROI."
         canonical="https://www.tsdg.co.za/insights"
         ogType="website"
         rssHref="https://www.tsdg.co.za/feed.xml"
@@ -40,16 +42,45 @@ export default function Insights() {
       <header className="page-container mx-auto max-w-5xl px-4 pt-10 pb-6">
         <h1 className="text-3xl font-semibold tracking-tight">Insights</h1>
         <p className="mt-2 text-slate-600">
-          Short executive summaries and deeper white papers on decision engines,
-          scorecards, AI strategy, and analytics-driven growth.
+          Research notes, white papers, and practical guides for executives,
+          risk leaders, and data teams modernising their decisioning.
         </p>
-        <p className="mt-1 text-xs text-slate-500">
-          Tip: select <span className="font-semibold">White Paper</span> under
-          “Type” to see the more in-depth pieces.
+        <p className="mt-1 text-sm text-slate-500">
+          If you arrived here from LinkedIn, start with the featured pieces
+          below and then explore by category or type.
         </p>
 
+        {/* Featured row */}
+        {featuredInsights.length > 0 && (
+          <section className="mt-6">
+            <h2 className="text-sm font-semibold tracking-wide text-slate-500 uppercase">
+              Recommended starting points
+            </h2>
+            <div className="mt-3 grid gap-4 md:grid-cols-3">
+              {featuredInsights.map((a) => (
+                <Link
+                  key={a.slug}
+                  to={a.path}
+                  className="rounded-2xl border p-4 hover:shadow-sm transition-shadow"
+                >
+                  <div className="text-[11px] text-slate-500 flex items-center justify-between">
+                    <span>{a.type}</span>
+                    <span>{a.date}</span>
+                  </div>
+                  <h3 className="mt-2 text-sm font-semibold leading-snug">
+                    {a.title}
+                  </h3>
+                  <p className="mt-2 text-xs text-slate-700 line-clamp-4">
+                    {a.summary}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Filters */}
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-8 flex flex-wrap gap-4 items-center">
           {/* Category filter */}
           <div className="flex flex-wrap gap-2 items-center">
             <span className="text-xs uppercase tracking-wide text-slate-500">
@@ -127,9 +158,8 @@ export default function Insights() {
               <Link
                 key={a.slug || a.path}
                 to={a.path}
-                className="rounded-2xl border p-5 hover:shadow transition-shadow flex flex-col"
+                className="rounded-2xl border p-5 hover:shadow transition-shadow"
               >
-                {/* Meta row */}
                 <div className="flex items-center justify-between text-xs text-slate-500">
                   <span>
                     {a.date} {a.read ? `• ${a.read}` : null}
@@ -147,18 +177,11 @@ export default function Insights() {
                     )}
                   </div>
                 </div>
-
-                {/* Title & summary */}
                 <h2 className="mt-2 text-xl font-semibold">{a.title}</h2>
-                <p className="mt-2 text-slate-700 text-sm leading-relaxed flex-1">
-                  {a.summary}
-                </p>
-
-                {/* Tags & hint */}
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  {a.tags &&
-                    a.tags.length > 0 &&
-                    a.tags.map((t) => (
+                <p className="mt-2 text-slate-700">{a.summary}</p>
+                {a.tags && a.tags.length > 0 && (
+                  <div className="mt-3 flex gap-2 flex-wrap">
+                    {a.tags.map((t) => (
                       <span
                         key={t}
                         className="text-xs rounded-full border px-2 py-0.5"
@@ -166,16 +189,17 @@ export default function Insights() {
                         {t}
                       </span>
                     ))}
-                  {a.audience && (
-                    <span className="text-[10px] uppercase tracking-wide text-slate-500 ml-auto">
-                      For: {a.audience}
-                    </span>
-                  )}
-                </div>
+                  </div>
+                )}
               </Link>
             ))}
           </div>
         )}
+
+        {/* Optional: bring your founder credibility in here later */}
+        {/* <div className="mt-12">
+          <FounderBio />
+        </div> */}
       </main>
 
       <SiteFooter />

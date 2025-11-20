@@ -39,7 +39,7 @@ export default function SiteHeader() {
             </button>
 
             {solutionsOpen && (
-              <div className="absolute right-0 mt-2 w-56 rounded-xl border bg-white shadow-lg text-sm z-30">
+              <div className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg text-sm z-30">
                 {/* Overview on the home page */}
                 <a
                   href="/#capabilities"
@@ -50,24 +50,76 @@ export default function SiteHeader() {
                   Overview: What we do
                 </a>
 
-                {/* Collections solution */}
+                <div className="px-4 pt-2 pb-1 text-[11px] uppercase tracking-wide text-slate-400">
+                  Credit lifecycle
+                </div>
+
+                {/* Collections */}
                 <Link
                   to="/solutions/collections"
                   className="block px-4 py-2 hover:bg-slate-50"
-                  style={{ color: "rgb(15 23 42)" }} // dark text
+                  style={{ color: "rgb(15 23 42)" }}
                   onClick={() => setSolutionsOpen(false)}
                 >
                   Collections optimisation
                 </Link>
 
-                {/* Originations solution */}
+                {/* Originations */}
                 <Link
                   to="/solutions/originations"
-                  className="block px-4 py-2 hover:bg-slate-50 rounded-b-xl"
-                  style={{ color: "rgb(15 23 42)" }} // dark text
+                  className="block px-4 py-2 hover:bg-slate-50"
+                  style={{ color: "rgb(15 23 42)" }}
                   onClick={() => setSolutionsOpen(false)}
                 >
                   Originations &amp; onboarding
+                </Link>
+
+                <div className="px-4 pt-2 pb-1 text-[11px] uppercase tracking-wide text-slate-400">
+                  Risk &amp; compliance
+                </div>
+
+                {/* Fraud */}
+                <Link
+                  to="/solutions/fraud"
+                  className="block px-4 py-2 hover:bg-slate-50"
+                  style={{ color: "rgb(15 23 42)" }}
+                  onClick={() => setSolutionsOpen(false)}
+                >
+                  Fraud &amp; verification
+                </Link>
+
+                {/* KYC / FICA */}
+                <Link
+                  to="/solutions/kyc-fica"
+                  className="block px-4 py-2 hover:bg-slate-50"
+                  style={{ color: "rgb(15 23 42)" }}
+                  onClick={() => setSolutionsOpen(false)}
+                >
+                  KYC &amp; FICA orchestration
+                </Link>
+
+                <div className="px-4 pt-2 pb-1 text-[11px] uppercase tracking-wide text-slate-400">
+                  Growth &amp; portfolio value
+                </div>
+
+                {/* Pricing optimisation */}
+                <Link
+                  to="/solutions/pricing-optimisation"
+                  className="block px-4 py-2 hover:bg-slate-50"
+                  style={{ color: "rgb(15 23 42)" }}
+                  onClick={() => setSolutionsOpen(false)}
+                >
+                  Pricing &amp; offer optimisation
+                </Link>
+
+                {/* Customer management */}
+                <Link
+                  to="/solutions/customer-management"
+                  className="block px-4 py-2 hover:bg-slate-50 rounded-b-xl"
+                  style={{ color: "rgb(15 23 42)" }}
+                  onClick={() => setSolutionsOpen(false)}
+                >
+                  Customer management &amp; retention
                 </Link>
               </div>
             )}
@@ -87,7 +139,7 @@ export default function SiteHeader() {
 
           {/* LinkedIn (open in new tab) */}
           <a
-            href="https://www.linkedin.com" // TODO: replace with your profile or company URL
+            href="https://www.linkedin.com" // TODO: replace with your real profile / company URL
             target="_blank"
             rel="noreferrer"
             className="header-cta flex items-center gap-1"
@@ -97,10 +149,7 @@ export default function SiteHeader() {
           </a>
 
           {/* Primary CTA */}
-          <a
-            href="mailto:contact@tsdg.co.za"
-            className="ml-2 header-cta"
-          >
+          <a href="mailto:contact@tsdg.co.za" className="ml-2 header-cta">
             Email us
           </a>
         </nav>

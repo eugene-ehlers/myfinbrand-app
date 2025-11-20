@@ -28,6 +28,11 @@ export default function SiteHeader() {
             Solutions
           </a>
 
+          <Link to="/solutions/collections" className="...">
+            Collections
+          </Link>
+
+
           <Link to="/insights" className="header-cta">
             Insights
           </Link>

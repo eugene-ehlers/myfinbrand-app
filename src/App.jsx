@@ -7,6 +7,11 @@ import Admin from "./pages/Admin.jsx";
 // NEW: Insights hub + first article
 import Insights from "./pages/Insights.jsx";
 
+// Soliutions
+import Collections from "./pages/solutions/Collections.jsx";
+import Originations from "./pages/solutions/Originations.jsx";
+
+
 // Article pages
 import DecisionEngines101 from "./pages/articles/DecisionEngines101.jsx";
 import AIDrivenBusinessAdvantage from "./pages/articles/AIDrivenBusinessAdvantage.jsx";
@@ -28,6 +33,15 @@ export default function App() {
       {/* Existing routes */}
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/admin" element={<Admin />} />
+
+      {/* NEW: Insights hub + article */}
+      <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/solutions/collections" element={<Collections />} />
+      <Route path="/solutions/originations" element={<Originations />} />
+      {/* keep your other routes */}
+      </Routes>
+
 
       {/* NEW: Insights hub + article */}
       <Route path="/insights" element={<Insights />} />

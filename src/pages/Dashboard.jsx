@@ -79,6 +79,7 @@ export default function Dashboard() {
 
         // 🔗 navigate to Results for this object
         navigate(`/results?objectKey=${encodeURIComponent(objectKey)}`);
+        
       } else {
         const text = await s3Res.text().catch(() => "");
         console.error("S3 upload failed", s3Res.status, text);

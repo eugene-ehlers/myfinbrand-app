@@ -6,6 +6,7 @@ function useQuery() {
   const { search } = useLocation();
   return React.useMemo(() => new URLSearchParams(search), [search]);
 }
+
 export default function Results() {
   const query = useQuery();
   const objectKey = query.get("objectKey");
@@ -13,6 +14,7 @@ export default function Results() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
+  const [attempt, setAttempt] = useState(0);
 
   const functionUrl =
     "https://rip7ft5vrq6ltl7r7btoop4whm0fqcnp.lambda-url.us-east-1.on.aws/";
@@ -24,28 +26,60 @@ export default function Results() {
       return;
     }
 
-    async function fetchResult() {
+    let cancelled = false;
+
+    async function fetchResult(currentAttempt) {
       setLoading(true);
       setError(null);
+
       try {
         const res = await fetch(
           `${functionUrl}?objectKey=${encodeURIComponent(objectKey)}`
         );
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
+
+        // If the result file isn't there yet, S3/Lambda will likely return 404.
+        if (res.status === 404 && currentAttempt < 5) {
+          console.warn(
+            "Result not ready yet (404). Retrying… attempt",
+            currentAttempt + 1
+          );
+          if (!cancelled) {
+            setTimeout(
+              () => setAttempt((a) => a + 1),
+              1500 // 1.5s between polls
+            );
+          }
+          return;
         }
+
+        if (!res.ok) {
+          const text = await res.text().catch(() => "");
+          throw new Error(`HTTP ${res.status}: ${text}`);
+        }
+
         const data = await res.json();
+        if (cancelled) return;
         setResult(data);
+        setLoading(false);
+        setError(null);
       } catch (err) {
         console.error("Failed to load OCR result", err);
-        setError("Could not load OCR result yet. Please try again in a moment.");
-      } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setError(
+            "Could not load OCR result yet. Please refresh in a moment or try again."
+          );
+          setLoading(false);
+        }
       }
     }
 
-    fetchResult();
-  }, [objectKey]);
+    fetchResult(attempt);
+
+    return () => {
+      cancelled = true;
+    };
+    // re-run when objectKey or attempt changes
+  }, [objectKey, attempt]);
 
   async function handleDownloadJson() {
     if (!objectKey) return;
@@ -88,7 +122,12 @@ export default function Results() {
         </p>
       )}
 
-      {loading && <p className="opacity-80 mb-4">Loading OCR result…</p>}
+      {loading && (
+        <p className="opacity-80 mb-4">
+          Fetching OCR result
+          {attempt > 0 ? ` (retry ${attempt} of 5)…` : "…"}
+        </p>
+      )}
 
       {error && !loading && (
         <p className="text-red-600 mb-4 text-sm">{error}</p>

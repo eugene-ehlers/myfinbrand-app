@@ -2,6 +2,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./pages/Landing.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+import Results from "./pages/Results.jsx";
 import Admin from "./pages/Admin.jsx";
 
 import Insights from "./pages/Insights.jsx";
@@ -32,8 +33,9 @@ export default function App() {
       {/* Founder page */}
       <Route path="/founder" element={<Founder />} />
 
-      {/* Existing routes */}
+      {/* App flows */}
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/results" element={<Results />} />
       <Route path="/admin" element={<Admin />} />
 
       {/* Solutions */}
@@ -75,3 +77,4 @@ export default function App() {
     </Routes>
   );
 }
+

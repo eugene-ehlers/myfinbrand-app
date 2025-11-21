@@ -1,6 +1,13 @@
 // src/pages/Dashboard.jsx
 import React, { useState } from "react";
 
+import { useNavigate } from "react-router-dom";
+
+export default function Dashboard() {
+  const navigate = useNavigate();
+  // ...
+}
+
 export default function Dashboard() {
   const [caseName, setCaseName] = useState("");
   const [docType, setDocType] = useState("bank_statements");
@@ -54,7 +61,7 @@ export default function Dashboard() {
         return;
       }
 
-      const { url, fields } = await presignRes.json();
+      const { url, fields, objectKey } = await presignRes.json();
 
       // 2) Upload directly to S3 with the returned form fields
       setStatus({ type: "info", message: "Uploading file to secure storage…" });
@@ -70,7 +77,9 @@ export default function Dashboard() {
           type: "success",
           message:
             "Upload complete. OCR will start automatically in the background.",
+            navigate(`/results?objectKey=${encodeURIComponent(objectKey)}`);
         });
+        
         // (Optional) clear file after success
         setFile(null);
       } else {

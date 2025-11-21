@@ -1,6 +1,6 @@
 // src/pages/Results.jsx
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 function useQuery() {
   const { search } = useLocation();
@@ -10,11 +10,11 @@ function useQuery() {
 export default function Results() {
   const query = useQuery();
   const objectKey = query.get("objectKey");
+  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
-  const [attempt, setAttempt] = useState(0);
 
   const functionUrl =
     "https://rip7ft5vrq6ltl7r7btoop4whm0fqcnp.lambda-url.us-east-1.on.aws/";
@@ -27,59 +27,67 @@ export default function Results() {
     }
 
     let cancelled = false;
+    setLoading(true);
+    setError(null);
+    setResult(null);
 
-    async function fetchResult(currentAttempt) {
-      setLoading(true);
-      setError(null);
+    const maxAttempts = 8;
+    let attempt = 0;
+
+    async function attemptFetch() {
+      if (cancelled) return;
 
       try {
         const res = await fetch(
           `${functionUrl}?objectKey=${encodeURIComponent(objectKey)}`
         );
 
-        // If the result file isn't there yet, S3/Lambda will likely return 404.
-        if (res.status === 404 && currentAttempt < 5) {
+        if (!res.ok) {
+          // While result file may not exist yet, keep polling a few times
+          attempt += 1;
           console.warn(
-            "Result not ready yet (404). Retrying… attempt",
-            currentAttempt + 1
+            `Result fetch not OK (status ${res.status}), attempt ${attempt}/${maxAttempts}`
           );
-          if (!cancelled) {
-            setTimeout(
-              () => setAttempt((a) => a + 1),
-              1500 // 1.5s between polls
+
+          if (attempt < maxAttempts && !cancelled) {
+            setTimeout(attemptFetch, 1500); // 1.5s between polls
+          } else if (!cancelled) {
+            const text = await res.text().catch(() => "");
+            setLoading(false);
+            setError(
+              `Could not load OCR result (HTTP ${res.status}). ${text || ""}`
             );
           }
           return;
         }
 
-        if (!res.ok) {
-          const text = await res.text().catch(() => "");
-          throw new Error(`HTTP ${res.status}: ${text}`);
-        }
-
         const data = await res.json();
         if (cancelled) return;
+
         setResult(data);
         setLoading(false);
         setError(null);
       } catch (err) {
         console.error("Failed to load OCR result", err);
-        if (!cancelled) {
-          setError(
-            "Could not load OCR result yet. Please refresh in a moment or try again."
-          );
+        attempt += 1;
+
+        if (attempt < maxAttempts && !cancelled) {
+          setTimeout(attemptFetch, 1500);
+        } else if (!cancelled) {
           setLoading(false);
+          setError(
+            "Could not load OCR result. Please refresh in a moment or try again."
+          );
         }
       }
     }
 
-    fetchResult(attempt);
+    attemptFetch();
 
     return () => {
       cancelled = true;
     };
-    // re-run when objectKey or attempt changes
-  }, [objectKey, attempt]);
+  }, [objectKey]);
 
   async function handleDownloadJson() {
     if (!objectKey) return;
@@ -124,8 +132,7 @@ export default function Results() {
 
       {loading && (
         <p className="opacity-80 mb-4">
-          Fetching OCR result
-          {attempt > 0 ? ` (retry ${attempt} of 5)…` : "…"}
+          Fetching OCR result… (this can take a few seconds)
         </p>
       )}
 
@@ -203,8 +210,8 @@ export default function Results() {
             </table>
           </div>
 
-          {/* Downloads / actions */}
-          <div className="mt-6 flex gap-3">
+          {/* Downloads / navigation actions */}
+          <div className="mt-6 flex flex-wrap gap-3">
             <button
               type="button"
               className="btn-primary inline-flex items-center px-3 py-2 rounded-lg"
@@ -218,6 +225,20 @@ export default function Results() {
               onClick={handleDownloadJson}
             >
               Download JSON
+            </button>
+            <button
+              type="button"
+              className="inline-flex items-center px-3 py-2 rounded-lg border border-[rgb(var(--border))] ml-auto"
+              onClick={() => navigate("/dashboard")}
+            >
+              New OCR request
+            </button>
+            <button
+              type="button"
+              className="inline-flex items-center px-3 py-2 rounded-lg border border-[rgb(var(--border))]"
+              onClick={() => navigate("/")}
+            >
+              Home
             </button>
           </div>
         </>

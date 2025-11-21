@@ -1,14 +1,10 @@
 // src/pages/Dashboard.jsx
 import React, { useState } from "react";
-
 import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  // ...
-}
 
-export default function Dashboard() {
   const [caseName, setCaseName] = useState("");
   const [docType, setDocType] = useState("bank_statements");
   const [file, setFile] = useState(null);
@@ -47,8 +43,7 @@ export default function Dashboard() {
           docType, // dynamic now
           mimeType: file.type || "application/pdf",
           originalFilename: file.name,
-          caseName: caseName.trim(), // 👈 include case name so backend can use it
-          // TODO: add user ID / other metadata later if needed
+          caseName: caseName.trim(),
         }),
       });
 
@@ -77,11 +72,13 @@ export default function Dashboard() {
           type: "success",
           message:
             "Upload complete. OCR will start automatically in the background.",
-            navigate(`/results?objectKey=${encodeURIComponent(objectKey)}`);
         });
-        
-        // (Optional) clear file after success
+
+        // clear file
         setFile(null);
+
+        // 🔗 navigate to Results for this object
+        navigate(`/results?objectKey=${encodeURIComponent(objectKey)}`);
       } else {
         const text = await s3Res.text().catch(() => "");
         console.error("S3 upload failed", s3Res.status, text);

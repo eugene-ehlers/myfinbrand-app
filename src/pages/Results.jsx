@@ -6,7 +6,6 @@ function useQuery() {
   const { search } = useLocation();
   return React.useMemo(() => new URLSearchParams(search), [search]);
 }
-
 export default function Results() {
   const query = useQuery();
   const objectKey = query.get("objectKey");

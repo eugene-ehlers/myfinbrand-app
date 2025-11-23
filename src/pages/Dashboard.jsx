@@ -7,6 +7,18 @@ export default function Dashboard() {
 
   const [caseName, setCaseName] = useState("");
   const [docType, setDocType] = useState("bank_statements");
+  const [customerType, setCustomerType] = useState("personal");
+
+  // which services the requester wants the platform to run
+  const [services, setServices] = useState({
+    ocr: true,           // always on in your flow, but keep it explicit
+    summary: true,
+    structured: true,    // parse account + transactions
+    classification: true, // label transactions/categories
+    ratios: false,
+    risk: false,
+  });
+
   const [file, setFile] = useState(null);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState(null); // { type: "info" | "success" | "error", message: string }
@@ -14,6 +26,13 @@ export default function Dashboard() {
   // Presign Lambda URL
   const functionUrl =
     "https://rip7ft5vrq6ltl7r7btoop4whm0fqcnp.lambda-url.us-east-1.on.aws/";
+
+  function toggleService(key) {
+    setServices((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  }
 
   async function startUpload(e) {
     e?.preventDefault?.();
@@ -31,6 +50,19 @@ export default function Dashboard() {
       return;
     }
 
+    // flatten checked services into an array of strings
+    const selectedServices = Object.entries(services)
+      .filter(([_, enabled]) => enabled)
+      .map(([name]) => name);
+
+    if (selectedServices.length === 0) {
+      setStatus({
+        type: "error",
+        message: "Please select at least one processing service.",
+      });
+      return;
+    }
+
     setBusy(true);
     setStatus({ type: "info", message: "Requesting upload slot…" });
 
@@ -40,10 +72,12 @@ export default function Dashboard() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          docType, // dynamic now
+          docType, // existing
           mimeType: file.type || "application/pdf",
           originalFilename: file.name,
           caseName: caseName.trim(),
+          customerType,        // NEW
+          services: selectedServices, // NEW
         }),
       });
 
@@ -79,7 +113,6 @@ export default function Dashboard() {
 
         // 🔗 navigate to Results for this object
         navigate(`/results?objectKey=${encodeURIComponent(objectKey)}`);
-        
       } else {
         const text = await s3Res.text().catch(() => "");
         console.error("S3 upload failed", s3Res.status, text);
@@ -133,6 +166,26 @@ export default function Dashboard() {
           </p>
         </div>
 
+        {/* Customer type */}
+        <div className="grid gap-2">
+          <label htmlFor="customerType" className="font-medium">
+            Customer type
+          </label>
+          <select
+            id="customerType"
+            name="customerType"
+            value={customerType}
+            onChange={(e) => setCustomerType(e.target.value)}
+            className="border rounded-lg px-3 py-2 bg-[rgb(var(--surface))] border-[rgb(var(--border))] focus:outline-none"
+          >
+            <option value="personal">Personal</option>
+            <option value="business">Business</option>
+          </select>
+          <p className="text-xs text-[rgb(var(--ink-dim))]">
+            Helps the agentic engine tailor parsing, ratios and risk rules.
+          </p>
+        </div>
+
         {/* Document type selector */}
         <div className="grid gap-2">
           <label htmlFor="docType" className="font-medium">
@@ -150,6 +203,70 @@ export default function Dashboard() {
             <option value="payslips">Payslip</option>
             <option value="generic">Other / Generic</option>
           </select>
+        </div>
+
+        {/* Service selection */}
+        <div className="grid gap-2">
+          <span className="font-medium">Requested services</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-1 text-sm">
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={services.ocr}
+                onChange={() => toggleService("ocr")}
+              />
+              <span>OCR text extraction</span>
+            </label>
+
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={services.summary}
+                onChange={() => toggleService("summary")}
+              />
+              <span>Statement summary</span>
+            </label>
+
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={services.structured}
+                onChange={() => toggleService("structured")}
+              />
+              <span>Structured parse (account + transactions)</span>
+            </label>
+
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={services.classification}
+                onChange={() => toggleService("classification")}
+              />
+              <span>Transaction classification</span>
+            </label>
+
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={services.ratios}
+                onChange={() => toggleService("ratios")}
+              />
+              <span>Financial ratios / metrics</span>
+            </label>
+
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={services.risk}
+                onChange={() => toggleService("risk")}
+              />
+              <span>Risk score</span>
+            </label>
+          </div>
+          <p className="text-xs text-[rgb(var(--ink-dim))]">
+            You can offer these as separate products or bundles; the backend
+            will only run what is selected.
+          </p>
         </div>
 
         {/* File input */}

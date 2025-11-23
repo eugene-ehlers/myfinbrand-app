@@ -1,16 +1,38 @@
 // src/pages/Dashboard.jsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Upload, FileText, Settings2, AlertCircle, CheckCircle2 } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  Settings2,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
 import SiteHeader from "../components/layout/SiteHeader.jsx";
 import SiteFooter from "../components/layout/SiteFooter.jsx";
+
+// Allowed doc types per customer type
+const DOC_TYPE_OPTIONS = {
+  personal: [
+    { value: "bank_statements", label: "Bank statement" },
+    { value: "payslips", label: "Payslip" },
+    { value: "id_documents", label: "ID / Passport" },
+    { value: "generic", label: "Other / Generic" },
+  ],
+  business: [
+    { value: "bank_statements", label: "Bank statement" },
+    { value: "financial_statements", label: "Financial statements" },
+    { value: "id_documents", label: "Company / Director ID docs" },
+    { value: "generic", label: "Other / Generic" },
+  ],
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
 
   const [caseName, setCaseName] = useState("");
-  const [docType, setDocType] = useState("bank_statements");
   const [customerType, setCustomerType] = useState("personal");
+  const [docType, setDocType] = useState("bank_statements");
 
   // which services the requester wants the platform to run
   const [services, setServices] = useState({
@@ -29,6 +51,17 @@ export default function Dashboard() {
   // Presign Lambda URL
   const functionUrl =
     "https://rip7ft5vrq6ltl7r7btoop4whm0fqcnp.lambda-url.us-east-1.on.aws/";
+
+  const availableDocTypes = DOC_TYPE_OPTIONS[customerType] || [];
+
+  // When customerType changes, ensure docType is still valid for that type
+  useEffect(() => {
+    const stillValid = availableDocTypes.some((opt) => opt.value === docType);
+    if (!stillValid && availableDocTypes.length > 0) {
+      setDocType(availableDocTypes[0].value);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customerType]);
 
   function toggleService(key) {
     setServices((prev) => ({
@@ -230,8 +263,10 @@ export default function Dashboard() {
                   <option value="business">Business</option>
                 </select>
                 <p className="text-xs text-slate-500">
-                  Helps the agentic engine tailor parsing, ratios, and risk
-                  rules.
+                  Choose <span className="font-semibold">Business</span> for
+                  companies, close corporations, and{" "}
+                  <span className="font-semibold">sole traders / trading as</span>{" "}
+                  that provide financial statements.
                 </p>
               </div>
 
@@ -246,14 +281,16 @@ export default function Dashboard() {
                   onChange={(e) => setDocType(e.target.value)}
                   className="border rounded-xl px-3 py-2.5 bg-[rgb(var(--surface))] border-[rgb(var(--border))] focus:outline-none focus:ring-2 focus:ring-slate-300 text-sm"
                 >
-                  <option value="bank_statements">Bank statement</option>
-                  <option value="payslips">Payslip</option>
-                  <option value="id_documents">ID / Passport</option>
-                  <option value="generic">Other / Generic</option>
+                  {availableDocTypes.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
                 </select>
                 <p className="text-xs text-slate-500">
-                  For now, bank statements get the richest summary. Other types
-                  still return structured JSON.
+                  Personal customers can upload bank statements, payslips and ID
+                  docs. Business customers can upload bank statements, financial
+                  statements and related ID docs.
                 </p>
               </div>
             </div>

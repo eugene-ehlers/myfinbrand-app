@@ -161,6 +161,9 @@ export default function Results() {
 
   const fields = Array.isArray(result?.fields) ? result.fields : [];
 
+  const ocrError = result?.ocr_engine?.error || null;
+  const ocrEngineVersion = result?.ocr_engine?.engine_version || null;
+
   const riskBadge = (() => {
     if (!riskBand) return null;
     const colorMap = {
@@ -214,6 +217,35 @@ export default function Results() {
             <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 flex gap-2">
               <AlertCircle className="h-5 w-5 mt-0.5" />
               <span>{error}</span>
+            </div>
+          )}
+
+          {/* OCR failure banner (even if we have some result JSON) */}
+          {!loading && !error && ocrError && (
+            <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 flex gap-3">
+              <AlertCircle className="h-5 w-5 mt-0.5" />
+              <div>
+                <div className="font-medium">
+                  OCR engine reported a problem reading this document.
+                </div>
+                <div className="mt-1 text-xs">
+                  The text could not be extracted reliably, so downstream
+                  parsing and risk analysis may be incomplete or missing.
+                  Consider uploading a clearer or higher-resolution copy, or
+                  checking that the document is a readable PDF/image.
+                </div>
+                <div className="mt-1 text-xs opacity-80">
+                  <span className="font-mono">Error:</span> {ocrError}
+                  {ocrEngineVersion && (
+                    <>
+                      {" · "}
+                      <span className="font-mono">
+                        engine={ocrEngineVersion}
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 

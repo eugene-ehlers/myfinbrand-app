@@ -43,14 +43,13 @@ export default function Results() {
         );
 
         if (!res.ok) {
-          // While result file may not exist yet, keep polling a few times
           attempt += 1;
           console.warn(
             `Result fetch not OK (status ${res.status}), attempt ${attempt}/${maxAttempts}`
           );
 
           if (attempt < maxAttempts && !cancelled) {
-            setTimeout(attemptFetch, 1500); // 1.5s between polls
+            setTimeout(attemptFetch, 1500);
           } else if (!cancelled) {
             const text = await res.text().catch(() => "");
             setLoading(false);
@@ -115,10 +114,38 @@ export default function Results() {
     alert("PDF export not implemented yet – JSON is available though.");
   }
 
-  const riskScore = result?.riskScore ?? "—";
-  const confidence = result?.confidence ?? "—";
+  // --------- NEW: derive agentic v8 info if present ---------
   const docType = result?.docType ?? "—";
+
+  // agentic payload is nested under result.result (see your Lambda output)
+  const agentic = result?.result || null;
+  const agenticSummary = agentic?.summary || null;
+  const agenticClassification = agentic?.classification || null;
+  const agenticRisk = agentic?.risk_score || null;
+
+  // Risk score: prefer agentic risk_score.score, fall back to legacy riskScore
+  const effectiveRiskScore =
+    typeof agenticRisk?.score === "number"
+      ? agenticRisk.score
+      : typeof result?.riskScore === "number"
+      ? result.riskScore
+      : null;
+
+  const confidence = result?.confidence ?? "—";
+
   const fields = Array.isArray(result?.fields) ? result.fields : [];
+
+  const isBankStatement = docType === "bank_statements";
+
+  const totalIncome =
+    agenticClassification?.income_summary?.total_income ?? null;
+  const totalExpenses =
+    agenticClassification?.expense_summary?.total_expenses ?? null;
+
+  const riskBand = agenticRisk?.band ?? null;
+  const riskReasons = Array.isArray(agenticRisk?.reason_codes)
+    ? agenticRisk.reason_codes
+    : [];
 
   return (
     <section className="rounded-xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))] p-6">
@@ -147,7 +174,14 @@ export default function Results() {
             <div className="rounded-lg border border-[rgb(var(--border))] p-4">
               <div className="text-sm opacity-70">Risk Score</div>
               <div className="text-2xl font-semibold">
-                {typeof riskScore === "number" ? riskScore.toFixed(2) : riskScore}
+                {typeof effectiveRiskScore === "number"
+                  ? effectiveRiskScore.toFixed(2)
+                  : "—"}
+                {riskBand && (
+                  <span className="ml-2 text-sm uppercase opacity-70">
+                    ({riskBand})
+                  </span>
+                )}
               </div>
             </div>
             <div className="rounded-lg border border-[rgb(var(--border))] p-4">
@@ -164,7 +198,131 @@ export default function Results() {
             </div>
           </div>
 
-          {/* Parsed fields table */}
+          {/* --------- NEW: Bank statement high-level summary (agentic v8) --------- */}
+          {isBankStatement && agenticSummary && (
+            <div className="rounded-lg border border-[rgb(var(--border))] p-4 mb-6">
+              <div className="flex flex-wrap justify-between gap-4 mb-3">
+                <div>
+                  <div className="text-sm opacity-70">Account Holder</div>
+                  <div className="text-lg font-semibold">
+                    {agenticSummary.account_holder || "Unknown"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm opacity-70">Statement Period</div>
+                  <div className="text-lg font-semibold">
+                    {agenticSummary.period_start || "—"}{" "}
+                    <span className="opacity-60">to</span>{" "}
+                    {agenticSummary.period_end || "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm opacity-70">Currency</div>
+                  <div className="text-lg font-semibold">
+                    {agenticSummary.currency || "—"}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-4 mt-2">
+                <div>
+                  <div className="text-xs opacity-70">Opening Balance</div>
+                  <div className="text-base font-semibold">
+                    {agenticSummary.opening_balance != null
+                      ? agenticSummary.opening_balance.toLocaleString()
+                      : "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs opacity-70">Closing Balance</div>
+                  <div className="text-base font-semibold">
+                    {agenticSummary.closing_balance != null
+                      ? agenticSummary.closing_balance.toLocaleString()
+                      : "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs opacity-70">Total Credits</div>
+                  <div className="text-base font-semibold">
+                    {agenticSummary.total_credits != null
+                      ? agenticSummary.total_credits.toLocaleString()
+                      : "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs opacity-70">Total Debits</div>
+                  <div className="text-base font-semibold">
+                    {agenticSummary.total_debits != null
+                      ? agenticSummary.total_debits.toLocaleString()
+                      : "—"}
+                  </div>
+                </div>
+              </div>
+
+              {agenticClassification && (
+                <div className="grid gap-4 md:grid-cols-2 mt-4">
+                  <div>
+                    <div className="text-xs uppercase opacity-70 mb-1">
+                      Income (Personal)
+                    </div>
+                    <div className="text-base font-semibold mb-1">
+                      {totalIncome != null
+                        ? totalIncome.toLocaleString()
+                        : "—"}
+                    </div>
+                    <div className="text-xs opacity-70">
+                      Salary:{" "}
+                      {agenticClassification.income_summary?.salary != null
+                        ? agenticClassification.income_summary.salary.toLocaleString()
+                        : "0"}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase opacity-70 mb-1">
+                      Expenses (Budget Categories)
+                    </div>
+                    <div className="text-base font-semibold mb-1">
+                      {totalExpenses != null
+                        ? totalExpenses.toLocaleString()
+                        : "—"}
+                    </div>
+                    <div className="text-xs opacity-70">
+                      Housing:{" "}
+                      {agenticClassification.expense_summary?.housing != null
+                        ? agenticClassification.expense_summary.housing.toLocaleString()
+                        : "0"}
+                      {" · "}
+                      Food & Groceries:{" "}
+                      {agenticClassification.expense_summary?.food_groceries !=
+                      null
+                        ? agenticClassification.expense_summary.food_groceries.toLocaleString()
+                        : "0"}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {riskReasons.length > 0 && (
+                <div className="mt-4">
+                  <div className="text-xs uppercase opacity-70 mb-1">
+                    Risk Reason Codes
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {riskReasons.map((r) => (
+                      <span
+                        key={r}
+                        className="inline-flex items-center rounded-full border border-[rgb(var(--border))] px-2 py-0.5 text-xs"
+                      >
+                        {r}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Parsed fields table (original stub fields) */}
           <div className="rounded-lg border border-[rgb(var(--border))] overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead className="bg-white/40">

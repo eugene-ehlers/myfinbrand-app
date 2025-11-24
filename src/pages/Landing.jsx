@@ -14,6 +14,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import SiteHeader from "../components/layout/SiteHeader.jsx";
 import SiteFooter from "../components/layout/SiteFooter.jsx";
+import decisionEngineOverviewPdf from "../assets/docs/our-decision-engine-onepage.pdf";
 
 const Section = ({ id, className = "", children }) => (
   <section
@@ -487,7 +488,7 @@ export default function Landing() {
   {/* Buttons row */}
   <div className="mt-8 flex flex-wrap justify-center gap-3">
     <a
-      href="/docs/our-decision-engine-onepager.pdf"
+      href={decisionEngineOverviewPdf}
       target="_blank"
       rel="noopener noreferrer"
       className="inline-flex items-center gap-2 px-5 py-3 rounded-xl shadow text-sm font-medium"

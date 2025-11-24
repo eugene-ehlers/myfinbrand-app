@@ -158,8 +158,3 @@ export default function SiteHeader() {
     </header>
   );
 }
-
-      </div>
-    </header>
-  );
-}

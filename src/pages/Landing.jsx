@@ -14,7 +14,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import SiteHeader from "../components/layout/SiteHeader.jsx";
 import SiteFooter from "../components/layout/SiteFooter.jsx";
-import decisionEngineOverviewPdf from "../assets/docs/our-decision-engine-onepage.pdf";
+import decisionEngineOverviewPdf from "../assets/docs/Our-decision-engine-onepage.pdf";
 
 const Section = ({ id, className = "", children }) => (
   <section

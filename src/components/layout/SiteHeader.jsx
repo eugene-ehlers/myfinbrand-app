@@ -44,17 +44,28 @@ export default function SiteHeader() {
                 <a
                   href="/#capabilities"
                   className="block px-4 py-2 hover:bg-slate-50 rounded-t-xl"
-                  style={{ color: "rgb(15 23 42)" }} // dark text
+                  style={{ color: "rgb(15 23 42)" }}
                   onClick={() => setSolutionsOpen(false)}
                 >
                   Overview: What we do
                 </a>
 
+                {/* Core platform */}
+                <div className="px-4 pt-2 pb-1 text-[11px] uppercase tracking-wide text-slate-400">
+                  Core platform
+                </div>
+                <Link
+                  to="/solutions/our-decision-engine"
+                  className="block px-4 py-2 hover:bg-slate-50"
+                  style={{ color: "rgb(15 23 42)" }}
+                  onClick={() => setSolutionsOpen(false)}
+                >
+                  Our Decision Engine
+                </Link>
+
                 <div className="px-4 pt-2 pb-1 text-[11px] uppercase tracking-wide text-slate-400">
                   Credit lifecycle
                 </div>
-
-                {/* Collections */}
                 <Link
                   to="/solutions/collections"
                   className="block px-4 py-2 hover:bg-slate-50"
@@ -63,8 +74,6 @@ export default function SiteHeader() {
                 >
                   Collections optimisation
                 </Link>
-
-                {/* Originations */}
                 <Link
                   to="/solutions/originations"
                   className="block px-4 py-2 hover:bg-slate-50"
@@ -77,8 +86,6 @@ export default function SiteHeader() {
                 <div className="px-4 pt-2 pb-1 text-[11px] uppercase tracking-wide text-slate-400">
                   Risk &amp; compliance
                 </div>
-
-                {/* Fraud */}
                 <Link
                   to="/solutions/fraud"
                   className="block px-4 py-2 hover:bg-slate-50"
@@ -87,8 +94,6 @@ export default function SiteHeader() {
                 >
                   Fraud &amp; verification
                 </Link>
-
-                {/* KYC / FICA */}
                 <Link
                   to="/solutions/kyc-fica"
                   className="block px-4 py-2 hover:bg-slate-50"
@@ -101,8 +106,6 @@ export default function SiteHeader() {
                 <div className="px-4 pt-2 pb-1 text-[11px] uppercase tracking-wide text-slate-400">
                   Growth &amp; portfolio value
                 </div>
-
-                {/* Pricing optimisation */}
                 <Link
                   to="/solutions/pricing-optimisation"
                   className="block px-4 py-2 hover:bg-slate-50"
@@ -111,8 +114,6 @@ export default function SiteHeader() {
                 >
                   Pricing &amp; offer optimisation
                 </Link>
-
-                {/* Customer management */}
                 <Link
                   to="/solutions/customer-management"
                   className="block px-4 py-2 hover:bg-slate-50 rounded-b-xl"
@@ -139,7 +140,7 @@ export default function SiteHeader() {
 
           {/* LinkedIn (open in new tab) */}
           <a
-            href="https://www.linkedin.com" // TODO: replace with your real profile / company URL
+            href="https://www.linkedin.com" // replace with your real URL
             target="_blank"
             rel="noreferrer"
             className="header-cta flex items-center gap-1"
@@ -153,6 +154,11 @@ export default function SiteHeader() {
             Email us
           </a>
         </nav>
+      </div>
+    </header>
+  );
+}
+
       </div>
     </header>
   );

@@ -2,7 +2,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./pages/Landing.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
-import Results from "./pages/Results.jsx";
 import Admin from "./pages/Admin.jsx";
 
 import Insights from "./pages/Insights.jsx";
@@ -14,6 +13,7 @@ import Fraud from "./pages/solutions/Fraud.jsx";
 import KycFica from "./pages/solutions/KycFica.jsx";
 import PricingOptimisation from "./pages/solutions/PricingOptimisation.jsx";
 import CustomerManagement from "./pages/solutions/CustomerManagement.jsx";
+import OurDecisionEngine from "./pages/solutions/OurDecisionEngine.jsx";
 
 // Article pages
 import DecisionEngines101 from "./pages/articles/DecisionEngines101.jsx";
@@ -33,9 +33,8 @@ export default function App() {
       {/* Founder page */}
       <Route path="/founder" element={<Founder />} />
 
-      {/* App flows */}
+      {/* Existing routes */}
       <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/results" element={<Results />} />
       <Route path="/admin" element={<Admin />} />
 
       {/* Solutions */}
@@ -50,6 +49,10 @@ export default function App() {
       <Route
         path="/solutions/customer-management"
         element={<CustomerManagement />}
+      />
+      <Route
+        path="/solutions/our-decision-engine"
+        element={<OurDecisionEngine />}
       />
 
       {/* Insights hub + articles */}
@@ -77,4 +80,5 @@ export default function App() {
     </Routes>
   );
 }
+
 

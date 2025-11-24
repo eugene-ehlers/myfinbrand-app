@@ -426,78 +426,93 @@ export default function Landing() {
         </div>
       </Section>
 
-      {/* DECISION ENGINE PLATFORM */}
-      <Section id="decision-engine" className="py-12 md:py-16">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
-            The TSDG Decision Engine Platform
-          </h2>
-          <p className="mt-3 text-slate-700">
-            A fully managed, production-ready decision engine designed for
-            credit, onboarding, fraud, pricing, KYC, and operational
-            decisioning. Deploy in your cloud, on-prem, or in our hosted
-            environment.
-          </p>
-        </div>
+{/* DECISION ENGINE PLATFORM */}
+<Section id="decision-engine" className="py-12 md:py-16">
+  <div className="max-w-3xl mx-auto text-center">
+    <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
+      The TSDG Decision Engine Platform
+    </h2>
+    <p className="mt-3 text-slate-700">
+      A fully managed, production-ready decision engine designed for
+      credit, onboarding, fraud, pricing, KYC, and operational
+      decisioning. Deploy in your cloud, on-prem, or in our hosted
+      environment.
+    </p>
+  </div>
 
-        <div className="mt-10 grid md:grid-cols-3 gap-5">
-          <div className="p-6 rounded-2xl border bg-white">
-            <h3 className="text-lg font-semibold">Proven & Production-Ready</h3>
-            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-              A configurable engine used across industries for credit,
-              affordability, onboarding, and verification flows—built for
-              reliability and auditability.
-            </p>
-          </div>
+  <div className="mt-10 grid md:grid-cols-3 gap-5">
+    <div className="p-6 rounded-2xl border bg-white">
+      <h3 className="text-lg font-semibold">Proven & Production-Ready</h3>
+      <p className="mt-2 text-slate-700 text-sm leading-relaxed">
+        A configurable engine used across industries for credit,
+        affordability, onboarding, and verification flows—built for
+        reliability and auditability.
+      </p>
+    </div>
 
-          <div className="p-6 rounded-2xl border bg-white">
-            <h3 className="text-lg font-semibold">Deploy Anywhere</h3>
-            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-              Host in your infrastructure, in our managed cloud environment, or
-              through our partnership with XDS for direct bureau data and
-              service integration.
-            </p>
-          </div>
+    <div className="p-6 rounded-2xl border bg-white">
+      <h3 className="text-lg font-semibold">Deploy Anywhere</h3>
+      <p className="mt-2 text-slate-700 text-sm leading-relaxed">
+        Host in your infrastructure, in our managed cloud environment, or
+        through our partnership with XDS for direct bureau data and
+        service integration.
+      </p>
+    </div>
 
-          <div className="p-6 rounded-2xl border bg-white">
-            <h3 className="text-lg font-semibold">Governed & Audit-Ready</h3>
-            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-              Every decision is logged with reason codes, model versions, policy
-              versions, and a full audit trail—aligned with operational risk and
-              compliance needs.
-            </p>
-          </div>
-          <div className="p-6 rounded-2xl border bg-white md:col-span-3">
-            <h3 className="text-lg font-semibold">Agentic-Ready</h3>
-            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-              AI is evolving fast — but even the most advanced agentic systems
-              need a governed, deterministic decision layer. Our decision engine
-              is built for this new era: API-driven, model-agnostic,
-              explainable, and fully compatible with agentic AI workflows.
-              Agents can orchestrate tasks, gather information, and recommend
-              actions — while our engine ensures every final decision is
-              consistent, compliant, auditable, and aligned with policy. In
-              short: we bring the intelligence of AI together with the
-              governance of enterprise-grade decisioning.
-            </p>
-          </div>
-        </div>
+    <div className="p-6 rounded-2xl border bg-white">
+      <h3 className="text-lg font-semibold">Governed & Audit-Ready</h3>
+      <p className="mt-2 text-slate-700 text-sm leading-relaxed">
+        Every decision is logged with reason codes, model versions, policy
+        versions, and a full audit trail—aligned with operational risk and
+        compliance needs.
+      </p>
+    </div>
 
-        <div className="mt-8 text-center">
-          <a
-            href="/docs/decision-engines-101.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl shadow"
-            style={{
-              background: "rgb(var(--primary))",
-              color: "rgb(var(--primary-fg))",
-            }}
-          >
-            Read the white paper: Decision Engines 101
-          </a>
-        </div>
-      </Section>
+    <div className="p-6 rounded-2xl border bg-white md:col-span-3">
+      <h3 className="text-lg font-semibold">Agentic-Ready</h3>
+      <p className="mt-2 text-slate-700 text-sm leading-relaxed">
+        AI is evolving fast — but even the most advanced agentic systems
+        need a governed, deterministic decision layer. Our decision engine
+        is built for this new era: API-driven, model-agnostic,
+        explainable, and fully compatible with agentic AI workflows.
+        Agents can orchestrate tasks, gather information, and recommend
+        actions — while our engine ensures every final decision is
+        consistent, compliant, auditable, and aligned with policy. In
+        short: we bring the intelligence of AI together with the
+        governance of enterprise-grade decisioning.
+      </p>
+    </div>
+  </div>
+
+  {/* Buttons row */}
+  <div className="mt-8 flex flex-wrap justify-center gap-3">
+    <a
+      href="/docs/our-decision-engine-onepager.pdf"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-2 px-5 py-3 rounded-xl shadow text-sm font-medium"
+      style={{
+        background: "rgb(var(--primary))",
+        color: "rgb(var(--primary-fg))",
+      }}
+    >
+      Download: Decision Engine Overview (PDF)
+    </a>
+
+    <a
+      href="/docs/decision-engines-101.pdf"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border text-sm font-medium bg-white"
+      style={{
+        color: "rgb(15,23,42)",
+      }}
+    >
+      Read the white paper: Decision Engines 101
+    </a>
+  </div>
+</Section>
+
 
       {/* XDS PARTNERSHIP */}
       <Section id="xds" className="py-12 md:py-16">

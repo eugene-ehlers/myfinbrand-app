@@ -24,6 +24,9 @@ import AgenticVsDecisionEngine from "./pages/articles/AgenticVsDecisionEngine.js
 
 import Founder from "./pages/Founder.jsx";
 
+// 🔹 NEW: import Results page
+import Results from "./pages/Results.jsx";
+
 export default function App() {
   return (
     <Routes>
@@ -36,6 +39,9 @@ export default function App() {
       {/* Existing routes */}
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/admin" element={<Admin />} />
+
+      {/* 🔹 NEW: Results page – this is where Dashboard navigates after upload */}
+      <Route path="/results" element={<Results />} />
 
       {/* Solutions */}
       <Route path="/solutions/collections" element={<Collections />} />

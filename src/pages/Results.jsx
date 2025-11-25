@@ -177,7 +177,8 @@ export default function Results() {
     setError(null);
     setResult(null);
 
-    const maxAttempts = 8;
+    const maxAttempts = 60;
+    const delayMs = 5000;
     let attempt = 0;
 
     async function attemptFetch() {

@@ -1,6 +1,15 @@
 // src/pages/Results.jsx
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Download,
+  Home as HomeIcon,
+  FileText,
+} from "lucide-react";
+import SiteHeader from "../components/layout/SiteHeader.jsx";
+import SiteFooter from "../components/layout/SiteFooter.jsx";
 
 function useQuery() {
   const { search } = useLocation();
@@ -135,6 +144,15 @@ function formatStatusBadge(status) {
   );
 }
 
+// Map docType to a more friendly label (incl. financial_statements)
+const DOC_TYPE_LABELS = {
+  bank_statements: "Bank statement",
+  payslips: "Payslip",
+  id_documents: "ID / Passport",
+  financial_statements: "Financial statements",
+  generic: "Other / Generic",
+};
+
 export default function Results() {
   const query = useQuery();
   const objectKey = query.get("objectKey");
@@ -246,10 +264,12 @@ export default function Results() {
   }
 
   // High-level fields from the stub result
-  const riskScore = result?.result?.risk_score?.score ?? result?.riskScore ?? null;
+  const riskScore =
+    result?.result?.risk_score?.score ?? result?.riskScore ?? null;
   const riskBand = result?.result?.risk_score?.band ?? null;
   const confidence = result?.confidence ?? null;
   const docType = result?.docType ?? "—";
+  const docTypeLabel = DOC_TYPE_LABELS[docType] || docType || "—";
   const fields = Array.isArray(result?.fields) ? result.fields : [];
 
   // Agentic summary (if present)
@@ -260,354 +280,393 @@ export default function Results() {
   const { issues, overallStatus } = classifyIssues(result);
 
   return (
-    <section className="rounded-2xl border border-[rgb(var(--border))] bg-white/90 backdrop-blur p-6 shadow-sm">
-      <h1 className="text-2xl font-semibold mb-2">Results</h1>
+    <div
+      className="min-h-screen text-slate-900"
+      style={{ background: "rgb(var(--surface))" }}
+    >
+      <SiteHeader />
 
-      {objectKey && (
-        <p className="opacity-80 mb-4 break-all text-xs">
-          Object: <span className="font-mono">{objectKey}</span>
-        </p>
-      )}
-
-      {loading && (
-        <p className="opacity-80 mb-4">
-          Fetching OCR result… this usually takes a few seconds.
-        </p>
-      )}
-
-      {error && !loading && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-          <div className="font-medium mb-1">Error loading result</div>
-          <div>{error}</div>
+      <main className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight flex items-center gap-2">
+              <FileText className="h-6 w-6" />
+              OCR & Agentic Results
+            </h1>
+            <p className="text-sm text-slate-600 mt-1">
+              Review OCR output, AI-parsed structure, and any issues detected
+              for this document.
+            </p>
+          </div>
         </div>
-      )}
 
-      {!loading && !error && result && (
-        <>
-          {/* Run status / issues */}
-          <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-slate-50 px-4 py-3">
-            <div className="flex flex-wrap items-center gap-3 mb-2">
-              <div className="font-medium text-sm">Run status</div>
-              {formatStatusBadge(overallStatus)}
-            </div>
+        <section className="rounded-2xl border border-[rgb(var(--border))] bg-white/90 backdrop-blur p-6 shadow-sm">
+          {objectKey && (
+            <p className="opacity-80 mb-4 break-all text-xs">
+              Object: <span className="font-mono">{objectKey}</span>
+            </p>
+          )}
 
-            {issues.length === 0 && (
-              <p className="text-sm text-slate-700">
-                All processing stages completed without any detected issues.
-              </p>
-            )}
+          {loading && (
+            <p className="opacity-80 mb-4">
+              Fetching OCR result… this usually takes a few seconds.
+            </p>
+          )}
 
-            {issues.length > 0 && (
-              <ul className="space-y-2 text-sm">
-                {issues.map((issue, idx) => (
-                  <li key={idx} className="border-t border-slate-200 pt-2 first:border-t-0 first:pt-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium">{issue.stage}</span>
-                      {issue.level === "error" && (
-                        <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-red-100 text-red-800">
-                          Error
-                        </span>
-                      )}
-                      {issue.level === "warning" && (
-                        <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-amber-100 text-amber-800">
-                          Warning
-                        </span>
-                      )}
-                      {issue.category === "internal" && (
-                        <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-sky-100 text-sky-800">
-                          On our side
-                        </span>
-                      )}
-                      {issue.category === "document" && (
-                        <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-slate-100 text-slate-800">
-                          Document / input issue
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-1 text-slate-700">{issue.userMessage}</p>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {/* Support-only technical details */}
-            {issues.length > 0 && (
-              <details className="mt-3 text-xs text-slate-600">
-                <summary className="cursor-pointer underline underline-offset-2">
-                  Technical details (for support teams)
-                </summary>
-                <pre className="mt-2 max-h-48 overflow-auto rounded bg-slate-900 text-slate-100 p-2 text-[11px]">
-                  {JSON.stringify(issues, null, 2)}
-                </pre>
-              </details>
-            )}
-          </div>
-
-          {/* Summary cards */}
-          <div className="grid gap-4 md:grid-cols-3 mb-6">
-            <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
-              <div className="text-xs uppercase tracking-wide opacity-70">
-                Risk Score
+          {error && !loading && (
+            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 flex gap-2">
+              <AlertCircle className="h-5 w-5 mt-0.5" />
+              <div>
+                <div className="font-medium mb-1">Error loading result</div>
+                <div>{error}</div>
               </div>
-              <div className="mt-1 text-2xl font-semibold">
-                {typeof riskScore === "number"
-                  ? riskScore.toFixed(2)
-                  : "—"}
-                {riskBand && typeof riskScore === "number" && (
-                  <span className="ml-2 text-sm font-normal uppercase tracking-wide text-slate-600">
-                    ({riskBand})
-                  </span>
+            </div>
+          )}
+
+          {!loading && !error && result && (
+            <>
+              {/* Run status / issues */}
+              <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-slate-50 px-4 py-3">
+                <div className="flex flex-wrap items-center gap-3 mb-2">
+                  <div className="font-medium text-sm">Run status</div>
+                  {formatStatusBadge(overallStatus)}
+                </div>
+
+                {issues.length === 0 && (
+                  <p className="text-sm text-slate-700">
+                    All processing stages completed without any detected issues.
+                  </p>
+                )}
+
+                {issues.length > 0 && (
+                  <ul className="space-y-2 text-sm">
+                    {issues.map((issue, idx) => (
+                      <li
+                        key={idx}
+                        className="border-t border-slate-200 pt-2 first:border-t-0 first:pt-0"
+                      >
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-medium">{issue.stage}</span>
+                          {issue.level === "error" && (
+                            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-red-100 text-red-800">
+                              Error
+                            </span>
+                          )}
+                          {issue.level === "warning" && (
+                            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-amber-100 text-amber-800">
+                              Warning
+                            </span>
+                          )}
+                          {issue.category === "internal" && (
+                            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-sky-100 text-sky-800">
+                              On our side
+                            </span>
+                          )}
+                          {issue.category === "document" && (
+                            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-slate-100 text-slate-800">
+                              Document / input issue
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-1 text-slate-700">
+                          {issue.userMessage}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {/* Support-only technical details */}
+                {issues.length > 0 && (
+                  <details className="mt-3 text-xs text-slate-600">
+                    <summary className="cursor-pointer underline underline-offset-2">
+                      Technical details (for support teams)
+                    </summary>
+                    <pre className="mt-2 max-h-48 overflow-auto rounded bg-slate-900 text-slate-100 p-2 text-[11px]">
+                      {JSON.stringify(issues, null, 2)}
+                    </pre>
+                  </details>
                 )}
               </div>
-            </div>
-            <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
-              <div className="text-xs uppercase tracking-wide opacity-70">
-                Confidence
-              </div>
-              <div className="mt-1 text-2xl font-semibold">
-                {typeof confidence === "number"
-                  ? (confidence * 100).toFixed(1) + "%"
-                  : "—"}
-              </div>
-            </div>
-            <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
-              <div className="text-xs uppercase tracking-wide opacity-70">
-                Document Type
-              </div>
-              <div className="mt-1 text-2xl font-semibold">
-                {docType || "—"}
-              </div>
-            </div>
-          </div>
 
-          {/* Agentic summary (if present) */}
-          {summary && (
-            <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-              <h2 className="text-sm font-semibold mb-3">
-                Statement summary
-              </h2>
-              <div className="grid gap-4 md:grid-cols-3 text-sm">
-                <div>
-                  <div className="text-slate-500 text-xs uppercase">
-                    Account Holder
+              {/* Summary cards */}
+              <div className="grid gap-4 md:grid-cols-3 mb-6">
+                <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
+                  <div className="text-xs uppercase tracking-wide opacity-70">
+                    Risk Score
                   </div>
-                  <div className="font-medium">
-                    {summary.account_holder || "—"}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-slate-500 text-xs uppercase">
-                    Statement Period
-                  </div>
-                  <div className="font-medium">
-                    {summary.period_start || "—"}{" "}
-                    {summary.period_end ? `to ${summary.period_end}` : ""}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-slate-500 text-xs uppercase">
-                    Currency
-                  </div>
-                  <div className="font-medium">
-                    {summary.currency || "—"}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 grid gap-4 md:grid-cols-4 text-sm">
-                <div>
-                  <div className="text-slate-500 text-xs uppercase">
-                    Opening Balance
-                  </div>
-                  <div className="font-medium">
-                    {summary.opening_balance != null
-                      ? summary.opening_balance.toLocaleString("en-ZA")
+                  <div className="mt-1 text-2xl font-semibold">
+                    {typeof riskScore === "number"
+                      ? riskScore.toFixed(2)
                       : "—"}
+                    {riskBand && typeof riskScore === "number" && (
+                      <span className="ml-2 text-sm font-normal uppercase tracking-wide text-slate-600">
+                        ({riskBand})
+                      </span>
+                    )}
                   </div>
                 </div>
-                <div>
-                  <div className="text-slate-500 text-xs uppercase">
-                    Closing Balance
-                  </div>
-                  <div className="font-medium">
-                    {summary.closing_balance != null
-                      ? summary.closing_balance.toLocaleString("en-ZA")
-                      : "—"}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-slate-500 text-xs uppercase">
-                    Total Credits
-                  </div>
-                  <div className="font-medium">
-                    {summary.total_credits != null
-                      ? summary.total_credits.toLocaleString("en-ZA")
-                      : "—"}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-slate-500 text-xs uppercase">
-                    Total Debits
-                  </div>
-                  <div className="font-medium">
-                    {summary.total_debits != null
-                      ? summary.total_debits.toLocaleString("en-ZA")
-                      : "—"}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Simple income / expense view for personal statements */}
-          {classification && classification.income_summary && classification.expense_summary && (
-            <div className="mb-6 grid gap-4 md:grid-cols-2">
-              <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-                <h2 className="text-sm font-semibold mb-3">
-                  Income (Personal)
-                </h2>
-                <div className="text-2xl font-semibold mb-1">
-                  {classification.income_summary.total_income != null
-                    ? classification.income_summary.total_income.toLocaleString("en-ZA")
-                    : "—"}
-                </div>
-                <p className="text-xs text-slate-600 mb-2">
-                  Breakdown (where detectable):
-                </p>
-                <div className="text-xs text-slate-700 space-y-1">
-                  <div>
-                    Salary:{" "}
-                    {classification.income_summary.salary?.toLocaleString(
-                      "en-ZA"
-                    ) || 0}
-                  </div>
-                  <div>
-                    Other recurring / third-party:{" "}
-                    {classification.income_summary.third_party_income?.toLocaleString(
-                      "en-ZA"
-                    ) || 0}
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-                <h2 className="text-sm font-semibold mb-3">
-                  Expenses (Budget Categories)
-                </h2>
-                <div className="text-2xl font-semibold mb-1">
-                  {classification.expense_summary.total_expenses != null
-                    ? classification.expense_summary.total_expenses.toLocaleString(
-                        "en-ZA"
-                      )
-                    : "—"}
-                </div>
-                <p className="text-xs text-slate-600 mb-2">
-                  Examples from this statement:
-                </p>
-                <div className="text-xs text-slate-700 space-y-1">
-                  <div>
-                    Housing:{" "}
-                    {classification.expense_summary.housing?.toLocaleString(
-                      "en-ZA"
-                    ) || 0}
-                  </div>
-                  <div>
-                    Food &amp; Groceries:{" "}
-                    {classification.expense_summary.food_groceries?.toLocaleString(
-                      "en-ZA"
-                    ) || 0}
-                  </div>
-                  <div>
-                    Transport:{" "}
-                    {classification.expense_summary.transport?.toLocaleString(
-                      "en-ZA"
-                    ) || 0}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Raw parsed fields table from stub (still useful for generic docs) */}
-          <div className="rounded-lg border border-[rgb(var(--border))] overflow-x-auto bg-white">
-            <table className="min-w-full text-sm">
-              <thead className="bg-slate-50">
-                <tr>
-                  <th className="text-left p-3 border-b border-[rgb(var(--border))]">
-                    Field
-                  </th>
-                  <th className="text-left p-3 border-b border-[rgb(var(--border))]">
-                    Value
-                  </th>
-                  <th className="text-left p-3 border-b border-[rgb(var(--border))]">
+                <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
+                  <div className="text-xs uppercase tracking-wide opacity-70">
                     Confidence
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {fields.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={3}
-                      className="p-3 border-b border-[rgb(var(--border))] text-center opacity-70"
-                    >
-                      No structured fields found. Check the raw JSON download
-                      for more details.
-                    </td>
-                  </tr>
-                )}
-                {fields.map((f, idx) => (
-                  <tr key={idx} className="odd:bg-slate-50/50">
-                    <td className="p-3 border-b border-[rgb(var(--border))]">
-                      {f.name}
-                    </td>
-                    <td className="p-3 border-b border-[rgb(var(--border))] whitespace-pre-wrap">
-                      {f.value}
-                    </td>
-                    <td className="p-3 border-b border-[rgb(var(--border))]">
-                      {typeof f.confidence === "number"
-                        ? (f.confidence * 100).toFixed(1) + "%"
-                        : f.confidence ?? "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                  </div>
+                  <div className="mt-1 text-2xl font-semibold">
+                    {typeof confidence === "number"
+                      ? (confidence * 100).toFixed(1) + "%"
+                      : "—"}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
+                  <div className="text-xs uppercase tracking-wide opacity-70">
+                    Document Type
+                  </div>
+                  <div className="mt-1 text-2xl font-semibold">
+                    {docTypeLabel}
+                  </div>
+                </div>
+              </div>
 
-          {/* Downloads / navigation actions */}
-          <div className="mt-6 flex flex-wrap gap-3">
-            <button
-              type="button"
-              className="btn-primary inline-flex items-center px-3 py-2 rounded-lg"
-              onClick={handleDownloadPdf}
-            >
-              Download Summary (PDF)
-            </button>
-            <button
-              type="button"
-              className="inline-flex items-center px-3 py-2 rounded-lg border border-[rgb(var(--border))] bg-white"
-              onClick={handleDownloadJson}
-            >
-              Download JSON
-            </button>
-            <button
-              type="button"
-              className="inline-flex items-center px-3 py-2 rounded-lg border border-[rgb(var(--border))] bg-white ml-auto"
-              onClick={() => navigate("/dashboard")}
-            >
-              New OCR request
-            </button>
-            <button
-              type="button"
-              className="inline-flex items-center px-3 py-2 rounded-lg border border-[rgb(var(--border))] bg-white"
-              onClick={() => navigate("/")}
-            >
-              Home
-            </button>
-          </div>
-        </>
-      )}
-    </section>
+              {/* Agentic summary (if present, works for bank & can later adapt to financial_statements) */}
+              {summary && (
+                <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
+                  <h2 className="text-sm font-semibold mb-3">
+                    Statement summary
+                  </h2>
+                  <div className="grid gap-4 md:grid-cols-3 text-sm">
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase">
+                        Account Holder
+                      </div>
+                      <div className="font-medium">
+                        {summary.account_holder || "—"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase">
+                        Statement Period
+                      </div>
+                      <div className="font-medium">
+                        {summary.period_start || "—"}{" "}
+                        {summary.period_end ? `to ${summary.period_end}` : ""}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase">
+                        Currency
+                      </div>
+                      <div className="font-medium">
+                        {summary.currency || "—"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid gap-4 md:grid-cols-4 text-sm">
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase">
+                        Opening Balance
+                      </div>
+                      <div className="font-medium">
+                        {summary.opening_balance != null
+                          ? summary.opening_balance.toLocaleString("en-ZA")
+                          : "—"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase">
+                        Closing Balance
+                      </div>
+                      <div className="font-medium">
+                        {summary.closing_balance != null
+                          ? summary.closing_balance.toLocaleString("en-ZA")
+                          : "—"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase">
+                        Total Credits
+                      </div>
+                      <div className="font-medium">
+                        {summary.total_credits != null
+                          ? summary.total_credits.toLocaleString("en-ZA")
+                          : "—"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase">
+                        Total Debits
+                      </div>
+                      <div className="font-medium">
+                        {summary.total_debits != null
+                          ? summary.total_debits.toLocaleString("en-ZA")
+                          : "—"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Simple income / expense view for personal statements */}
+              {classification &&
+                classification.income_summary &&
+                classification.expense_summary && (
+                  <div className="mb-6 grid gap-4 md:grid-cols-2">
+                    <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
+                      <h2 className="text-sm font-semibold mb-3">
+                        Income (Personal)
+                      </h2>
+                      <div className="text-2xl font-semibold mb-1">
+                        {classification.income_summary.total_income != null
+                          ? classification.income_summary.total_income.toLocaleString(
+                              "en-ZA"
+                            )
+                          : "—"}
+                      </div>
+                      <p className="text-xs text-slate-600 mb-2">
+                        Breakdown (where detectable):
+                      </p>
+                      <div className="text-xs text-slate-700 space-y-1">
+                        <div>
+                          Salary:{" "}
+                          {classification.income_summary.salary?.toLocaleString(
+                            "en-ZA"
+                          ) || 0}
+                        </div>
+                        <div>
+                          Other recurring / third-party:{" "}
+                          {classification.income_summary.third_party_income?.toLocaleString(
+                            "en-ZA"
+                          ) || 0}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
+                      <h2 className="text-sm font-semibold mb-3">
+                        Expenses (Budget Categories)
+                      </h2>
+                      <div className="text-2xl font-semibold mb-1">
+                        {classification.expense_summary.total_expenses != null
+                          ? classification.expense_summary.total_expenses.toLocaleString(
+                              "en-ZA"
+                            )
+                          : "—"}
+                      </div>
+                      <p className="text-xs text-slate-600 mb-2">
+                        Examples from this statement:
+                      </p>
+                      <div className="text-xs text-slate-700 space-y-1">
+                        <div>
+                          Housing:{" "}
+                          {classification.expense_summary.housing?.toLocaleString(
+                            "en-ZA"
+                          ) || 0}
+                        </div>
+                        <div>
+                          Food &amp; Groceries:{" "}
+                          {classification.expense_summary.food_groceries?.toLocaleString(
+                            "en-ZA"
+                          ) || 0}
+                        </div>
+                        <div>
+                          Transport:{" "}
+                          {classification.expense_summary.transport?.toLocaleString(
+                            "en-ZA"
+                          ) || 0}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+              {/* Raw parsed fields table from stub (still useful for generic docs and financial_statements) */}
+              <div className="rounded-lg border border-[rgb(var(--border))] overflow-x-auto bg-white">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th className="text-left p-3 border-b border-[rgb(var(--border))]">
+                        Field
+                      </th>
+                      <th className="text-left p-3 border-b border-[rgb(var(--border))]">
+                        Value
+                      </th>
+                      <th className="text-left p-3 border-b border-[rgb(var(--border))]">
+                        Confidence
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {fields.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan={3}
+                          className="p-3 border-b border-[rgb(var(--border))] text-center opacity-70"
+                        >
+                          No structured fields found. Check the raw JSON
+                          download for more details.
+                        </td>
+                      </tr>
+                    )}
+                    {fields.map((f, idx) => (
+                      <tr key={idx} className="odd:bg-slate-50/50">
+                        <td className="p-3 border-b border-[rgb(var(--border))]">
+                          {f.name}
+                        </td>
+                        <td className="p-3 border-b border-[rgb(var(--border))] whitespace-pre-wrap">
+                          {f.value}
+                        </td>
+                        <td className="p-3 border-b border-[rgb(var(--border))]">
+                          {typeof f.confidence === "number"
+                            ? (f.confidence * 100).toFixed(1) + "%"
+                            : f.confidence ?? "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Downloads / navigation actions */}
+              <div className="mt-6 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  className="btn-primary inline-flex items-center gap-2 px-3 py-2 rounded-lg"
+                  onClick={handleDownloadPdf}
+                >
+                  <Download className="h-4 w-4" />
+                  Download Summary (PDF)
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[rgb(var(--border))] bg-white"
+                  onClick={handleDownloadJson}
+                >
+                  <Download className="h-4 w-4" />
+                  Download JSON
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[rgb(var(--border))] bg-white ml-auto"
+                  onClick={() => navigate("/dashboard")}
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  New OCR request
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[rgb(var(--border))] bg-white"
+                  onClick={() => navigate("/")}
+                >
+                  <HomeIcon className="h-4 w-4" />
+                  Home
+                </button>
+              </div>
+            </>
+          )}
+        </section>
+      </main>
+
+      <SiteFooter />
+    </div>
   );
 }
+
 

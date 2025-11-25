@@ -144,7 +144,7 @@ function formatStatusBadge(status) {
   );
 }
 
-// Map docType to a more friendly label (incl. financial_statements)
+// map backend docType → nice label (incl financial_statements)
 const DOC_TYPE_LABELS = {
   bank_statements: "Bank statement",
   payslips: "Payslip",
@@ -263,7 +263,7 @@ export default function Results() {
     );
   }
 
-  // High-level fields from the stub result
+  // High-level fields from the stub + agentic
   const riskScore =
     result?.result?.risk_score?.score ?? result?.riskScore ?? null;
   const riskBand = result?.result?.risk_score?.band ?? null;
@@ -426,7 +426,7 @@ export default function Results() {
                 </div>
               </div>
 
-              {/* Agentic summary (if present, works for bank & can later adapt to financial_statements) */}
+              {/* Agentic summary (works for bank statements now; can be extended for financial statements later) */}
               {summary && (
                 <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
                   <h2 className="text-sm font-semibold mb-3">
@@ -577,7 +577,7 @@ export default function Results() {
                   </div>
                 )}
 
-              {/* Raw parsed fields table from stub (still useful for generic docs and financial_statements) */}
+              {/* Raw parsed fields table from stub */}
               <div className="rounded-lg border border-[rgb(var(--border))] overflow-x-auto bg-white">
                 <table className="min-w-full text-sm">
                   <thead className="bg-slate-50">
@@ -668,5 +668,6 @@ export default function Results() {
     </div>
   );
 }
+
 
 

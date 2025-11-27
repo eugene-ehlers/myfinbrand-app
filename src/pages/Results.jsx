@@ -23,7 +23,13 @@ function classifyIssues(result) {
 
   const issues = [];
   const ocrEngine = result.ocr_engine || {};
-  const agentic = result.result || null;
+
+  // agentic can be:
+  // - bank_statement_agentic_v1 (your current shape)
+  // - or a v8 wrapper { status, msg, result: { ... } }
+  const rawAgentic = result.result || null;
+  const agentic = rawAgentic?.result ?? rawAgentic ?? null;
+  const agenticStatus = rawAgentic?.status ?? agentic?.status ?? "ok";
 
   // ---- OCR issues ----
   if (ocrEngine && ocrEngine.error) {
@@ -56,9 +62,14 @@ function classifyIssues(result) {
   }
 
   // ---- Agentic / GPT issues ----
-  if (agentic && agentic.status === "error") {
-    const errorType = agentic.error_type || "";
-    const msg = String(agentic.msg || agentic.error || "Agentic parser error");
+  if (agenticStatus === "error") {
+    const errorType = agentic?.error_type || rawAgentic?.error_type || "";
+    const msg =
+      agentic?.msg ||
+      agentic?.error ||
+      rawAgentic?.msg ||
+      rawAgentic?.error ||
+      "Agentic parser error";
 
     let category = "internal";
     let userMessage =
@@ -88,10 +99,17 @@ function classifyIssues(result) {
   }
 
   // ---- Suspicious-but-not-crashing cases ----
-  const agenticStructured = agentic?.structured;
-  const txs = agenticStructured?.transactions || [];
+  let txs = [];
+  // v8 style: agentic.structured.transactions
+  if (Array.isArray(agentic?.structured?.transactions)) {
+    txs = agentic.structured.transactions;
+  }
+  // current v1: agentic.transactions
+  if (!txs.length && Array.isArray(agentic?.transactions)) {
+    txs = agentic.transactions;
+  }
 
-  if (!ocrEngine.error && agentic && agentic.status === "ok") {
+  if (!ocrEngine.error && agentic && agenticStatus !== "error") {
     if (txs.length === 0) {
       issues.push({
         stage: "AI parsing & classification",
@@ -152,6 +170,96 @@ const DOC_TYPE_LABELS = {
   financial_statements: "Financial statements",
   generic: "Other / Generic",
 };
+
+// ---- Build a doc-type aware UI summary from agentic JSON ----
+function buildUiSummary(docType, agentic) {
+  if (!agentic) return null;
+
+  // BANK STATEMENTS: bank_statement_agentic_v1
+  if (docType === "bank_statements") {
+    const account = agentic.account || {};
+    const txs = Array.isArray(agentic.transactions)
+      ? agentic.transactions
+      : [];
+
+    let totalCredits = 0;
+    let totalDebits = 0;
+
+    for (const tx of txs) {
+      const dir = (tx.direction || "").toUpperCase();
+      const rawAmount = tx.amount;
+      const amount =
+        typeof rawAmount === "number"
+          ? rawAmount
+          : parseFloat(rawAmount ?? 0) || 0;
+
+      if (dir === "IN") totalCredits += amount;
+      else if (dir === "OUT") totalDebits += amount;
+    }
+
+    return {
+      kind: "bank",
+      account_holder: account.accountName || null,
+      period_start: account.startDate || null,
+      period_end: account.endDate || null,
+      opening_balance:
+        typeof account.openingBalance === "number"
+          ? account.openingBalance
+          : null,
+      closing_balance:
+        typeof account.closingBalance === "number"
+          ? account.closingBalance
+          : null,
+      total_credits: totalCredits || null,
+      total_debits: totalDebits || null,
+      currency: account.currency || "ZAR",
+    };
+  }
+
+  // FINANCIAL STATEMENTS: assume v8-style agentic with summary + structured.financials
+  if (docType === "financial_statements") {
+    const summary = agentic.summary || {};
+    const financials = agentic.structured?.financials || {};
+    const income = financials.income_statement || {};
+    const balance = financials.balance_sheet || {};
+
+    return {
+      kind: "financials",
+      entity_name: summary.entity_name || "UNKNOWN",
+      period_start: summary.period_start || null,
+      period_end: summary.period_end || null,
+      currency: summary.currency || "ZAR",
+      revenue: income.revenue ?? summary.revenue ?? null,
+      ebitda: income.ebitda ?? summary.ebitda ?? null,
+      net_profit: income.netProfit ?? summary.net_profit ?? null,
+      total_assets: balance.totalAssets ?? null,
+      total_liabilities: balance.totalLiabilities ?? null,
+      equity: balance.equity ?? null,
+    };
+  }
+
+  // PAYSLIPS (future-ready stub)
+  if (docType === "payslips") {
+    const employee = agentic.employee || {};
+    const employer = agentic.employer || {};
+    const period = agentic.period || {};
+    const amounts = agentic.amounts || {};
+
+    return {
+      kind: "payslip",
+      employee_name: employee.name || null,
+      employer_name: employer.name || null,
+      period_start: period.startDate || null,
+      period_end: period.endDate || null,
+      gross_pay: amounts.gross_pay ?? null,
+      net_pay: amounts.net_pay ?? null,
+      currency: amounts.currency || "ZAR",
+    };
+  }
+
+  // Default: nothing special
+  return null;
+}
 
 export default function Results() {
   const query = useQuery();
@@ -264,19 +372,25 @@ export default function Results() {
     );
   }
 
-  // High-level fields from the stub + agentic
-  const riskScore =
-    result?.result?.risk_score?.score ?? result?.riskScore ?? null;
-  const riskBand = result?.result?.risk_score?.band ?? null;
-  const confidence = result?.confidence ?? null;
+  // High-level fields from the stub
   const docType = result?.docType ?? "—";
   const docTypeLabel = DOC_TYPE_LABELS[docType] || docType || "—";
   const fields = Array.isArray(result?.fields) ? result.fields : [];
 
-  // Agentic summary (if present)
-  const agentic = result?.result || null;
-  const summary = agentic?.summary || null;
+  // Agentic payload: support current v1 (bank_statement_agentic_v1)
+  // and future v8-style wrappers (result.result)
+  const rawAgentic = result?.result || null;
+  const agentic = rawAgentic?.result ?? rawAgentic ?? null;
+
+  // Build a UI summary based on docType + agentic content
+  const uiSummary = buildUiSummary(docType, agentic);
+
+  // Classification & risk (where present)
   const classification = agentic?.classification || null;
+  const riskScore =
+    agentic?.risk_score?.score ?? result?.riskScore ?? null;
+  const riskBand = agentic?.risk_score?.band ?? null;
+  const confidence = result?.confidence ?? null;
 
   const { issues, overallStatus } = classifyIssues(result);
 
@@ -427,86 +541,260 @@ export default function Results() {
                 </div>
               </div>
 
-              {/* Agentic summary (works for bank statements now; can be extended for financial statements later) */}
-              {summary && (
+              {/* Doc-type aware summary */}
+              {uiSummary && (
                 <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
                   <h2 className="text-sm font-semibold mb-3">
-                    Statement summary
+                    {uiSummary.kind === "bank" && "Bank statement summary"}
+                    {uiSummary.kind === "financials" &&
+                      "Financial statement summary"}
+                    {uiSummary.kind === "payslip" && "Payslip summary"}
+                    {!uiSummary.kind && "Document summary"}
                   </h2>
-                  <div className="grid gap-4 md:grid-cols-3 text-sm">
-                    <div>
-                      <div className="text-slate-500 text-xs uppercase">
-                        Account Holder
-                      </div>
-                      <div className="font-medium">
-                        {summary.account_holder || "—"}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-slate-500 text-xs uppercase">
-                        Statement Period
-                      </div>
-                      <div className="font-medium">
-                        {summary.period_start || "—"}{" "}
-                        {summary.period_end ? `to ${summary.period_end}` : ""}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-slate-500 text-xs uppercase">
-                        Currency
-                      </div>
-                      <div className="font-medium">
-                        {summary.currency || "—"}
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="mt-4 grid gap-4 md:grid-cols-4 text-sm">
-                    <div>
-                      <div className="text-slate-500 text-xs uppercase">
-                        Opening Balance
+                  {/* BANK STATEMENTS */}
+                  {uiSummary.kind === "bank" && (
+                    <>
+                      <div className="grid gap-4 md:grid-cols-3 text-sm">
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Account Holder
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.account_holder || "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Statement Period
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.period_start || "—"}{" "}
+                            {uiSummary.period_end
+                              ? `to ${uiSummary.period_end}`
+                              : ""}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Currency
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.currency || "—"}
+                          </div>
+                        </div>
                       </div>
-                      <div className="font-medium">
-                        {summary.opening_balance != null
-                          ? summary.opening_balance.toLocaleString("en-ZA")
-                          : "—"}
+
+                      <div className="mt-4 grid gap-4 md:grid-cols-4 text-sm">
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Opening Balance
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.opening_balance != null
+                              ? uiSummary.opening_balance.toLocaleString(
+                                  "en-ZA"
+                                )
+                              : "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Closing Balance
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.closing_balance != null
+                              ? uiSummary.closing_balance.toLocaleString(
+                                  "en-ZA"
+                                )
+                              : "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Total Credits
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.total_credits != null
+                              ? uiSummary.total_credits.toLocaleString("en-ZA")
+                              : "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Total Debits
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.total_debits != null
+                              ? uiSummary.total_debits.toLocaleString("en-ZA")
+                              : "—"}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <div className="text-slate-500 text-xs uppercase">
-                        Closing Balance
+                    </>
+                  )}
+
+                  {/* FINANCIAL STATEMENTS */}
+                  {uiSummary.kind === "financials" && (
+                    <>
+                      <div className="grid gap-4 md:grid-cols-3 text-sm">
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Entity
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.entity_name || "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Reporting Period
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.period_start || "—"}{" "}
+                            {uiSummary.period_end
+                              ? `to ${uiSummary.period_end}`
+                              : ""}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Currency
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.currency || "—"}
+                          </div>
+                        </div>
                       </div>
-                      <div className="font-medium">
-                        {summary.closing_balance != null
-                          ? summary.closing_balance.toLocaleString("en-ZA")
-                          : "—"}
+
+                      <div className="mt-4 grid gap-4 md:grid-cols-3 text-sm">
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Revenue
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.revenue != null
+                              ? uiSummary.revenue.toLocaleString("en-ZA")
+                              : "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            EBITDA
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.ebitda != null
+                              ? uiSummary.ebitda.toLocaleString("en-ZA")
+                              : "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Net profit
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.net_profit != null
+                              ? uiSummary.net_profit.toLocaleString("en-ZA")
+                              : "—"}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <div className="text-slate-500 text-xs uppercase">
-                        Total Credits
+
+                      <div className="mt-4 grid gap-4 md:grid-cols-3 text-sm">
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Total assets
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.total_assets != null
+                              ? uiSummary.total_assets.toLocaleString("en-ZA")
+                              : "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Total liabilities
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.total_liabilities != null
+                              ? uiSummary.total_liabilities.toLocaleString(
+                                  "en-ZA"
+                                )
+                              : "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Equity
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.equity != null
+                              ? uiSummary.equity.toLocaleString("en-ZA")
+                              : "—"}
+                          </div>
+                        </div>
                       </div>
-                      <div className="font-medium">
-                        {summary.total_credits != null
-                          ? summary.total_credits.toLocaleString("en-ZA")
-                          : "—"}
+                    </>
+                  )}
+
+                  {/* PAYSLIP SUMMARY (future-ready) */}
+                  {uiSummary.kind === "payslip" && (
+                    <>
+                      <div className="grid gap-4 md:grid-cols-3 text-sm">
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Employee
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.employee_name || "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Employer
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.employer_name || "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Currency
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.currency || "ZAR"}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <div className="text-slate-500 text-xs uppercase">
-                        Total Debits
+
+                      <div className="mt-4 grid gap-4 md:grid-cols-2 text-sm">
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Gross pay
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.gross_pay != null
+                              ? uiSummary.gross_pay.toLocaleString("en-ZA")
+                              : "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Net pay
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.net_pay != null
+                              ? uiSummary.net_pay.toLocaleString("en-ZA")
+                              : "—"}
+                          </div>
+                        </div>
                       </div>
-                      <div className="font-medium">
-                        {summary.total_debits != null
-                          ? summary.total_debits.toLocaleString("en-ZA")
-                          : "—"}
-                      </div>
-                    </div>
-                  </div>
+                    </>
+                  )}
                 </div>
               )}
 
-              {/* Simple income / expense view for personal statements */}
+              {/* Simple income / expense view for personal bank statements (when classification exists) */}
               {classification &&
                 classification.income_summary &&
                 classification.expense_summary && (
@@ -669,6 +957,3 @@ export default function Results() {
     </div>
   );
 }
-
-
-

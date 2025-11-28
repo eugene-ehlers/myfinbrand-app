@@ -7,7 +7,10 @@ import {
   Settings2,
   AlertCircle,
   CheckCircle2,
+  Files,
+  X,
 } from "lucide-react";
+import { PDFDocument } from "pdf-lib";
 import SiteHeader from "../components/layout/SiteHeader.jsx";
 import SiteFooter from "../components/layout/SiteFooter.jsx";
 
@@ -49,6 +52,35 @@ const SERVICE_LABELS = {
   risk: "Risk score",
 };
 
+// Helper: build a single multi-page PDF from image files
+async function buildPdfFromImages(imageFiles) {
+  const pdfDoc = await PDFDocument.create();
+
+  for (const file of imageFiles) {
+    const bytes = await file.arrayBuffer();
+
+    let image;
+    if (file.type === "image/jpeg" || file.type === "image/jpg") {
+      image = await pdfDoc.embedJpg(bytes);
+    } else {
+      // default to PNG embed; most mobile images are jpeg or png
+      image = await pdfDoc.embedPng(bytes);
+    }
+
+    const { width, height } = image.scale(1);
+    const page = pdfDoc.addPage([width, height]);
+    page.drawImage(image, {
+      x: 0,
+      y: 0,
+      width,
+      height,
+    });
+  }
+
+  const pdfBytes = await pdfDoc.save();
+  return new Blob([pdfBytes], { type: "application/pdf" });
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
 
@@ -66,7 +98,11 @@ export default function Dashboard() {
     risk: false,
   });
 
-  const [file, setFile] = useState(null);
+  // Upload mode: "single" (existing behaviour) vs "multi" (multi-page images)
+  const [uploadMode, setUploadMode] = useState("single");
+  const [file, setFile] = useState(null); // single-file mode
+  const [pages, setPages] = useState([]); // multi-page images mode
+
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState(null); // { type: "info" | "success" | "error", message: string }
 
@@ -96,18 +132,43 @@ export default function Dashboard() {
     }));
   }
 
+  function handleSingleFileChange(e) {
+    const selected = e.target.files?.[0] || null;
+    setFile(selected);
+  }
+
+  function handleMultiPageChange(e) {
+    const newFiles = Array.from(e.target.files || []);
+    if (!newFiles.length) return;
+
+    setPages((prev) => [...prev, ...newFiles]);
+  }
+
+  function removePage(index) {
+    setPages((prev) => prev.filter((_, i) => i !== index));
+  }
+
   async function startUpload(e) {
     e?.preventDefault?.();
 
-    if (!file) {
-      setStatus({ type: "error", message: "Please choose a file first." });
-      return;
-    }
-
+    // Basic validations
     if (!caseName.trim()) {
       setStatus({
         type: "error",
         message: "Please enter a case name to group this upload.",
+      });
+      return;
+    }
+
+    if (uploadMode === "single" && !file) {
+      setStatus({ type: "error", message: "Please choose a file first." });
+      return;
+    }
+
+    if (uploadMode === "multi" && pages.length === 0) {
+      setStatus({
+        type: "error",
+        message: "Please add at least one page image.",
       });
       return;
     }
@@ -130,20 +191,54 @@ export default function Dashboard() {
     }
 
     setBusy(true);
-    setStatus({ type: "info", message: "Requesting secure upload slot…" });
+    setStatus({ type: "info", message: "Preparing document for upload…" });
+
+    let uploadFile = file;
+    let captureMode = "single_file";
 
     try {
+      // If multi-page mode, build a single PDF from the page images
+      if (uploadMode === "multi") {
+        captureMode = "multipage_frontend";
+
+        setStatus({
+          type: "info",
+          message: "Combining pages into a single PDF…",
+        });
+
+        const pdfBlob = await buildPdfFromImages(pages);
+
+        const safeName =
+          caseName.trim().replace(/\s+/g, "_").toUpperCase() ||
+          "MULTIPAGE_DOCUMENT";
+
+        uploadFile = new File([pdfBlob], `${safeName}.pdf`, {
+          type: "application/pdf",
+        });
+      }
+
+      if (!uploadFile) {
+        setStatus({
+          type: "error",
+          message: "No file prepared for upload. Please try again.",
+        });
+        return;
+      }
+
+      setStatus({ type: "info", message: "Requesting secure upload slot…" });
+
       // 1) Get presigned POST from Lambda
       const presignRes = await fetch(functionUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           docType,
-          mimeType: file.type || "application/pdf",
-          originalFilename: file.name,
+          mimeType: uploadFile.type || "application/pdf",
+          originalFilename: uploadFile.name,
           caseName: caseName.trim(),
           customerType,
           services: selectedServices,
+          captureMode, // NEW: tell backend how this was captured
         }),
       });
 
@@ -166,7 +261,7 @@ export default function Dashboard() {
 
       const form = new FormData();
       Object.entries(fields).forEach(([k, v]) => form.append(k, v));
-      form.append("file", file);
+      form.append("file", uploadFile);
 
       const s3Res = await fetch(url, { method: "POST", body: form });
 
@@ -177,8 +272,9 @@ export default function Dashboard() {
             "Upload complete. OCR and agentic analysis will start automatically.",
         });
 
-        // clear file
+        // clear selections
         setFile(null);
+        setPages([]);
 
         // navigate to Results for this object
         navigate(`/results?objectKey=${encodeURIComponent(objectKey)}`);
@@ -231,6 +327,11 @@ export default function Dashboard() {
       </div>
     );
   }
+
+  const submitDisabled =
+    busy ||
+    (uploadMode === "single" && !file) ||
+    (uploadMode === "multi" && pages.length === 0);
 
   return (
     <div
@@ -355,36 +456,131 @@ export default function Dashboard() {
               </p>
             </div>
 
-            {/* File input */}
+            {/* Upload mode toggle */}
             <div className="grid gap-2">
-              <label htmlFor="file" className="font-medium text-sm">
-                Upload PDF/Images
-              </label>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 cursor-pointer text-sm">
-                  <Upload className="h-4 w-4" />
-                  <span>Select file</span>
-                  <input
-                    id="file"
-                    name="file"
-                    type="file"
-                    accept=".pdf,image/*"
-                    className="hidden"
-                    onChange={(e) => setFile(e.target.files?.[0] || null)}
-                  />
-                </label>
-                {file && (
-                  <div className="flex items-center gap-2 text-xs text-slate-600">
-                    <FileText className="h-4 w-4" />
-                    <span className="font-medium">{file.name}</span>
-                  </div>
-                )}
+              <span className="font-medium text-sm flex items-center gap-2">
+                <Files className="h-4 w-4 text-slate-600" />
+                Capture mode
+              </span>
+              <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setUploadMode("single")}
+                  className={`flex-1 px-3 py-1.5 rounded-lg ${
+                    uploadMode === "single"
+                      ? "bg-white shadow-sm font-semibold"
+                      : "text-slate-600"
+                  }`}
+                >
+                  Single document (PDF / image)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUploadMode("multi")}
+                  className={`flex-1 px-3 py-1.5 rounded-lg ${
+                    uploadMode === "multi"
+                      ? "bg-white shadow-sm font-semibold"
+                      : "text-slate-600"
+                  }`}
+                >
+                  Multiple pages (images)
+                </button>
               </div>
               <p className="text-xs text-slate-500">
-                PDFs work best. For images, multi-page statements may need more
-                tuning.
+                Use <span className="font-semibold">Multiple pages</span> when a
+                statement or document is photographed page-by-page. We’ll
+                combine the pages into a single PDF before upload.
               </p>
             </div>
+
+            {/* File input(s) */}
+            {uploadMode === "single" ? (
+              <div className="grid gap-2">
+                <label htmlFor="file" className="font-medium text-sm">
+                  Upload PDF/Images
+                </label>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 cursor-pointer text-sm">
+                    <Upload className="h-4 w-4" />
+                    <span>Select file</span>
+                    <input
+                      id="file"
+                      name="file"
+                      type="file"
+                      accept=".pdf,image/*"
+                      className="hidden"
+                      onChange={handleSingleFileChange}
+                    />
+                  </label>
+                  {file && (
+                    <div className="flex items-center gap-2 text-xs text-slate-600">
+                      <FileText className="h-4 w-4" />
+                      <span className="font-medium">{file.name}</span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-slate-500">
+                  PDFs work best. Single images are also supported.
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-2">
+                <label htmlFor="multiPages" className="font-medium text-sm">
+                  Add page images
+                </label>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 cursor-pointer text-sm">
+                    <Upload className="h-4 w-4" />
+                    <span>Add pages</span>
+                    <input
+                      id="multiPages"
+                      name="multiPages"
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={handleMultiPageChange}
+                    />
+                  </label>
+                </div>
+                {pages.length > 0 && (
+                  <div className="mt-2 space-y-1 text-xs text-slate-600">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">
+                        {pages.length} page{pages.length > 1 ? "s" : ""} added
+                      </span>
+                    </div>
+                    <div className="max-h-40 overflow-auto border rounded-xl p-2 bg-slate-50">
+                      {pages.map((p, idx) => (
+                        <div
+                          key={`${p.name}-${idx}`}
+                          className="flex items-center justify-between gap-2 py-0.5"
+                        >
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-3 w-3" />
+                            <span className="truncate max-w-[200px]">
+                              {idx + 1}. {p.name}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removePage(idx)}
+                            className="text-[10px] text-slate-500 hover:text-red-500 inline-flex items-center gap-0.5"
+                          >
+                            <X className="h-3 w-3" />
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <p className="text-xs text-slate-500">
+                  Capture each page as a clear photo (no blur, good lighting).
+                  Pages will be combined into a single multi-page PDF.
+                </p>
+              </div>
+            )}
 
             {/* Status */}
             {renderStatus()}
@@ -394,7 +590,7 @@ export default function Dashboard() {
               <button
                 type="submit"
                 className="btn-primary rounded-xl px-5 py-2.5 text-sm font-medium disabled:opacity-50 inline-flex items-center gap-2"
-                disabled={!file || busy}
+                disabled={submitDisabled}
               >
                 {busy ? "Uploading…" : "Start OCR & analysis"}
               </button>

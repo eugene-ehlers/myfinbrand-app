@@ -29,6 +29,26 @@ const DOC_TYPE_OPTIONS = {
   ],
 };
 
+// Which services are meaningful per docType
+const DOC_TYPE_SERVICE_CONFIG = {
+  bank_statements: ["ocr", "summary", "structured", "classification", "ratios", "risk"],
+  financial_statements: ["ocr", "summary", "structured", "ratios", "risk"],
+  payslips: ["ocr", "summary", "structured", "risk"],
+  id_documents: ["ocr", "structured", "risk"],
+  proof_of_address: ["ocr", "structured", "risk"],
+  generic: ["ocr", "summary", "structured", "classification", "ratios", "risk"],
+};
+
+// Labels to render checkboxes nicely
+const SERVICE_LABELS = {
+  ocr: "OCR text extraction",
+  summary: "Summary / key facts",
+  structured: "Structured parse (accounts / key fields)",
+  classification: "Transaction classification",
+  ratios: "Financial ratios / metrics",
+  risk: "Risk score",
+};
+
 export default function Dashboard() {
   const navigate = useNavigate();
 
@@ -40,7 +60,7 @@ export default function Dashboard() {
   const [services, setServices] = useState({
     ocr: true, // always on in your flow, but keep it explicit
     summary: true,
-    structured: true, // parse account + transactions
+    structured: true, // parse account + transactions / key fields
     classification: true, // label transactions/categories
     ratios: false,
     risk: false,
@@ -55,6 +75,10 @@ export default function Dashboard() {
     "https://rip7ft5vrq6ltl7r7btoop4whm0fqcnp.lambda-url.us-east-1.on.aws/";
 
   const availableDocTypes = DOC_TYPE_OPTIONS[customerType] || [];
+
+  // Services that make sense for the current docType
+  const allowedServicesForDocType =
+    DOC_TYPE_SERVICE_CONFIG[docType] || Object.keys(services);
 
   // When customerType changes, ensure docType is still valid for that type
   useEffect(() => {
@@ -88,9 +112,13 @@ export default function Dashboard() {
       return;
     }
 
-    // flatten checked services into an array of strings
+    // flatten checked services into an array of strings, but only those
+    // that make sense for this docType
     const selectedServices = Object.entries(services)
-      .filter(([_, enabled]) => enabled)
+      .filter(
+        ([name, enabled]) =>
+          enabled && allowedServicesForDocType.includes(name)
+      )
       .map(([name]) => name);
 
     if (selectedServices.length === 0) {
@@ -305,63 +333,25 @@ export default function Dashboard() {
                 <span className="font-medium text-sm">Requested services</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                <label className="inline-flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={services.ocr}
-                    onChange={() => toggleService("ocr")}
-                  />
-                  <span>OCR text extraction</span>
-                </label>
-
-                <label className="inline-flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={services.summary}
-                    onChange={() => toggleService("summary")}
-                  />
-                  <span>Statement summary</span>
-                </label>
-
-                <label className="inline-flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={services.structured}
-                    onChange={() => toggleService("structured")}
-                  />
-                  <span>Structured parse (account + transactions)</span>
-                </label>
-
-                <label className="inline-flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={services.classification}
-                    onChange={() => toggleService("classification")}
-                  />
-                  <span>Transaction classification</span>
-                </label>
-
-                <label className="inline-flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={services.ratios}
-                    onChange={() => toggleService("ratios")}
-                  />
-                  <span>Financial ratios / metrics</span>
-                </label>
-
-                <label className="inline-flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={services.risk}
-                    onChange={() => toggleService("risk")}
-                  />
-                  <span>Risk score</span>
-                </label>
+                {allowedServicesForDocType.map((serviceKey) => (
+                  <label
+                    key={serviceKey}
+                    className="inline-flex items-center gap-2"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={services[serviceKey]}
+                      onChange={() => toggleService(serviceKey)}
+                    />
+                    <span>{SERVICE_LABELS[serviceKey] || serviceKey}</span>
+                  </label>
+                ))}
               </div>
               <p className="text-xs text-slate-500">
-                You can offer these as separate products or bundles; the backend
-                will only run what is selected.
+                Services are tailored to the selected{" "}
+                <span className="font-semibold">document type</span>. For
+                example, transaction classification and ratios are only shown
+                for bank and financial statements.
               </p>
             </div>
 

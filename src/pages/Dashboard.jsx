@@ -17,12 +17,14 @@ const DOC_TYPE_OPTIONS = {
     { value: "bank_statements", label: "Bank statement" },
     { value: "payslips", label: "Payslip" },
     { value: "id_documents", label: "ID / Passport" },
+    { value: "proof_of_address", label: "Proof of address" },
     { value: "generic", label: "Other / Generic" },
   ],
   business: [
     { value: "bank_statements", label: "Bank statement" },
     { value: "financial_statements", label: "Financial statements" },
     { value: "id_documents", label: "Company / Director ID docs" },
+    { value: "proof_of_address", label: "Proof of address" },
     { value: "generic", label: "Other / Generic" },
   ],
 };
@@ -288,9 +290,10 @@ export default function Dashboard() {
                   ))}
                 </select>
                 <p className="text-xs text-slate-500">
-                  Personal customers can upload bank statements, payslips and ID
-                  docs. Business customers can upload bank statements, financial
-                  statements and related ID docs.
+                  Personal customers can upload bank statements, payslips, ID
+                  docs and proof of address. Business customers can upload bank
+                  statements, financial statements, related ID docs and proof of
+                  address.
                 </p>
               </div>
             </div>

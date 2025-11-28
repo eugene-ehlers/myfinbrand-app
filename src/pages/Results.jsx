@@ -1,4 +1,3 @@
-// src/pages/Results.jsx
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -23,6 +22,7 @@ function classifyIssues(result) {
 
   const issues = [];
   const ocrEngine = result.ocr_engine || {};
+  const docType = result.docType || null;
 
   // agentic can be:
   // - bank_statement_agentic_v1 (your current shape)
@@ -99,26 +99,29 @@ function classifyIssues(result) {
   }
 
   // ---- Suspicious-but-not-crashing cases ----
-  let txs = [];
-  // v8 style: agentic.structured.transactions
-  if (Array.isArray(agentic?.structured?.transactions)) {
-    txs = agentic.structured.transactions;
-  }
-  // current v1: agentic.transactions
-  if (!txs.length && Array.isArray(agentic?.transactions)) {
-    txs = agentic.transactions;
-  }
-
+  // Only relevant for bank statements – other docs don't have transactions.
   if (!ocrEngine.error && agentic && agenticStatus !== "error") {
-    if (txs.length === 0) {
-      issues.push({
-        stage: "AI parsing & classification",
-        level: "warning",
-        category: "document",
-        userMessage:
-          "We processed the document but did not find any transactions. Check that the statement period is correct and that the file contains actual activity.",
-        rawMessage: "No transactions parsed from the document.",
-      });
+    if (docType === "bank_statements") {
+      let txs = [];
+      // v8 style: agentic.structured.transactions
+      if (Array.isArray(agentic?.structured?.transactions)) {
+        txs = agentic.structured.transactions;
+      }
+      // current v1: agentic.transactions
+      if (!txs.length && Array.isArray(agentic?.transactions)) {
+        txs = agentic.transactions;
+      }
+
+      if (txs.length === 0) {
+        issues.push({
+          stage: "AI parsing & classification",
+          level: "warning",
+          category: "document",
+          userMessage:
+            "We processed the document but did not find any transactions. Check that the statement period is correct and that the file contains actual activity.",
+          rawMessage: "No transactions parsed from the document.",
+        });
+      }
     }
   }
 
@@ -162,23 +165,29 @@ function formatStatusBadge(status) {
   );
 }
 
-// map backend docType → nice label (incl financial_statements)
+// map backend docType → nice label
 const DOC_TYPE_LABELS = {
   bank_statements: "Bank statement",
   payslips: "Payslip",
   id_documents: "ID / Passport",
   financial_statements: "Financial statements",
+  proof_of_address: "Proof of address",
   generic: "Other / Generic",
 };
 
-// ---- Build a doc-type aware UI summary from agentic JSON ----
-function buildUiSummary(docType, agentic) {
-  if (!agentic) return null;
+// ---- Build a doc-type aware UI summary from agentic JSON + fields ----
+function buildUiSummary(docType, agentic, fields = []) {
+  if (!agentic && !fields.length) return null;
+
+  // Helper to read from fields array by name
+  const getField = (name) =>
+    fields.find((f) => f.name && f.name.toLowerCase() === name.toLowerCase())
+      ?.value ?? null;
 
   // BANK STATEMENTS: bank_statement_agentic_v1
   if (docType === "bank_statements") {
-    const account = agentic.account || {};
-    const txs = Array.isArray(agentic.transactions)
+    const account = agentic?.account || {};
+    const txs = Array.isArray(agentic?.transactions)
       ? agentic.transactions
       : [];
 
@@ -218,8 +227,8 @@ function buildUiSummary(docType, agentic) {
 
   // FINANCIAL STATEMENTS: assume v8-style agentic with summary + structured.financials
   if (docType === "financial_statements") {
-    const summary = agentic.summary || {};
-    const financials = agentic.structured?.financials || {};
+    const summary = agentic?.summary || {};
+    const financials = agentic?.structured?.financials || {};
     const income = financials.income_statement || {};
     const balance = financials.balance_sheet || {};
 
@@ -238,22 +247,82 @@ function buildUiSummary(docType, agentic) {
     };
   }
 
-  // PAYSLIPS (future-ready stub)
+  // PAYSLIPS – derive from fields (works even if agentic is empty)
   if (docType === "payslips") {
-    const employee = agentic.employee || {};
-    const employer = agentic.employer || {};
-    const period = agentic.period || {};
-    const amounts = agentic.amounts || {};
-
     return {
       kind: "payslip",
-      employee_name: employee.name || null,
-      employer_name: employer.name || null,
-      period_start: period.startDate || null,
-      period_end: period.endDate || null,
-      gross_pay: amounts.gross_pay ?? null,
-      net_pay: amounts.net_pay ?? null,
-      currency: amounts.currency || "ZAR",
+      employee_name:
+        getField("Employee Name") || getField("Employee") || null,
+      employer_name:
+        getField("Employer Name") || getField("Employer") || null,
+      period_label:
+        getField("Salary Period Label") || getField("Salary Period") || null,
+      gross_pay:
+        getField("Gross Salary") || getField("Gross Pay") || getField("Gross")
+          || null,
+      net_pay:
+        getField("Net Salary") || getField("Net Pay") || getField("Net") ||
+        null,
+      currency: getField("Currency") || "ZAR",
+    };
+  }
+
+  // ID DOCUMENTS – derive from fields
+  if (docType === "id_documents") {
+    return {
+      kind: "id",
+      first_names:
+        getField("First Name(s)") ||
+        getField("First Names") ||
+        getField("Given Names") ||
+        null,
+      surname: getField("Surname") || getField("Last Name") || null,
+      id_type: getField("ID Type") || null,
+      id_number:
+        getField("ID Number") ||
+        getField("Identity Number") ||
+        getField("Passport Number") ||
+        null,
+      issuing_country:
+        getField("Issuing Country") ||
+        getField("Country") ||
+        getField("Nationality") ||
+        null,
+      date_of_birth:
+        getField("Date of Birth") || getField("DOB") || null,
+    };
+  }
+
+  // PROOF OF ADDRESS – derive from fields
+  if (docType === "proof_of_address") {
+    return {
+      kind: "address",
+      holder_name:
+        getField("Address Holder Name") ||
+        getField("Account Holder Name") ||
+        getField("Customer Name") ||
+        null,
+      holder_type: getField("Holder Type") || null,
+      address_line_1:
+        getField("Address Line 1") || getField("Address1") || null,
+      address_line_2:
+        getField("Address Line 2") || getField("Address2") || null,
+      city: getField("City / Town") || getField("City") || null,
+      province:
+        getField("Province / State") ||
+        getField("Province") ||
+        getField("State") ||
+        null,
+      postal_code:
+        getField("Postal Code") || getField("Postcode") || null,
+      country: getField("Country") || null,
+      proof_entity_name:
+        getField("Proof Entity Name") ||
+        getField("Provider") ||
+        getField("Issuer") ||
+        null,
+      document_issue_date:
+        getField("Document Issue Date") || getField("Issue Date") || null,
     };
   }
 
@@ -382,8 +451,8 @@ export default function Results() {
   const rawAgentic = result?.result || null;
   const agentic = rawAgentic?.result ?? rawAgentic ?? null;
 
-  // Build a UI summary based on docType + agentic content
-  const uiSummary = buildUiSummary(docType, agentic);
+  // Build a UI summary based on docType + agentic content + fields
+  const uiSummary = buildUiSummary(docType, agentic, fields);
 
   // Classification & risk (where present)
   const classification = agentic?.classification || null;
@@ -549,6 +618,8 @@ export default function Results() {
                     {uiSummary.kind === "financials" &&
                       "Financial statement summary"}
                     {uiSummary.kind === "payslip" && "Payslip summary"}
+                    {uiSummary.kind === "id" && "ID / Passport summary"}
+                    {uiSummary.kind === "address" && "Proof of address summary"}
                     {!uiSummary.kind && "Document summary"}
                   </h2>
 
@@ -737,7 +808,7 @@ export default function Results() {
                     </>
                   )}
 
-                  {/* PAYSLIP SUMMARY (future-ready) */}
+                  {/* PAYSLIP SUMMARY */}
                   {uiSummary.kind === "payslip" && (
                     <>
                       <div className="grid gap-4 md:grid-cols-3 text-sm">
@@ -759,10 +830,10 @@ export default function Results() {
                         </div>
                         <div>
                           <div className="text-slate-500 text-xs uppercase">
-                            Currency
+                            Period
                           </div>
                           <div className="font-medium">
-                            {uiSummary.currency || "ZAR"}
+                            {uiSummary.period_label || "—"}
                           </div>
                         </div>
                       </div>
@@ -786,6 +857,136 @@ export default function Results() {
                             {uiSummary.net_pay != null
                               ? uiSummary.net_pay.toLocaleString("en-ZA")
                               : "—"}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* ID SUMMARY */}
+                  {uiSummary.kind === "id" && (
+                    <>
+                      <div className="grid gap-4 md:grid-cols-3 text-sm">
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            First name(s)
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.first_names || "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Surname
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.surname || "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Date of birth
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.date_of_birth || "—"}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 grid gap-4 md:grid-cols-3 text-sm">
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            ID type
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.id_type || "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            ID / Passport number
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.id_number || "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Issuing country
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.issuing_country || "—"}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* PROOF OF ADDRESS SUMMARY */}
+                  {uiSummary.kind === "address" && (
+                    <>
+                      <div className="grid gap-4 md:grid-cols-3 text-sm">
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Address holder
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.holder_name || "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Holder type
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.holder_type || "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Country
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.country || "—"}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 grid gap-4 md:grid-cols-3 text-sm">
+                        <div className="md:col-span-2">
+                          <div className="text-slate-500 text-xs uppercase">
+                            Address
+                          </div>
+                          <div className="font-medium whitespace-pre-line">
+                            {uiSummary.address_line_1 || "—"}
+                            {uiSummary.address_line_2
+                              ? `\n${uiSummary.address_line_2}`
+                              : ""}
+                            {(uiSummary.city ||
+                              uiSummary.province ||
+                              uiSummary.postal_code) && "\n"}
+                            {uiSummary.city || ""}
+                            {uiSummary.city && uiSummary.province ? ", " : ""}
+                            {uiSummary.province || ""}
+                            {(uiSummary.city || uiSummary.province) &&
+                            uiSummary.postal_code
+                              ? " "
+                              : ""}
+                            {uiSummary.postal_code || ""}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Provider / Issuer
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.proof_entity_name || "—"}
+                          </div>
+                          <div className="mt-2 text-slate-500 text-xs uppercase">
+                            Issue date
+                          </div>
+                          <div className="font-medium">
+                            {uiSummary.document_issue_date || "—"}
                           </div>
                         </div>
                       </div>

@@ -42,6 +42,9 @@ const DOC_TYPE_SERVICE_CONFIG = {
   generic: ["ocr", "summary", "structured", "classification", "ratios", "risk"],
 };
 
+// Services that are only available in DETAILED mode (for supported docTypes)
+const DETAILED_ONLY_SERVICES = ["ratios"];
+
 // Labels to render checkboxes nicely
 const SERVICE_LABELS = {
   ocr: "OCR text extraction",
@@ -88,6 +91,9 @@ export default function Dashboard() {
   const [customerType, setCustomerType] = useState("personal");
   const [docType, setDocType] = useState("bank_statements");
 
+  // NEW: analysis depth selection
+  const [analysisMode, setAnalysisMode] = useState("quick"); // "quick" | "detailed"
+
   // which services the requester wants the platform to run
   const [services, setServices] = useState({
     ocr: true, // always on in your flow, but keep it explicit
@@ -115,6 +121,14 @@ export default function Dashboard() {
   // Services that make sense for the current docType
   const allowedServicesForDocType =
     DOC_TYPE_SERVICE_CONFIG[docType] || Object.keys(services);
+
+  // Further restrict services based on analysisMode
+  const allowedServicesForMode = allowedServicesForDocType.filter((svc) => {
+    if (analysisMode === "quick" && DETAILED_ONLY_SERVICES.includes(svc)) {
+      return false;
+    }
+    return true;
+  });
 
   // When customerType changes, ensure docType is still valid for that type
   useEffect(() => {
@@ -173,12 +187,12 @@ export default function Dashboard() {
       return;
     }
 
-    // flatten checked services into an array of strings, but only those
-    // that make sense for this docType
+    // flatten checked services into an array of strings,
+    // but only those that make sense for this docType AND analysisMode
     const selectedServices = Object.entries(services)
       .filter(
         ([name, enabled]) =>
-          enabled && allowedServicesForDocType.includes(name)
+          enabled && allowedServicesForMode.includes(name)
       )
       .map(([name]) => name);
 
@@ -238,7 +252,8 @@ export default function Dashboard() {
           caseName: caseName.trim(),
           customerType,
           services: selectedServices,
-          captureMode, // NEW: tell backend how this was captured
+          captureMode, // tell backend how this was captured
+          analysisMode, // NEW: quick vs detailed
         }),
       });
 
@@ -427,6 +442,44 @@ export default function Dashboard() {
               </div>
             </div>
 
+            {/* Analysis mode (Quick vs Detailed) */}
+            <div className="grid gap-2">
+              <div className="flex items-center gap-2">
+                <Settings2 className="h-4 w-4 text-slate-600" />
+                <span className="font-medium text-sm">Analysis depth</span>
+              </div>
+              <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setAnalysisMode("quick")}
+                  className={`flex-1 px-3 py-1.5 rounded-lg ${
+                    analysisMode === "quick"
+                      ? "bg-white shadow-sm font-semibold"
+                      : "text-slate-600"
+                  }`}
+                >
+                  Quick (faster)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAnalysisMode("detailed")}
+                  className={`flex-1 px-3 py-1.5 rounded-lg ${
+                    analysisMode === "detailed"
+                      ? "bg-white shadow-sm font-semibold"
+                      : "text-slate-600"
+                  }`}
+                >
+                  Detailed (slower, richer)
+                </button>
+              </div>
+              <p className="text-xs text-slate-500">
+                <span className="font-semibold">Quick</span> returns a shorter
+                result and is optimised for speed.{" "}
+                <span className="font-semibold">Detailed</span> can take longer
+                but enables heavier analysis like ratios on supported documents.
+              </p>
+            </div>
+
             {/* Service selection */}
             <div className="grid gap-2">
               <div className="flex items-center gap-2">
@@ -434,7 +487,7 @@ export default function Dashboard() {
                 <span className="font-medium text-sm">Requested services</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                {allowedServicesForDocType.map((serviceKey) => (
+                {allowedServicesForMode.map((serviceKey) => (
                   <label
                     key={serviceKey}
                     className="inline-flex items-center gap-2"
@@ -450,9 +503,10 @@ export default function Dashboard() {
               </div>
               <p className="text-xs text-slate-500">
                 Services are tailored to the selected{" "}
-                <span className="font-semibold">document type</span>. For
-                example, transaction classification and ratios are only shown
-                for bank and financial statements.
+                <span className="font-semibold">document type</span> and{" "}
+                <span className="font-semibold">analysis depth</span>. Some
+                heavy services (like ratios) are only available in Detailed
+                mode on supported documents.
               </p>
             </div>
 

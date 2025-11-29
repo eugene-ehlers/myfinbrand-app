@@ -1,3 +1,4 @@
+// src/pages/Results.jsx
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -31,6 +32,13 @@ function classifyIssues(result) {
   const agentic = rawAgentic?.result ?? rawAgentic ?? null;
   const agenticStatus = rawAgentic?.status ?? agentic?.status ?? "ok";
 
+  // NEW: quality decision from backend (STOP / PARTIAL / FULL_SMALL / FULL_LARGE)
+  const quality = result.quality || {};
+  const qualityDecision = quality.decision || null;
+  const qualityReasons = Array.isArray(quality.reasons)
+    ? quality.reasons
+    : [];
+
   // ---- OCR issues ----
   if (ocrEngine && ocrEngine.error) {
     const msg = String(ocrEngine.error || "");
@@ -58,6 +66,27 @@ function classifyIssues(result) {
       category, // "internal" | "document"
       userMessage,
       rawMessage: msg,
+    });
+  }
+
+  // NEW: quality STOP → user-facing reason
+  if (qualityDecision === "STOP") {
+    const reasonText =
+      qualityReasons.length > 0
+        ? `We stopped processing because the document quality was too low: ${qualityReasons.join(
+            "; "
+          )}.`
+        : "We stopped processing because the document quality was too low for reliable analysis.";
+
+    issues.push({
+      stage: "Quality checks",
+      level: "error",
+      category: "document",
+      userMessage: reasonText,
+      rawMessage: JSON.stringify({
+        decision: qualityDecision,
+        reasons: qualityReasons,
+      }),
     });
   }
 
@@ -258,11 +287,15 @@ function buildUiSummary(docType, agentic, fields = []) {
       period_label:
         getField("Salary Period Label") || getField("Salary Period") || null,
       gross_pay:
-        getField("Gross Salary") || getField("Gross Pay") || getField("Gross")
-          || null,
+        getField("Gross Salary") ||
+          getField("Gross Pay") ||
+          getField("Gross") ||
+          null,
       net_pay:
-        getField("Net Salary") || getField("Net Pay") || getField("Net") ||
-        null,
+        getField("Net Salary") ||
+          getField("Net Pay") ||
+          getField("Net") ||
+          null,
       currency: getField("Currency") || "ZAR",
     };
   }
@@ -461,6 +494,11 @@ export default function Results() {
   const riskBand = agentic?.risk_score?.band ?? null;
   const confidence = result?.confidence ?? null;
 
+  // NEW: analysisMode and quality from backend
+  const analysisMode = result?.analysisMode || null;
+  const quality = result?.quality || {};
+  const qualityDecision = quality?.decision || null;
+
   const { issues, overallStatus } = classifyIssues(result);
 
   return (
@@ -571,10 +609,23 @@ export default function Results() {
                     </pre>
                   </details>
                 )}
+
+                {/* Optional: show quality decision label when not STOP */}
+                {qualityDecision &&
+                  qualityDecision !== "STOP" &&
+                  issues.length === 0 && (
+                    <p className="mt-3 text-xs text-slate-600">
+                      Quality checks completed with decision:{" "}
+                      <span className="font-semibold">
+                        {qualityDecision}
+                      </span>
+                      .
+                    </p>
+                  )}
               </div>
 
               {/* Summary cards */}
-              <div className="grid gap-4 md:grid-cols-3 mb-6">
+              <div className="grid gap-4 md:grid-cols-4 mb-6">
                 <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
                   <div className="text-xs uppercase tracking-wide opacity-70">
                     Risk Score
@@ -606,6 +657,18 @@ export default function Results() {
                   </div>
                   <div className="mt-1 text-2xl font-semibold">
                     {docTypeLabel}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
+                  <div className="text-xs uppercase tracking-wide opacity-70">
+                    Analysis Mode
+                  </div>
+                  <div className="mt-1 text-2xl font-semibold">
+                    {analysisMode === "detailed"
+                      ? "Detailed"
+                      : analysisMode === "quick"
+                      ? "Quick"
+                      : "—"}
                   </div>
                 </div>
               </div>

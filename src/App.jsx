@@ -81,6 +81,12 @@ export default function App() {
         element={<AgenticVsDecisionEngine />}
       />
 
+      <Route 
+        path="/collections-upload" 
+        element={<Collections_Upload />} 
+      />
+
+
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

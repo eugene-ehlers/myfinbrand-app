@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./pages/Landing.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Admin from "./pages/Admin.jsx";
+import Collections_Upload from "./pages/CollectionsUpload.jsx";
 
 import Insights from "./pages/Insights.jsx";
 

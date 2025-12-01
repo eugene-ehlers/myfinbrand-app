@@ -4,8 +4,8 @@ import Landing from "./pages/Landing.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Admin from "./pages/Admin.jsx";
 import Collections_Upload from "./pages/CollectionsUpload.jsx";
-import CollectionsResults from "./pages/CollectionsResults.jsx";
-import CollectionsStrategy from "./pages/CollectionsStrategy.jsx";
+import Collections_Results from "./pages/CollectionsResults.jsx";
+import Collections_Strategy from "./pages/CollectionsStrategy.jsx";
 
 
 import Insights from "./pages/Insights.jsx";
@@ -89,11 +89,11 @@ export default function App() {
         element={<Collections_Upload />} 
       />
       <Route path="/collections-results" 
-        element={<CollectionsResults />} 
+        element={<Collections_Results />} 
       />
 
       <Route path="/collections-strategy" 
-        element={<CollectionsStrategy />} 
+        element={<Collections_Strategy />} 
       />
 
 

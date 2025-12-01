@@ -140,7 +140,7 @@ export default function SiteHeader() {
 
           {/* LinkedIn (open in new tab) */}
           <a
-            href="https://www.linkedin.com" // replace with your real URL
+            href="https://www.linkedin.com/in/eugene-ehlers-2b644b64/"
             target="_blank"
             rel="noreferrer"
             className="header-cta flex items-center gap-1"

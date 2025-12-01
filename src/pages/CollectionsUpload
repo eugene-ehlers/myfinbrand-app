@@ -1,4 +1,4 @@
-// src/pages/CollectionsUpload.jsx
+// src/pages/Collections_Upload.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -11,7 +11,7 @@ import {
 import SiteHeader from "../components/layout/SiteHeader.jsx";
 import SiteFooter from "../components/layout/SiteFooter.jsx";
 
-export default function CollectionsStrategy() {
+export default function Collections_Upload() {
   const navigate = useNavigate();
 
   const [caseName, setCaseName] = useState("");
@@ -47,7 +47,6 @@ export default function CollectionsStrategy() {
   async function startUpload(e) {
     e?.preventDefault?.();
 
-    // Basic validations
     if (!caseName.trim()) {
       setStatus({
         type: "error",
@@ -64,7 +63,6 @@ export default function CollectionsStrategy() {
       return;
     }
 
-    // Build list of enabled run options
     const selectedRunOptions = Object.entries(runOptions)
       .filter(([_, enabled]) => enabled)
       .map(([name]) => name);
@@ -97,7 +95,7 @@ export default function CollectionsStrategy() {
           caseName: caseName.trim(),
           portfolioType,
           strategyMode, // e.g. simulation vs production
-          runOptions: selectedRunOptions, // which parts of the engine to run
+          runOptions: selectedRunOptions,
         }),
       });
 
@@ -131,10 +129,9 @@ export default function CollectionsStrategy() {
             "Upload complete. Collections strategy engine will start automatically.",
         });
 
-        // Clear selection
         setFile(null);
 
-        // Navigate to a collections results page (you can adjust the route)
+        // Navigate to a collections results page (you can adjust this path)
         navigate(
           `/collections-results?objectKey=${encodeURIComponent(objectKey)}`
         );
@@ -179,7 +176,6 @@ export default function CollectionsStrategy() {
       );
     }
 
-    // info
     return (
       <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 flex gap-2">
         <AlertCircle className="h-5 w-5 mt-0.5" />
@@ -203,7 +199,7 @@ export default function CollectionsStrategy() {
           <div>
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight flex items-center gap-2">
               <Upload className="h-6 w-6" />
-              Collections Strategy Demo
+              Collections Strategy – Upload
             </h1>
             <p className="text-sm text-slate-600 mt-1">
               Upload a CSV or Excel file of accounts, and we’ll run segmentation,
@@ -404,3 +400,4 @@ export default function CollectionsStrategy() {
     </div>
   );
 }
+

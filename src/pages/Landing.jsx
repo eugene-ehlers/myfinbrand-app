@@ -427,6 +427,99 @@ export default function Landing() {
         </div>
       </Section>
 
+
+        {/* CREDIT MANAGEMENT */}
+      <Section id="credit-management" className="py-12 md:py-16 bg-slate-50">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
+            Credit Management & Strategy
+          </h2>
+          <p className="mt-3 text-slate-700">
+            We help you design, implement, and run end-to-end credit strategies:
+            from scorecards and rules to offers and pricing. Work with us on a
+            pure advisory basis, analytics-supported, or as a fully managed
+            credit management-as-a-service model.
+          </p>
+        </div>
+
+        <div className="mt-10 grid md:grid-cols-3 gap-5">
+          <div className="p-6 rounded-2xl border bg-white">
+            <h3 className="text-lg font-semibold">Strategy & Policy</h3>
+            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
+              Define credit strategies, risk appetite, and segmentation across
+              your portfolio. We align origination, customer management, and
+              collections with your business goals and regulatory context.
+            </p>
+          </div>
+
+          <div className="p-6 rounded-2xl border bg-white">
+            <h3 className="text-lg font-semibold">Scorecards & Rules</h3>
+            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
+              Design and calibrate scorecard strategies and actual scorecards,
+              then translate them into transparent, governed rules that work
+              across early, middle, and late-stage decisioning.
+            </p>
+          </div>
+
+          <div className="p-6 rounded-2xl border bg-white">
+            <h3 className="text-lg font-semibold">Offers & Pricing</h3>
+            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
+              Build offer frameworks that define who gets what, over which term,
+              at which price. Balance approval rates, loss rates, and customer
+              value with targeted, segment-based offers.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 grid md:grid-cols-3 gap-5">
+          <div className="p-5 rounded-2xl border bg-white">
+            <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-600">
+              Option 1: Advisory
+            </h4>
+            <p className="mt-2 text-sm text-slate-700 leading-relaxed">
+              We define your strategies, scorecards, and rules, and hand over
+              documentation and designs for your team to implement.
+            </p>
+          </div>
+
+          <div className="p-5 rounded-2xl border bg-white">
+            <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-600">
+              Option 2: Advisory + Analytics
+            </h4>
+            <p className="mt-2 text-sm text-slate-700 leading-relaxed">
+              We support you with both strategy and the underlying analytics,
+              including building or refining scorecards and decision insights.
+            </p>
+          </div>
+
+          <div className="p-5 rounded-2xl border bg-white">
+            <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-600">
+              Option 3: Credit Management as a Service
+            </h4>
+            <p className="mt-2 text-sm text-slate-700 leading-relaxed">
+              We run the full credit management function for you: strategies,
+              scorecards, rules, offers, monitoring, and optimisation—delivered
+              as an ongoing managed service.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 text-center">
+          <a
+            href="#contact"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl shadow text-sm font-medium"
+            style={{
+              background: "rgb(var(--primary))",
+              color: "rgb(var(--primary-fg))",
+            }}
+          >
+            Talk to us about credit management
+            <ArrowRight className="h-5 w-5" />
+          </a>
+        </div>
+      </Section>
+
+
 {/* DECISION ENGINE PLATFORM */}
 <Section id="decision-engine" className="py-12 md:py-16">
   <div className="max-w-3xl mx-auto text-center">

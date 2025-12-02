@@ -1,64 +1,115 @@
 // src/pages/CollectionsResults.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
-import { CheckCircle2, Download } from "lucide-react";
+import { CheckCircle2, Download, AlertCircle } from "lucide-react";
 import SiteHeader from "../components/layout/SiteHeader.jsx";
 import SiteFooter from "../components/layout/SiteFooter.jsx";
 
-const COLLECTIONS_BUCKET = "myfinbrand-collections-dev"; // adjust if needed
+// Lambda URL that returns pre-signed GET URLs for the result files
+const RESULTS_URL_FUNCTION =
+  "https://3mxonnyr3li26y3drvcx2bw64q0akzky.lambda-url.us-east-1.on.aws/";
 
 function useQuery() {
   const { search } = useLocation();
   return React.useMemo(() => new URLSearchParams(search), [search]);
 }
 
-function buildResultsKeys(objectKey) {
-  if (!objectKey) return null;
-
-  // Mirror the logic in CollectionsIngest:
-  // raw/collections/.../file.csv  ->  results/collections/.../file_sms.csv etc.
-  const resultsPrefix = objectKey.replace(
-    "raw/collections/",
-    "results/collections/"
-  );
-  const basePrefix = resultsPrefix.replace(/\.[^.]+$/, ""); // strip .csv / .xlsx
-
-  return {
-    smsKey: `${basePrefix}_sms.csv`,
-    emailKey: `${basePrefix}_email.csv`,
-    diallerKey: `${basePrefix}_dialler.csv`,
-    suppressedKey: `${basePrefix}_suppressed.csv`,
-  };
-}
-
-function s3UrlForKey(bucket, key) {
-  if (!bucket || !key) return "#";
-  // Encode each path segment to be safe
-  const encodedKey = key
-    .split("/")
-    .map((part) => encodeURIComponent(part))
-    .join("/");
-  return `https://${bucket}.s3.amazonaws.com/${encodedKey}`;
-}
-
 export default function CollectionsResults() {
   const query = useQuery();
   const objectKey = query.get("objectKey");
 
-  const keys = buildResultsKeys(objectKey);
+  const [urls, setUrls] = useState(null);
+  const [status, setStatus] = useState({
+    type: "info",
+    message: "Fetching download links for results…",
+  });
 
-  const smsUrl = keys
-    ? s3UrlForKey(COLLECTIONS_BUCKET, keys.smsKey)
-    : "#";
-  const emailUrl = keys
-    ? s3UrlForKey(COLLECTIONS_BUCKET, keys.emailKey)
-    : "#";
-  const diallerUrl = keys
-    ? s3UrlForKey(COLLECTIONS_BUCKET, keys.diallerKey)
-    : "#";
-  const suppressedUrl = keys
-    ? s3UrlForKey(COLLECTIONS_BUCKET, keys.suppressedKey)
-    : "#";
+  useEffect(() => {
+    async function fetchUrls() {
+      if (!objectKey) {
+        setStatus({
+          type: "error",
+          message: "No objectKey provided. Please re-run the upload.",
+        });
+        return;
+      }
+
+      try {
+        setStatus({
+          type: "info",
+          message: "Preparing secure download links…",
+        });
+
+        const res = await fetch(RESULTS_URL_FUNCTION, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ objectKey }),
+        });
+
+        if (!res.ok) {
+          console.error("GetResultUrls failed", res.status);
+          setStatus({
+            type: "error",
+            message: `Could not prepare result links (HTTP ${res.status}). Check that the results files exist in S3.`,
+          });
+          return;
+        }
+
+        const data = await res.json();
+        setUrls(data);
+        setStatus({
+          type: "success",
+          message: "Download links are ready.",
+        });
+      } catch (err) {
+        console.error(err);
+        setStatus({
+          type: "error",
+          message:
+            "Unexpected error while fetching result links. Please refresh and try again.",
+        });
+      }
+    }
+
+    fetchUrls();
+  }, [objectKey]);
+
+  function renderStatus() {
+    if (!status) return null;
+
+    if (status.type === "success") {
+      return (
+        <div className="mt-3 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-xs md:text-sm text-green-800 flex gap-2">
+          <CheckCircle2 className="h-4 w-4 mt-0.5" />
+          <span>{status.message}</span>
+        </div>
+      );
+    }
+
+    if (status.type === "error") {
+      return (
+        <div className="mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs md:text-sm text-red-800 flex gap-2">
+          <AlertCircle className="h-4 w-4 mt-0.5" />
+          <span>{status.message}</span>
+        </div>
+      );
+    }
+
+    // info
+    return (
+      <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs md:text-sm text-slate-800 flex gap-2">
+        <AlertCircle className="h-4 w-4 mt-0.5" />
+        <span>{status.message}</span>
+      </div>
+    );
+  }
+
+  const downloadsReady =
+    urls &&
+    urls.smsUrl &&
+    urls.emailUrl &&
+    urls.diallerUrl &&
+    urls.suppressedUrl;
 
   return (
     <div
@@ -75,9 +126,9 @@ export default function CollectionsResults() {
               Collections Strategy – Results
             </h1>
             <p className="text-sm text-slate-600 mt-1">
-              The uploaded file has been processed. Download the channel
-              output files below to see which customers received which
-              treatments and messages.
+              The uploaded file has been processed. Download the channel output
+              files below to see which customers received which treatments and
+              messages.
             </p>
           </div>
         </div>
@@ -91,11 +142,9 @@ export default function CollectionsResults() {
             </div>
             <div className="mt-1 text-xs md:text-sm text-green-900">
               Output files were written to your S3 bucket under{" "}
-              <span className="font-mono">
-                results/collections/…
-              </span>
-              . Use the buttons below to download each channel file for
-              analysis or to load into your SMS, email or dialler systems.
+              <span className="font-mono">results/collections/…</span>. Secure
+              pre-signed links are generated on demand so you can download each
+              file from this page.
             </div>
             {objectKey && (
               <div className="mt-2 text-[11px] text-green-900">
@@ -105,6 +154,8 @@ export default function CollectionsResults() {
             )}
           </div>
         </div>
+
+        {renderStatus()}
 
         {/* Download card */}
         <div className="rounded-3xl border bg-white p-6 shadow-sm text-sm space-y-4">
@@ -120,10 +171,14 @@ export default function CollectionsResults() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* SMS */}
             <a
-              href={smsUrl}
+              href={downloadsReady ? urls.smsUrl : "#"}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium disabled:opacity-50"
+              className="btn-primary inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium"
+              aria-disabled={!downloadsReady}
+              onClick={(e) => {
+                if (!downloadsReady) e.preventDefault();
+              }}
             >
               <Download className="h-4 w-4 mr-2" />
               Download SMS file
@@ -131,10 +186,14 @@ export default function CollectionsResults() {
 
             {/* Email */}
             <a
-              href={emailUrl}
+              href={downloadsReady ? urls.emailUrl : "#"}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium disabled:opacity-50"
+              className="btn-primary inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium"
+              aria-disabled={!downloadsReady}
+              onClick={(e) => {
+                if (!downloadsReady) e.preventDefault();
+              }}
             >
               <Download className="h-4 w-4 mr-2" />
               Download Email file
@@ -142,10 +201,14 @@ export default function CollectionsResults() {
 
             {/* Dialler */}
             <a
-              href={diallerUrl}
+              href={downloadsReady ? urls.diallerUrl : "#"}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium disabled:opacity-50"
+              className="btn-primary inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium"
+              aria-disabled={!downloadsReady}
+              onClick={(e) => {
+                if (!downloadsReady) e.preventDefault();
+              }}
             >
               <Download className="h-4 w-4 mr-2" />
               Download Dialler file
@@ -153,10 +216,14 @@ export default function CollectionsResults() {
 
             {/* Suppressed */}
             <a
-              href={suppressedUrl}
+              href={downloadsReady ? urls.suppressedUrl : "#"}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium disabled:opacity-50"
+              className="btn-primary inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium"
+              aria-disabled={!downloadsReady}
+              onClick={(e) => {
+                if (!downloadsReady) e.preventDefault();
+              }}
             >
               <Download className="h-4 w-4 mr-2" />
               Download Suppressed file
@@ -164,9 +231,9 @@ export default function CollectionsResults() {
           </div>
 
           <p className="text-[11px] text-slate-400 mt-3">
-            Note: for this demo, files are accessed directly via S3 object
-            URLs. In a production setup you would typically expose these via
-            pre-signed URLs or a backend API.
+            Links are pre-signed and expire after a short period. For repeated
+            analysis, download and store the files locally or in your analytics
+            environment.
           </p>
         </div>
 
@@ -191,3 +258,4 @@ export default function CollectionsResults() {
     </div>
   );
 }
+

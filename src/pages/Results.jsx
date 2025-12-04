@@ -32,14 +32,42 @@ function classifyIssues(result) {
   const agentic = rawAgentic?.result ?? rawAgentic ?? null;
   const agenticStatus = rawAgentic?.status ?? agentic?.status ?? "ok";
 
-  // NEW: quality decision from backend (STOP / PARTIAL / FULL_SMALL / FULL_LARGE)
+  // quality from backend (current: { status, confidence }, future: decision/reasons)
   const quality = result.quality || {};
   const qualityDecision = quality.decision || null;
   const qualityReasons = Array.isArray(quality.reasons)
     ? quality.reasons
     : [];
+  const qualityStatus = quality.status || null;
 
-  // ---- OCR issues ----
+  const pipelineStage = result.statusAudit || null;
+
+  // ---- Pipeline-stage based hints (uses only DB data, no guessing of paths) ----
+  if (pipelineStage === "uploaded") {
+    issues.push({
+      stage: "Processing pipeline",
+      level: "warning",
+      category: "internal",
+      userMessage:
+        "The document has been uploaded and is queued for OCR and analysis. Results may not be available yet.",
+      rawMessage: "pipeline_stage=uploaded",
+    });
+  } else if (
+    pipelineStage === "ocr_completed" &&
+    !result.quick &&
+    !result.detailed
+  ) {
+    issues.push({
+      stage: "Processing pipeline",
+      level: "warning",
+      category: "internal",
+      userMessage:
+        "OCR has completed, but AI analysis has not finished yet. Please refresh after a short while if no results are visible.",
+      rawMessage: "pipeline_stage=ocr_completed, no quick/detailed present",
+    });
+  }
+
+  // ---- OCR issues (legacy / future engine integration) ----
   if (ocrEngine && ocrEngine.error) {
     const msg = String(ocrEngine.error || "");
     let category = "internal";
@@ -69,7 +97,7 @@ function classifyIssues(result) {
     });
   }
 
-  // NEW: quality STOP → user-facing reason
+  // Quality STOP (future) → user-facing reason
   if (qualityDecision === "STOP") {
     const reasonText =
       qualityReasons.length > 0
@@ -87,6 +115,18 @@ function classifyIssues(result) {
         decision: qualityDecision,
         reasons: qualityReasons,
       }),
+    });
+  }
+
+  // If we ever explicitly mark quality as bad in status
+  if (qualityStatus && /bad|poor/i.test(qualityStatus)) {
+    issues.push({
+      stage: "Quality checks",
+      level: "warning",
+      category: "document",
+      userMessage:
+        "The document quality is lower than ideal. Some values may be incomplete or less reliable.",
+      rawMessage: `quality.status=${qualityStatus}`,
     });
   }
 
@@ -176,7 +216,7 @@ function formatStatusBadge(status) {
   if (status === "warning") {
     return (
       <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-800">
-        Completed with warnings
+        Completed with warnings / in progress
       </span>
     );
   }
@@ -288,14 +328,14 @@ function buildUiSummary(docType, agentic, fields = []) {
         getField("Salary Period Label") || getField("Salary Period") || null,
       gross_pay:
         getField("Gross Salary") ||
-          getField("Gross Pay") ||
-          getField("Gross") ||
-          null,
+        getField("Gross Pay") ||
+        getField("Gross") ||
+        null,
       net_pay:
         getField("Net Salary") ||
-          getField("Net Pay") ||
-          getField("Net") ||
-          null,
+        getField("Net Pay") ||
+        getField("Net") ||
+        null,
       currency: getField("Currency") || "ZAR",
     };
   }
@@ -474,7 +514,7 @@ export default function Results() {
     );
   }
 
-  // High-level fields from the stub
+  // High-level fields from the stub / backend
   const docType = result?.docType ?? "—";
   const docTypeLabel = DOC_TYPE_LABELS[docType] || docType || "—";
   const fields = Array.isArray(result?.fields) ? result.fields : [];
@@ -487,17 +527,29 @@ export default function Results() {
   // Build a UI summary based on docType + agentic content + fields
   const uiSummary = buildUiSummary(docType, agentic, fields);
 
-  // Classification & risk (where present)
+  // Classification & risk (where present in future agentic payloads)
   const classification = agentic?.classification || null;
   const riskScore =
     agentic?.risk_score?.score ?? result?.riskScore ?? null;
   const riskBand = agentic?.risk_score?.band ?? null;
-  const confidence = result?.confidence ?? null;
 
-  // NEW: analysisMode and quality from backend
-  const analysisMode = result?.analysisMode || null;
+  // Confidence now comes from quality.confidence (backend)
   const quality = result?.quality || {};
+  const confidence = typeof quality.confidence === "number"
+    ? quality.confidence
+    : null;
+
+  // analysisMode & pipeline stage from backend
+  const analysisMode = result?.analysisMode || null;
   const qualityDecision = quality?.decision || null;
+
+  // Summary text from backend (new contract)
+  const summaryText =
+    result?.summary ||
+    result?.detailed?.summary ||
+    result?.quick?.summary ||
+    result?.ocr?.summary ||
+    null;
 
   const { issues, overallStatus } = classifyIssues(result);
 
@@ -624,6 +676,18 @@ export default function Results() {
                   )}
               </div>
 
+              {/* AI / Quick summary text panel (uses backend summary) */}
+              {summaryText && (
+                <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
+                  <h2 className="text-sm font-semibold mb-2">
+                    AI summary
+                  </h2>
+                  <p className="text-sm text-slate-800 whitespace-pre-line">
+                    {summaryText}
+                  </p>
+                </div>
+              )}
+
               {/* Summary cards */}
               <div className="grid gap-4 md:grid-cols-4 mb-6">
                 <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
@@ -682,7 +746,8 @@ export default function Results() {
                       "Financial statement summary"}
                     {uiSummary.kind === "payslip" && "Payslip summary"}
                     {uiSummary.kind === "id" && "ID / Passport summary"}
-                    {uiSummary.kind === "address" && "Proof of address summary"}
+                    {uiSummary.kind === "address" &&
+                      "Proof of address summary"}
                     {!uiSummary.kind && "Document summary"}
                   </h2>
 
@@ -1153,8 +1218,8 @@ export default function Results() {
                           colSpan={3}
                           className="p-3 border-b border-[rgb(var(--border))] text-center opacity-70"
                         >
-                          No structured fields found. Check the raw JSON
-                          download for more details.
+                          No structured fields found. Check the JSON download
+                          for more details.
                         </td>
                       </tr>
                     )}

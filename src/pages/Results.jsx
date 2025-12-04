@@ -16,190 +16,84 @@ function useQuery() {
   return React.useMemo(() => new URLSearchParams(search), [search]);
 }
 
-// ---- Helpers to interpret errors & run status ----
+// ─────────────────────────────────────────────
+// Helpers to interpret run status / pipeline
+// ─────────────────────────────────────────────
 
 function classifyIssues(result) {
   if (!result) return { issues: [], overallStatus: "unknown" };
 
   const issues = [];
-  const ocrEngine = result.ocr_engine || {};
-  const docType = result.docType || null;
-
-  // agentic can be:
-  // - bank_statement_agentic_v1 (your current shape)
-  // - or a v8 wrapper { status, msg, result: { ... } }
-  const rawAgentic = result.result || null;
-  const agentic = rawAgentic?.result ?? rawAgentic ?? null;
-  const agenticStatus = rawAgentic?.status ?? agentic?.status ?? "ok";
-
-  // quality from backend (current: { status, confidence }, future: decision/reasons)
+  const statusAudit = result.statusAudit || null; // pipeline_stage from backend
   const quality = result.quality || {};
-  const qualityDecision = quality.decision || null;
-  const qualityReasons = Array.isArray(quality.reasons)
-    ? quality.reasons
-    : [];
   const qualityStatus = quality.status || null;
 
-  const pipelineStage = result.statusAudit || null;
-
-  // ---- Pipeline-stage based hints (uses only DB data, no guessing of paths) ----
-  if (pipelineStage === "uploaded") {
+  // 1) Not finished yet – uploaded / in queue
+  if (statusAudit === "uploaded" || statusAudit === "ocr_started") {
     issues.push({
       stage: "Processing pipeline",
       level: "warning",
       category: "internal",
       userMessage:
         "The document has been uploaded and is queued for OCR and analysis. Results may not be available yet.",
-      rawMessage: "pipeline_stage=uploaded",
+      rawMessage: JSON.stringify({ statusAudit }),
     });
-  } else if (
-    pipelineStage === "ocr_completed" &&
-    !result.quick &&
-    !result.detailed
+  }
+
+  // 2) OCR completed but no quick/detailed yet
+  const hasQuick = !!result.quick;
+  const hasDetailed = !!result.detailed;
+
+  if (
+    statusAudit === "ocr_completed" &&
+    !hasQuick &&
+    !hasDetailed
   ) {
     issues.push({
       stage: "Processing pipeline",
       level: "warning",
       category: "internal",
       userMessage:
-        "OCR has completed, but AI analysis has not finished yet. Please refresh after a short while if no results are visible.",
-      rawMessage: "pipeline_stage=ocr_completed, no quick/detailed present",
+        "OCR completed successfully, but AI analysis has not finished yet. Please wait a moment and refresh.",
+      rawMessage: JSON.stringify({ statusAudit }),
     });
   }
 
-  // ---- OCR issues (legacy / future engine integration) ----
-  if (ocrEngine && ocrEngine.error) {
-    const msg = String(ocrEngine.error || "");
-    let category = "internal";
-    let userMessage =
-      "We could not reliably read text from this document. The OCR engine reported an error.";
-
-    if (/timed out/i.test(msg)) {
-      category = "internal";
-      userMessage =
-        "Our OCR engine took too long to process this file. This is on our side – you can try again later or contact support.";
-    } else if (/pdftoppm|Fontconfig|format/i.test(msg)) {
-      category = "document";
-      userMessage =
-        "We could not convert this PDF into text. This often happens with unusual or password-protected PDFs. Try downloading the original statement again or asking the client for a different version.";
-    } else if (/empty/i.test(msg) || /no text/i.test(msg)) {
-      category = "document";
-      userMessage =
-        "The document appears to be blank or has no extractable text. Please confirm the file and try again.";
-    }
-
-    issues.push({
-      stage: "OCR text extraction",
-      level: "error",
-      category, // "internal" | "document"
-      userMessage,
-      rawMessage: msg,
-    });
-  }
-
-  // Quality STOP (future) → user-facing reason
-  if (qualityDecision === "STOP") {
-    const reasonText =
-      qualityReasons.length > 0
-        ? `We stopped processing because the document quality was too low: ${qualityReasons.join(
-            "; "
-          )}.`
-        : "We stopped processing because the document quality was too low for reliable analysis.";
-
-    issues.push({
-      stage: "Quality checks",
-      level: "error",
-      category: "document",
-      userMessage: reasonText,
-      rawMessage: JSON.stringify({
-        decision: qualityDecision,
-        reasons: qualityReasons,
-      }),
-    });
-  }
-
-  // If we ever explicitly mark quality as bad in status
-  if (qualityStatus && /bad|poor/i.test(qualityStatus)) {
-    issues.push({
-      stage: "Quality checks",
-      level: "warning",
-      category: "document",
-      userMessage:
-        "The document quality is lower than ideal. Some values may be incomplete or less reliable.",
-      rawMessage: `quality.status=${qualityStatus}`,
-    });
-  }
-
-  // ---- Agentic / GPT issues ----
-  if (agenticStatus === "error") {
-    const errorType = agentic?.error_type || rawAgentic?.error_type || "";
-    const msg =
-      agentic?.msg ||
-      agentic?.error ||
-      rawAgentic?.msg ||
-      rawAgentic?.error ||
-      "Agentic parser error";
-
-    let category = "internal";
-    let userMessage =
-      "Our AI parser could not complete the analysis for this document.";
-
-    if (errorType === "model_call_failure") {
-      category = "internal";
-      userMessage =
-        "Our AI parser had a problem while processing this document. This is on our side – you can try again later, or contact support if it keeps happening.";
-    } else if (/timeout/i.test(msg)) {
-      category = "internal";
-      userMessage =
-        "Our AI parser took too long to respond. This is a platform issue rather than a problem with the document.";
-    } else if (/not a bank statement/i.test(msg)) {
-      category = "document";
-      userMessage =
-        "The AI did not recognise this as a bank statement. Please check that the uploaded document matches the selected document type.";
-    }
-
-    issues.push({
-      stage: "AI parsing & classification",
-      level: "error",
-      category,
-      userMessage,
-      rawMessage: msg,
-    });
-  }
-
-  // ---- Suspicious-but-not-crashing cases ----
-  // Only relevant for bank statements – other docs don't have transactions.
-  if (!ocrEngine.error && agentic && agenticStatus !== "error") {
-    if (docType === "bank_statements") {
-      let txs = [];
-      // v8 style: agentic.structured.transactions
-      if (Array.isArray(agentic?.structured?.transactions)) {
-        txs = agentic.structured.transactions;
-      }
-      // current v1: agentic.transactions
-      if (!txs.length && Array.isArray(agentic?.transactions)) {
-        txs = agentic.transactions;
-      }
-
-      if (txs.length === 0) {
-        issues.push({
-          stage: "AI parsing & classification",
-          level: "warning",
-          category: "document",
-          userMessage:
-            "We processed the document but did not find any transactions. Check that the statement period is correct and that the file contains actual activity.",
-          rawMessage: "No transactions parsed from the document.",
-        });
-      }
+  // 3) Quality checks – treat 'stop' as hard error, other non-ok as warnings
+  if (qualityStatus) {
+    const q = String(qualityStatus).toUpperCase();
+    if (q === "STOP") {
+      issues.push({
+        stage: "Quality checks",
+        level: "error",
+        category: "document",
+        userMessage:
+          "Processing was stopped because the document quality was too low for reliable analysis.",
+        rawMessage: JSON.stringify({ qualityStatus }),
+      });
+    } else if (!["OK", "GOOD", "PASS"].includes(q)) {
+      issues.push({
+        stage: "Quality checks",
+        level: "warning",
+        category: "document",
+        userMessage:
+          `The document passed basic checks, but the quality status is "${qualityStatus}". Please review the results before relying on them.`,
+        rawMessage: JSON.stringify({ qualityStatus }),
+      });
     }
   }
 
-  // Overall status for a simple badge
+  // Overall status for badge
   let overallStatus = "ok";
   if (issues.some((i) => i.level === "error")) {
     overallStatus = "error";
   } else if (issues.some((i) => i.level === "warning")) {
     overallStatus = "warning";
+  }
+
+  // If we have no issues but statusAudit is unknown, mark as unknown
+  if (!issues.length && !statusAudit) {
+    overallStatus = "unknown";
   }
 
   return { issues, overallStatus };
@@ -244,16 +138,22 @@ const DOC_TYPE_LABELS = {
   generic: "Other / Generic",
 };
 
-// ---- Build a doc-type aware UI summary from agentic JSON + fields ----
+// ─────────────────────────────────────────────
+// Build a doc-type aware UI summary from agentic JSON + fields
+// (this is future-proofed for when quick/detailed results carry
+// richer data; for now most of these will be blank, which is ok.)
+// ─────────────────────────────────────────────
+
 function buildUiSummary(docType, agentic, fields = []) {
   if (!agentic && !fields.length) return null;
 
   // Helper to read from fields array by name
   const getField = (name) =>
-    fields.find((f) => f.name && f.name.toLowerCase() === name.toLowerCase())
-      ?.value ?? null;
+    fields.find(
+      (f) => f.name && f.name.toLowerCase() === name.toLowerCase()
+    )?.value ?? null;
 
-  // BANK STATEMENTS: bank_statement_agentic_v1
+  // BANK STATEMENTS: bank_statement_agentic_v1 style
   if (docType === "bank_statements") {
     const account = agentic?.account || {};
     const txs = Array.isArray(agentic?.transactions)
@@ -294,7 +194,7 @@ function buildUiSummary(docType, agentic, fields = []) {
     };
   }
 
-  // FINANCIAL STATEMENTS: assume v8-style agentic with summary + structured.financials
+  // FINANCIAL STATEMENTS
   if (docType === "financial_statements") {
     const summary = agentic?.summary || {};
     const financials = agentic?.structured?.financials || {};
@@ -316,7 +216,7 @@ function buildUiSummary(docType, agentic, fields = []) {
     };
   }
 
-  // PAYSLIPS – derive from fields (works even if agentic is empty)
+  // PAYSLIPS – derive from fields
   if (docType === "payslips") {
     return {
       kind: "payslip",
@@ -325,7 +225,9 @@ function buildUiSummary(docType, agentic, fields = []) {
       employer_name:
         getField("Employer Name") || getField("Employer") || null,
       period_label:
-        getField("Salary Period Label") || getField("Salary Period") || null,
+        getField("Salary Period Label") ||
+        getField("Salary Period") ||
+        null,
       gross_pay:
         getField("Gross Salary") ||
         getField("Gross Pay") ||
@@ -399,7 +301,7 @@ function buildUiSummary(docType, agentic, fields = []) {
     };
   }
 
-  // Default: nothing special
+  // Default
   return null;
 }
 
@@ -412,6 +314,7 @@ export default function Results() {
   const [error, setError] = useState(null); // string
   const [result, setResult] = useState(null);
 
+  // Current function URL (GeneratePresignedPost-dev URL)
   const functionUrl =
     "https://rip7ft5vrq6ltl7r7btoop4whm0fqcnp.lambda-url.us-east-1.on.aws/";
 
@@ -484,7 +387,7 @@ export default function Results() {
     return () => {
       cancelled = true;
     };
-  }, [objectKey]);
+  }, [objectKey, functionUrl]);
 
   async function handleDownloadJson() {
     if (!objectKey) return;
@@ -514,44 +417,43 @@ export default function Results() {
     );
   }
 
-  // High-level fields from the stub / backend
+  // High-level fields from the backend
   const docType = result?.docType ?? "—";
   const docTypeLabel = DOC_TYPE_LABELS[docType] || docType || "—";
   const fields = Array.isArray(result?.fields) ? result.fields : [];
+  const statusAudit = result?.statusAudit || null;
+  const analysisMode = result?.analysisMode || null;
 
-  // Agentic payload: support current v1 (bank_statement_agentic_v1)
-  // and future v8-style wrappers (result.result)
+  // There is no agentic payload yet in the new service; keep this here
+  // for future compatibility (agentic parser integration).
   const rawAgentic = result?.result || null;
   const agentic = rawAgentic?.result ?? rawAgentic ?? null;
 
-  // Build a UI summary based on docType + agentic content + fields
   const uiSummary = buildUiSummary(docType, agentic, fields);
 
-  // Classification & risk (where present in future agentic payloads)
-  const classification = agentic?.classification || null;
+  // Risk + confidence (riskScore not yet provided by backend)
   const riskScore =
-    agentic?.risk_score?.score ?? result?.riskScore ?? null;
-  const riskBand = agentic?.risk_score?.band ?? null;
+    result?.riskScore ??
+    result?.quick?.riskScore ??
+    result?.detailed?.riskScore ??
+    null;
 
-  // Confidence now comes from quality.confidence (backend)
-  const quality = result?.quality || {};
-  const confidence = typeof quality.confidence === "number"
-    ? quality.confidence
-    : null;
+  const riskBand =
+    result?.riskBand ??
+    result?.quick?.riskBand ??
+    result?.detailed?.riskBand ??
+    null;
 
-  // analysisMode & pipeline stage from backend
-  const analysisMode = result?.analysisMode || null;
-  const qualityDecision = quality?.decision || null;
-
-  // Summary text from backend (new contract)
-  const summaryText =
-    result?.summary ||
-    result?.detailed?.summary ||
-    result?.quick?.summary ||
-    result?.ocr?.summary ||
+  // 🔑 Confidence for the card: comes from backend quality.confidence
+  const confidence =
+    result?.quality?.confidence ??
+    result?.confidence ??
     null;
 
   const { issues, overallStatus } = classifyIssues(result);
+
+  const aiSummaryText =
+    typeof result?.summary === "string" ? result.summary : null;
 
   return (
     <div
@@ -565,7 +467,7 @@ export default function Results() {
           <div>
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight flex items-center gap-2">
               <FileText className="h-6 w-6" />
-              OCR & Agentic Results
+              OCR &amp; AI Results
             </h1>
             <p className="text-sm text-slate-600 mt-1">
               Review OCR output, AI-parsed structure, and any issues detected
@@ -604,6 +506,11 @@ export default function Results() {
                 <div className="flex flex-wrap items-center gap-3 mb-2">
                   <div className="font-medium text-sm">Run status</div>
                   {formatStatusBadge(overallStatus)}
+                  {statusAudit && (
+                    <span className="text-xs text-slate-500">
+                      (Pipeline stage: <code>{statusAudit}</code>)
+                    </span>
+                  )}
                 </div>
 
                 {issues.length === 0 && (
@@ -650,7 +557,6 @@ export default function Results() {
                   </ul>
                 )}
 
-                {/* Support-only technical details */}
                 {issues.length > 0 && (
                   <details className="mt-3 text-xs text-slate-600">
                     <summary className="cursor-pointer underline underline-offset-2">
@@ -661,29 +567,16 @@ export default function Results() {
                     </pre>
                   </details>
                 )}
-
-                {/* Optional: show quality decision label when not STOP */}
-                {qualityDecision &&
-                  qualityDecision !== "STOP" &&
-                  issues.length === 0 && (
-                    <p className="mt-3 text-xs text-slate-600">
-                      Quality checks completed with decision:{" "}
-                      <span className="font-semibold">
-                        {qualityDecision}
-                      </span>
-                      .
-                    </p>
-                  )}
               </div>
 
-              {/* AI / Quick summary text panel (uses backend summary) */}
-              {summaryText && (
+              {/* AI Summary block */}
+              {aiSummaryText && (
                 <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
                   <h2 className="text-sm font-semibold mb-2">
                     AI summary
                   </h2>
-                  <p className="text-sm text-slate-800 whitespace-pre-line">
-                    {summaryText}
+                  <p className="text-sm text-slate-800 whitespace-pre-wrap">
+                    {aiSummaryText}
                   </p>
                 </div>
               )}
@@ -737,7 +630,7 @@ export default function Results() {
                 </div>
               </div>
 
-              {/* Doc-type aware summary */}
+              {/* Doc-type aware summary – will stay mostly blank until fields/agentic are populated */}
               {uiSummary && (
                 <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
                   <h2 className="text-sm font-semibold mb-3">
@@ -1123,79 +1016,7 @@ export default function Results() {
                 </div>
               )}
 
-              {/* Simple income / expense view for personal bank statements (when classification exists) */}
-              {classification &&
-                classification.income_summary &&
-                classification.expense_summary && (
-                  <div className="mb-6 grid gap-4 md:grid-cols-2">
-                    <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-                      <h2 className="text-sm font-semibold mb-3">
-                        Income (Personal)
-                      </h2>
-                      <div className="text-2xl font-semibold mb-1">
-                        {classification.income_summary.total_income != null
-                          ? classification.income_summary.total_income.toLocaleString(
-                              "en-ZA"
-                            )
-                          : "—"}
-                      </div>
-                      <p className="text-xs text-slate-600 mb-2">
-                        Breakdown (where detectable):
-                      </p>
-                      <div className="text-xs text-slate-700 space-y-1">
-                        <div>
-                          Salary:{" "}
-                          {classification.income_summary.salary?.toLocaleString(
-                            "en-ZA"
-                          ) || 0}
-                        </div>
-                        <div>
-                          Other recurring / third-party:{" "}
-                          {classification.income_summary.third_party_income?.toLocaleString(
-                            "en-ZA"
-                          ) || 0}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-                      <h2 className="text-sm font-semibold mb-3">
-                        Expenses (Budget Categories)
-                      </h2>
-                      <div className="text-2xl font-semibold mb-1">
-                        {classification.expense_summary.total_expenses != null
-                          ? classification.expense_summary.total_expenses.toLocaleString(
-                              "en-ZA"
-                            )
-                          : "—"}
-                      </div>
-                      <p className="text-xs text-slate-600 mb-2">
-                        Examples from this statement:
-                      </p>
-                      <div className="text-xs text-slate-700 space-y-1">
-                        <div>
-                          Housing:{" "}
-                          {classification.expense_summary.housing?.toLocaleString(
-                            "en-ZA"
-                          ) || 0}
-                        </div>
-                        <div>
-                          Food &amp; Groceries:{" "}
-                          {classification.expense_summary.food_groceries?.toLocaleString(
-                            "en-ZA"
-                          ) || 0}
-                        </div>
-                        <div>
-                          Transport:{" "}
-                          {classification.expense_summary.transport?.toLocaleString(
-                            "en-ZA"
-                          ) || 0}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-              {/* Raw parsed fields table from stub */}
+              {/* Raw fields table */}
               <div className="rounded-lg border border-[rgb(var(--border))] overflow-x-auto bg-white">
                 <table className="min-w-full text-sm">
                   <thead className="bg-slate-50">

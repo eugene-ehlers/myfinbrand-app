@@ -16,74 +16,192 @@ function useQuery() {
   return React.useMemo(() => new URLSearchParams(search), [search]);
 }
 
-// ─────────────────────────────────────────────
-// Helpers to interpret run status / pipeline
-// ─────────────────────────────────────────────
+// ---- Helpers to interpret errors & run status ----
 
+/**
+ * Classifies issues and overall status for the run.
+ * We explicitly handle "in progress" vs "completed" vs real failures.
+ */
 function classifyIssues(result) {
-  if (!result) return { issues: [], overallStatus: "unknown" };
+  if (!result) {
+    return {
+      issues: [],
+      overallStatus: "unknown",
+      inProgress: false,
+      pipelineStage: null,
+    };
+  }
 
   const issues = [];
-  const statusAudit = result.statusAudit || null; // pipeline_stage from backend
-  const quality = result.quality || {};
-  const qualityStatus = quality.status || null;
+  const pipelineStage = result.statusAudit || null;
 
-  // 1) Not finished yet – uploaded / in queue
-  if (statusAudit === "uploaded" || statusAudit === "ocr_started") {
-    issues.push({
-      stage: "Processing pipeline",
-      level: "warning",
-      category: "internal",
-      userMessage:
-        "The document has been uploaded and is queued for OCR and analysis. Results may not be available yet.",
-      rawMessage: JSON.stringify({ statusAudit }),
-    });
-  }
-
-  // 2) OCR completed but no quick/detailed yet
+  // Which payloads do we actually have?
   const hasQuick = !!result.quick;
   const hasDetailed = !!result.detailed;
+  const hasAnyFinalResult = hasQuick || hasDetailed;
 
-  if (
-    statusAudit === "ocr_completed" &&
-    !hasQuick &&
-    !hasDetailed
-  ) {
+  // Basic pieces for deeper checks
+  const ocrEngine = result.ocr_engine || {};
+  const docType = result.docType || null;
+
+  // agentic can be:
+  // - bank_statement_agentic_v1 (current)
+  // - or a v8 wrapper { status, msg, result: { ... } }
+  const rawAgentic = result.result || null;
+  const agentic = rawAgentic?.result ?? rawAgentic ?? null;
+  const agenticStatus = rawAgentic?.status ?? agentic?.status ?? "ok";
+
+  const quality = result.quality || {};
+  // In current backend we have quality.status + quality.confidence
+  const qualityStatus = quality.status || null;
+  const qualityDecision = quality.decision || null; // for future expansion
+  const qualityReasons = Array.isArray(quality.reasons)
+    ? quality.reasons
+    : [];
+
+  // ───────────────────────────────────────────────
+  // 1) PIPELINE IN-PROGRESS / QUEUED STATE
+  // ───────────────────────────────────────────────
+  //
+  // If the pipeline is at "uploaded" or "ocr_completed" but we don't yet
+  // have quick/detailed results, treat the run as IN PROGRESS rather than warning/fail.
+  //
+  const isInProgress =
+    (!hasAnyFinalResult &&
+      (pipelineStage === "uploaded" || pipelineStage === "ocr_completed")) ||
+    (!hasAnyFinalResult && qualityStatus === "pending");
+
+  if (isInProgress) {
+    // We don't push any user-facing "issues" here – this is a normal state.
+    return {
+      issues: [],
+      overallStatus: "in_progress",
+      inProgress: true,
+      pipelineStage,
+    };
+  }
+
+  // ───────────────────────────────────────────────
+  // 2) REAL ISSUES: OCR / QUALITY / AGENTIC
+  // ───────────────────────────────────────────────
+
+  // ---- OCR issues ----
+  if (ocrEngine && ocrEngine.error) {
+    const msg = String(ocrEngine.error || "");
+    let category = "internal";
+    let userMessage =
+      "We could not reliably read text from this document. The OCR engine reported an error.";
+
+    if (/timed out/i.test(msg)) {
+      category = "internal";
+      userMessage =
+        "Our OCR engine took too long to process this file. This is on our side – you can try again later or contact support.";
+    } else if (/pdftoppm|Fontconfig|format/i.test(msg)) {
+      category = "document";
+      userMessage =
+        "We could not convert this PDF into text. This often happens with unusual or password-protected PDFs. Try downloading the original statement again or asking the client for a different version.";
+    } else if (/empty/i.test(msg) || /no text/i.test(msg)) {
+      category = "document";
+      userMessage =
+        "The document appears to be blank or has no extractable text. Please confirm the file and try again.";
+    }
+
     issues.push({
-      stage: "Processing pipeline",
-      level: "warning",
-      category: "internal",
-      userMessage:
-        "OCR completed successfully, but AI analysis has not finished yet. Please wait a moment and refresh.",
-      rawMessage: JSON.stringify({ statusAudit }),
+      stage: "OCR text extraction",
+      level: "error",
+      category, // "internal" | "document"
+      userMessage,
+      rawMessage: msg,
     });
   }
 
-  // 3) Quality checks – treat 'stop' as hard error, other non-ok as warnings
-  if (qualityStatus) {
-    const q = String(qualityStatus).toUpperCase();
-    if (q === "STOP") {
-      issues.push({
-        stage: "Quality checks",
-        level: "error",
-        category: "document",
-        userMessage:
-          "Processing was stopped because the document quality was too low for reliable analysis.",
-        rawMessage: JSON.stringify({ qualityStatus }),
-      });
-    } else if (!["OK", "GOOD", "PASS"].includes(q)) {
-      issues.push({
-        stage: "Quality checks",
-        level: "warning",
-        category: "document",
-        userMessage:
-          `The document passed basic checks, but the quality status is "${qualityStatus}". Please review the results before relying on them.`,
-        rawMessage: JSON.stringify({ qualityStatus }),
-      });
+  // ---- QUALITY decision (STOP) → real blocking error ----
+  // We only treat hard STOP as an "error". A "pending" / "ok" status is NOT an issue.
+  if (qualityDecision === "STOP") {
+    const reasonText =
+      qualityReasons.length > 0
+        ? `We stopped processing because the document quality was too low: ${qualityReasons.join(
+            "; "
+          )}.`
+        : "We stopped processing because the document quality was too low for reliable analysis.";
+
+    issues.push({
+      stage: "Quality checks",
+      level: "error",
+      category: "document",
+      userMessage: reasonText,
+      rawMessage: JSON.stringify({
+        decision: qualityDecision,
+        reasons: qualityReasons,
+      }),
+    });
+  }
+
+  // ---- Agentic / GPT issues ----
+  if (agenticStatus === "error") {
+    const errorType = agentic?.error_type || rawAgentic?.error_type || "";
+    const msg =
+      agentic?.msg ||
+      agentic?.error ||
+      rawAgentic?.msg ||
+      rawAgentic?.error ||
+      "Agentic parser error";
+
+    let category = "internal";
+    let userMessage =
+      "Our AI parser could not complete the analysis for this document.";
+
+    if (errorType === "model_call_failure") {
+      category = "internal";
+      userMessage =
+        "Our AI parser had a problem while processing this document. This is on our side – you can try again later, or contact support if it keeps happening.";
+    } else if (/timeout/i.test(msg)) {
+      category = "internal";
+      userMessage =
+        "Our AI parser took too long to respond. This is a platform issue rather than a problem with the document.";
+    } else if (/not a bank statement/i.test(msg)) {
+      category = "document";
+      userMessage =
+        "The AI did not recognise this as a bank statement. Please check that the uploaded document matches the selected document type.";
+    }
+
+    issues.push({
+      stage: "AI parsing & classification",
+      level: "error",
+      category,
+      userMessage,
+      rawMessage: msg,
+    });
+  }
+
+  // ---- Suspicious-but-not-crashing cases ----
+  // Only relevant for bank statements – other docs don't have transactions.
+  if (!ocrEngine.error && agentic && agenticStatus !== "error") {
+    if (docType === "bank_statements") {
+      let txs = [];
+      // v8 style: agentic.structured.transactions
+      if (Array.isArray(agentic?.structured?.transactions)) {
+        txs = agentic.structured.transactions;
+      }
+      // current v1: agentic.transactions
+      if (!txs.length && Array.isArray(agentic?.transactions)) {
+        txs = agentic.transactions;
+      }
+
+      if (txs.length === 0) {
+        issues.push({
+          stage: "AI parsing & classification",
+          level: "warning",
+          category: "document",
+          userMessage:
+            "We processed the document but did not find any transactions. Check that the statement period is correct and that the file contains actual activity.",
+          rawMessage: "No transactions parsed from the document.",
+        });
+      }
     }
   }
 
-  // Overall status for badge
+  // Overall status for a simple badge
   let overallStatus = "ok";
   if (issues.some((i) => i.level === "error")) {
     overallStatus = "error";
@@ -91,12 +209,7 @@ function classifyIssues(result) {
     overallStatus = "warning";
   }
 
-  // If we have no issues but statusAudit is unknown, mark as unknown
-  if (!issues.length && !statusAudit) {
-    overallStatus = "unknown";
-  }
-
-  return { issues, overallStatus };
+  return { issues, overallStatus, inProgress: false, pipelineStage };
 }
 
 function formatStatusBadge(status) {
@@ -110,7 +223,7 @@ function formatStatusBadge(status) {
   if (status === "warning") {
     return (
       <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-800">
-        Completed with warnings / in progress
+        Completed with warnings
       </span>
     );
   }
@@ -118,6 +231,13 @@ function formatStatusBadge(status) {
     return (
       <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-100 text-red-800">
         One or more stages failed
+      </span>
+    );
+  }
+  if (status === "in_progress") {
+    return (
+      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-sky-100 text-sky-800">
+        Processing / queued
       </span>
     );
   }
@@ -138,22 +258,16 @@ const DOC_TYPE_LABELS = {
   generic: "Other / Generic",
 };
 
-// ─────────────────────────────────────────────
-// Build a doc-type aware UI summary from agentic JSON + fields
-// (this is future-proofed for when quick/detailed results carry
-// richer data; for now most of these will be blank, which is ok.)
-// ─────────────────────────────────────────────
-
+// ---- Build a doc-type aware UI summary from agentic JSON + fields ----
 function buildUiSummary(docType, agentic, fields = []) {
   if (!agentic && !fields.length) return null;
 
   // Helper to read from fields array by name
   const getField = (name) =>
-    fields.find(
-      (f) => f.name && f.name.toLowerCase() === name.toLowerCase()
-    )?.value ?? null;
+    fields.find((f) => f.name && f.name.toLowerCase() === name.toLowerCase())
+      ?.value ?? null;
 
-  // BANK STATEMENTS: bank_statement_agentic_v1 style
+  // BANK STATEMENTS: bank_statement_agentic_v1
   if (docType === "bank_statements") {
     const account = agentic?.account || {};
     const txs = Array.isArray(agentic?.transactions)
@@ -225,9 +339,7 @@ function buildUiSummary(docType, agentic, fields = []) {
       employer_name:
         getField("Employer Name") || getField("Employer") || null,
       period_label:
-        getField("Salary Period Label") ||
-        getField("Salary Period") ||
-        null,
+        getField("Salary Period Label") || getField("Salary Period") || null,
       gross_pay:
         getField("Gross Salary") ||
         getField("Gross Pay") ||
@@ -301,7 +413,7 @@ function buildUiSummary(docType, agentic, fields = []) {
     };
   }
 
-  // Default
+  // Default: nothing special
   return null;
 }
 
@@ -314,7 +426,6 @@ export default function Results() {
   const [error, setError] = useState(null); // string
   const [result, setResult] = useState(null);
 
-  // Current function URL (GeneratePresignedPost-dev URL)
   const functionUrl =
     "https://rip7ft5vrq6ltl7r7btoop4whm0fqcnp.lambda-url.us-east-1.on.aws/";
 
@@ -349,7 +460,7 @@ export default function Results() {
           );
 
           if (attempt < maxAttempts && !cancelled) {
-            setTimeout(attemptFetch, 1500);
+            setTimeout(attemptFetch, delayMs);
           } else if (!cancelled) {
             const text = await res.text().catch(() => "");
             setLoading(false);
@@ -365,14 +476,33 @@ export default function Results() {
         if (cancelled) return;
 
         setResult(data);
-        setLoading(false);
-        setError(null);
+
+        // Decide whether we consider this "done" or still "processing"
+        const hasQuick = !!data.quick;
+        const hasDetailed = !!data.detailed;
+        const qualityStatus = data.quality?.status || null;
+        const pipelineStage = data.statusAudit || null;
+        const inProgress =
+          (!hasQuick && !hasDetailed &&
+            (pipelineStage === "uploaded" ||
+              pipelineStage === "ocr_completed")) ||
+          (!hasQuick && !hasDetailed && qualityStatus === "pending");
+
+        if (inProgress && attempt < maxAttempts) {
+          // Keep showing "Processing / queued" and keep polling
+          attempt += 1;
+          setTimeout(attemptFetch, delayMs);
+        } else {
+          // We have a final-ish result (or exhausted retries)
+          setLoading(false);
+          setError(null);
+        }
       } catch (err) {
         console.error("Failed to load OCR result", err);
         attempt += 1;
 
         if (attempt < maxAttempts && !cancelled) {
-          setTimeout(attemptFetch, 1500);
+          setTimeout(attemptFetch, delayMs);
         } else if (!cancelled) {
           setLoading(false);
           setError(
@@ -387,7 +517,7 @@ export default function Results() {
     return () => {
       cancelled = true;
     };
-  }, [objectKey, functionUrl]);
+  }, [objectKey]);
 
   async function handleDownloadJson() {
     if (!objectKey) return;
@@ -417,43 +547,38 @@ export default function Results() {
     );
   }
 
-  // High-level fields from the backend
+  // High-level fields from the stub / aggregator
   const docType = result?.docType ?? "—";
   const docTypeLabel = DOC_TYPE_LABELS[docType] || docType || "—";
   const fields = Array.isArray(result?.fields) ? result.fields : [];
-  const statusAudit = result?.statusAudit || null;
-  const analysisMode = result?.analysisMode || null;
+  const pipelineStage = result?.statusAudit || null;
 
-  // There is no agentic payload yet in the new service; keep this here
-  // for future compatibility (agentic parser integration).
+  // Agentic payload: support current v1 (bank_statement_agentic_v1)
+  // and future v8-style wrappers (result.result)
   const rawAgentic = result?.result || null;
   const agentic = rawAgentic?.result ?? rawAgentic ?? null;
 
+  // Build a UI summary based on docType + agentic content + fields
   const uiSummary = buildUiSummary(docType, agentic, fields);
 
-  // Risk + confidence (riskScore not yet provided by backend)
+  // Classification & risk (where present)
+  const classification = agentic?.classification || null;
   const riskScore =
-    result?.riskScore ??
-    result?.quick?.riskScore ??
-    result?.detailed?.riskScore ??
-    null;
+    agentic?.risk_score?.score ?? result?.riskScore ?? null;
+  const riskBand = agentic?.risk_score?.band ?? null;
 
-  const riskBand =
-    result?.riskBand ??
-    result?.quick?.riskBand ??
-    result?.detailed?.riskBand ??
-    null;
-
-  // 🔑 Confidence for the card: comes from backend quality.confidence
+  // Confidence now comes from backend quality.confidence
+  const quality = result?.quality || {};
   const confidence =
-    result?.quality?.confidence ??
-    result?.confidence ??
-    null;
+    typeof quality.confidence === "number"
+      ? quality.confidence
+      : null;
+  const qualityStatus = quality.status || null;
 
-  const { issues, overallStatus } = classifyIssues(result);
+  // Analysis mode from backend
+  const analysisMode = result?.analysisMode || null;
 
-  const aiSummaryText =
-    typeof result?.summary === "string" ? result.summary : null;
+  const { issues, overallStatus, inProgress } = classifyIssues(result);
 
   return (
     <div
@@ -485,7 +610,9 @@ export default function Results() {
 
           {loading && (
             <p className="opacity-80 mb-4">
-              Fetching OCR result… this usually takes a few seconds.
+              {inProgress
+                ? "The document has been uploaded and is being processed. This page will update once results are ready."
+                : "Fetching OCR result… this usually takes a few seconds."}
             </p>
           )}
 
@@ -506,77 +633,94 @@ export default function Results() {
                 <div className="flex flex-wrap items-center gap-3 mb-2">
                   <div className="font-medium text-sm">Run status</div>
                   {formatStatusBadge(overallStatus)}
-                  {statusAudit && (
+                  {pipelineStage && (
                     <span className="text-xs text-slate-500">
-                      (Pipeline stage: <code>{statusAudit}</code>)
+                      (Pipeline stage: {pipelineStage})
+                    </span>
+                  )}
+                  {qualityStatus && !inProgress && (
+                    <span className="text-xs text-slate-500">
+                      • Quality status: {qualityStatus}
                     </span>
                   )}
                 </div>
 
-                {issues.length === 0 && (
+                {inProgress && (
                   <p className="text-sm text-slate-700">
-                    All processing stages completed without any detected issues.
+                    The document has been uploaded and is queued for OCR and
+                    AI analysis. Results will appear here once processing
+                    completes.
                   </p>
                 )}
 
-                {issues.length > 0 && (
-                  <ul className="space-y-2 text-sm">
-                    {issues.map((issue, idx) => (
-                      <li
-                        key={idx}
-                        className="border-t border-slate-200 pt-2 first:border-t-0 first:pt-0"
-                      >
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-medium">{issue.stage}</span>
-                          {issue.level === "error" && (
-                            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-red-100 text-red-800">
-                              Error
-                            </span>
-                          )}
-                          {issue.level === "warning" && (
-                            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-amber-100 text-amber-800">
-                              Warning
-                            </span>
-                          )}
-                          {issue.category === "internal" && (
-                            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-sky-100 text-sky-800">
-                              On our side
-                            </span>
-                          )}
-                          {issue.category === "document" && (
-                            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-slate-100 text-slate-800">
-                              Document / input issue
-                            </span>
-                          )}
-                        </div>
-                        <p className="mt-1 text-slate-700">
-                          {issue.userMessage}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
+                {!inProgress && issues.length === 0 && (
+                  <p className="text-sm text-slate-700">
+                    All processing stages completed without any detected
+                    issues.
+                  </p>
                 )}
 
-                {issues.length > 0 && (
-                  <details className="mt-3 text-xs text-slate-600">
-                    <summary className="cursor-pointer underline underline-offset-2">
-                      Technical details (for support teams)
-                    </summary>
-                    <pre className="mt-2 max-h-48 overflow-auto rounded bg-slate-900 text-slate-100 p-2 text-[11px]">
-                      {JSON.stringify(issues, null, 2)}
-                    </pre>
-                  </details>
+                {!inProgress && issues.length > 0 && (
+                  <>
+                    <ul className="space-y-2 text-sm">
+                      {issues.map((issue, idx) => (
+                        <li
+                          key={idx}
+                          className="border-t border-slate-200 pt-2 first:border-t-0 first:pt-0"
+                        >
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-medium">
+                              {issue.stage}
+                            </span>
+                            {issue.level === "error" && (
+                              <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-red-100 text-red-800">
+                                Error
+                              </span>
+                            )}
+                            {issue.level === "warning" && (
+                              <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-amber-100 text-amber-800">
+                                Warning
+                              </span>
+                            )}
+                            {issue.category === "internal" && (
+                              <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-sky-100 text-sky-800">
+                                On our side
+                              </span>
+                            )}
+                            {issue.category === "document" && (
+                              <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-slate-100 text-slate-800">
+                                Document / input issue
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-1 text-slate-700">
+                            {issue.userMessage}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {/* Support-only technical details */}
+                    <details className="mt-3 text-xs text-slate-600">
+                      <summary className="cursor-pointer underline underline-offset-2">
+                        Technical details (for support teams)
+                      </summary>
+                      <pre className="mt-2 max-h-48 overflow-auto rounded bg-slate-900 text-slate-100 p-2 text-[11px]">
+                        {JSON.stringify(issues, null, 2)}
+                      </pre>
+                    </details>
+                  </>
                 )}
               </div>
 
-              {/* AI Summary block */}
-              {aiSummaryText && (
+              {/* AI summary (from backend `summary`) */}
+              {result.summary && !inProgress && (
                 <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
                   <h2 className="text-sm font-semibold mb-2">
                     AI summary
                   </h2>
                   <p className="text-sm text-slate-800 whitespace-pre-wrap">
-                    {aiSummaryText}
+                    {result.summary}
                   </p>
                 </div>
               )}
@@ -625,13 +769,15 @@ export default function Results() {
                       ? "Detailed"
                       : analysisMode === "quick"
                       ? "Quick"
+                      : inProgress
+                      ? "Processing"
                       : "—"}
                   </div>
                 </div>
               </div>
 
-              {/* Doc-type aware summary – will stay mostly blank until fields/agentic are populated */}
-              {uiSummary && (
+              {/* Doc-type aware summary */}
+              {uiSummary && !inProgress && (
                 <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
                   <h2 className="text-sm font-semibold mb-3">
                     {uiSummary.kind === "bank" && "Bank statement summary"}
@@ -708,7 +854,9 @@ export default function Results() {
                           </div>
                           <div className="font-medium">
                             {uiSummary.total_credits != null
-                              ? uiSummary.total_credits.toLocaleString("en-ZA")
+                              ? uiSummary.total_credits.toLocaleString(
+                                  "en-ZA"
+                                )
                               : "—"}
                           </div>
                         </div>
@@ -718,7 +866,9 @@ export default function Results() {
                           </div>
                           <div className="font-medium">
                             {uiSummary.total_debits != null
-                              ? uiSummary.total_debits.toLocaleString("en-ZA")
+                              ? uiSummary.total_debits.toLocaleString(
+                                  "en-ZA"
+                                )
                               : "—"}
                           </div>
                         </div>
@@ -1016,7 +1166,80 @@ export default function Results() {
                 </div>
               )}
 
-              {/* Raw fields table */}
+              {/* Simple income / expense view for personal bank statements (when classification exists) */}
+              {classification &&
+                classification.income_summary &&
+                classification.expense_summary &&
+                !inProgress && (
+                  <div className="mb-6 grid gap-4 md:grid-cols-2">
+                    <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
+                      <h2 className="text-sm font-semibold mb-3">
+                        Income (Personal)
+                      </h2>
+                      <div className="text-2xl font-semibold mb-1">
+                        {classification.income_summary.total_income != null
+                          ? classification.income_summary.total_income.toLocaleString(
+                              "en-ZA"
+                            )
+                          : "—"}
+                      </div>
+                      <p className="text-xs text-slate-600 mb-2">
+                        Breakdown (where detectable):
+                      </p>
+                      <div className="text-xs text-slate-700 space-y-1">
+                        <div>
+                          Salary:{" "}
+                          {classification.income_summary.salary?.toLocaleString(
+                            "en-ZA"
+                          ) || 0}
+                        </div>
+                        <div>
+                          Other recurring / third-party:{" "}
+                          {classification.income_summary.third_party_income?.toLocaleString(
+                            "en-ZA"
+                          ) || 0}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
+                      <h2 className="text-sm font-semibold mb-3">
+                        Expenses (Budget Categories)
+                      </h2>
+                      <div className="text-2xl font-semibold mb-1">
+                        {classification.expense_summary.total_expenses != null
+                          ? classification.expense_summary.total_expenses.toLocaleString(
+                              "en-ZA"
+                            )
+                          : "—"}
+                      </div>
+                      <p className="text-xs text-slate-600 mb-2">
+                        Examples from this statement:
+                      </p>
+                      <div className="text-xs text-slate-700 space-y-1">
+                        <div>
+                          Housing:{" "}
+                          {classification.expense_summary.housing?.toLocaleString(
+                            "en-ZA"
+                          ) || 0}
+                        </div>
+                        <div>
+                          Food &amp; Groceries:{" "}
+                          {classification.expense_summary.food_groceries?.toLocaleString(
+                            "en-ZA"
+                          ) || 0}
+                        </div>
+                        <div>
+                          Transport:{" "}
+                          {classification.expense_summary.transport?.toLocaleString(
+                            "en-ZA"
+                          ) || 0}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+              {/* Raw parsed fields table from stub */}
               <div className="rounded-lg border border-[rgb(var(--border))] overflow-x-auto bg-white">
                 <table className="min-w-full text-sm">
                   <thead className="bg-slate-50">
@@ -1039,71 +1262,12 @@ export default function Results() {
                           colSpan={3}
                           className="p-3 border-b border-[rgb(var(--border))] text-center opacity-70"
                         >
-                          No structured fields found. Check the JSON download
-                          for more details.
+                          {inProgress
+                            ? "Structured fields will appear here once analysis completes."
+                            : "No structured fields found. Check the raw JSON download for more details."}
                         </td>
                       </tr>
                     )}
                     {fields.map((f, idx) => (
                       <tr key={idx} className="odd:bg-slate-50/50">
-                        <td className="p-3 border-b border-[rgb(var(--border))]">
-                          {f.name}
-                        </td>
-                        <td className="p-3 border-b border-[rgb(var(--border))] whitespace-pre-wrap">
-                          {f.value}
-                        </td>
-                        <td className="p-3 border-b border-[rgb(var(--border))]">
-                          {typeof f.confidence === "number"
-                            ? (f.confidence * 100).toFixed(1) + "%"
-                            : f.confidence ?? "—"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Downloads / navigation actions */}
-              <div className="mt-6 flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  className="btn-primary inline-flex items-center gap-2 px-3 py-2 rounded-lg"
-                  onClick={handleDownloadPdf}
-                >
-                  <Download className="h-4 w-4" />
-                  Download Summary (PDF)
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[rgb(var(--border))] bg-white"
-                  onClick={handleDownloadJson}
-                >
-                  <Download className="h-4 w-4" />
-                  Download JSON
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[rgb(var(--border))] bg-white ml-auto"
-                  onClick={() => navigate("/dashboard")}
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  New OCR request
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[rgb(var(--border))] bg-white"
-                  onClick={() => navigate("/")}
-                >
-                  <HomeIcon className="h-4 w-4" />
-                  Home
-                </button>
-              </div>
-            </>
-          )}
-        </section>
-      </main>
-
-      <SiteFooter />
-    </div>
-  );
-}
+                        <

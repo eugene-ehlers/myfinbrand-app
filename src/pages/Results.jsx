@@ -52,7 +52,6 @@ function classifyIssues(result) {
   const agenticStatus = rawAgentic?.status ?? agentic?.status ?? "ok";
 
   const quality = result.quality || {};
-  // In current backend we have quality.status + quality.confidence
   const qualityStatus = quality.status || null;
   const qualityDecision = quality.decision || null; // for future expansion
   const qualityReasons = Array.isArray(quality.reasons)
@@ -477,7 +476,6 @@ export default function Results() {
 
         setResult(data);
 
-        // Decide whether we consider this "done" or still "processing"
         const hasQuick = !!data.quick;
         const hasDetailed = !!data.detailed;
         const qualityStatus = data.quality?.status || null;
@@ -489,11 +487,9 @@ export default function Results() {
           (!hasQuick && !hasDetailed && qualityStatus === "pending");
 
         if (inProgress && attempt < maxAttempts) {
-          // Keep showing "Processing / queued" and keep polling
           attempt += 1;
           setTimeout(attemptFetch, delayMs);
         } else {
-          // We have a final-ish result (or exhausted retries)
           setLoading(false);
           setError(null);
         }
@@ -1270,4 +1266,64 @@ export default function Results() {
                     )}
                     {fields.map((f, idx) => (
                       <tr key={idx} className="odd:bg-slate-50/50">
-                        <
+                        <td className="p-3 border-b border-[rgb(var(--border))]">
+                          {f.name}
+                        </td>
+                        <td className="p-3 border-b border-[rgb(var(--border))] whitespace-pre-wrap">
+                          {f.value}
+                        </td>
+                        <td className="p-3 border-b border-[rgb(var(--border))]">
+                          {typeof f.confidence === "number"
+                            ? (f.confidence * 100).toFixed(1) + "%"
+                            : f.confidence ?? "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Downloads / navigation actions */}
+              <div className="mt-6 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  className="btn-primary inline-flex items-center gap-2 px-3 py-2 rounded-lg"
+                  onClick={handleDownloadPdf}
+                >
+                  <Download className="h-4 w-4" />
+                  Download Summary (PDF)
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[rgb(var(--border))] bg-white"
+                  onClick={handleDownloadJson}
+                >
+                  <Download className="h-4 w-4" />
+                  Download JSON
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[rgb(var(--border))] bg-white ml-auto"
+                  onClick={() => navigate("/dashboard")}
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  New OCR request
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[rgb(var(--border))] bg-white"
+                  onClick={() => navigate("/")}
+                >
+                  <HomeIcon className="h-4 w-4" />
+                  Home
+                </button>
+              </div>
+            </>
+          )}
+        </section>
+      </main>
+
+      <SiteFooter />
+    </div>
+  );
+}

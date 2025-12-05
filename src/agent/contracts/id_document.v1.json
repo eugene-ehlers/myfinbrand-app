@@ -1,0 +1,68 @@
+{
+  "docType": "id_document",
+  "version": "v1",
+  "services": {
+    "ocr": {
+      "enabled": true,
+      "engine": "tesseract",
+      "pageLimit": 2,
+      "captureMode": "text_and_layout"
+    },
+    "summary": {
+      "enabled": true,
+      "maxTokens": 256,
+      "style": "key_values",
+      "focus": [
+        "full_name",
+        "id_number",
+        "date_of_birth",
+        "document_expiry"
+      ]
+    },
+    "structured": {
+      "enabled": true,
+      "schema": {
+        "document_type": {
+          "type": "string",
+          "enum": ["national_id", "passport", "drivers_license", "other"]
+        },
+        "country_of_issue": "string",
+        "full_name": "string",
+        "first_names": "string|null",
+        "surname": "string|null",
+        "id_number": "string",
+        "date_of_birth": "date|null",
+        "gender": "string|null",
+        "issue_date": "date|null",
+        "expiry_date": "date|null"
+      }
+    },
+    "classification": {
+      "enabled": true,
+      "level": "document",
+      "labels": ["id_document"],
+      "output": {
+        "fields": {
+          "doc_label": "string",
+          "confidence": {
+            "type": "number",
+            "min": 0,
+            "max": 100
+          }
+        }
+      }
+    },
+    "ratios": {
+      "enabled": false
+    },
+    "risk": {
+      "enabled": true,
+      "engine": "rule_and_agent",
+      "score": {
+        "type": "number",
+        "range": [0, 100]
+      },
+      "explanationRequired": false
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "version": "1.0",
+  "documentType": "bank_statement",
+  "services": {
+    "structured": {
+      "fields": {
+        "account_holder": "string",
+        "bank_name": "string",
+        "account_number": "string",
+        "statement_period_start": "date",
+        "statement_period_end": "date",
+        "opening_balance": "number",
+        "closing_balance": "number",
+        "currency": "string"
+      }
+    },
+    "classification": {
+      "transaction_categories": {
+        "income": [
+          "salary",
+          "dividends",
+          "business_revenue",
+          "loan_proceeds",
+          "rental_income",
+          "transfers_between_own_accounts",
+          "infrequent_income"
+        ],
+        "expenses": [
+          "food_groceries",
+          "transport",
+          "fuel",
+          "utilities",
+          "rent",
+          "insurance",
+          "entertainment",
+          "gambling",
+          "medical",
+          "investments",
+          "cash_withdrawals",
+          "loan_repayments",
+          "general_expense",
+          "subscriptions",
+          "shopping"
+        ],
+        "flags": [
+          "suspicious_pattern",
+          "gambling_pattern",
+          "repeated_merchant",
+          "large_unusual_inflow",
+          "large_unusual_outflow"
+        ]
+      },
+      "income_frequency": [
+        "weekly",
+        "fortnightly",
+        "monthly",
+        "infrequent"
+      ]
+    },
+    "ratios": {
+      "required": [
+        "inflow_outflow_ratio",
+        "average_monthly_income",
+        "average_monthly_expense",
+        "net_position",
+        "income_volatility",
+        "largest_income_share",
+        "largest_expense_share"
+      ]
+    },
+    "risk": {
+      "score": "0-100"
+    },
+    "summary": {
+      "length": "short"
+    }
+  }
+}

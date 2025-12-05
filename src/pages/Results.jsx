@@ -45,9 +45,15 @@ function classifyIssues(result) {
   const docType = result.docType || null;
 
   // agentic can be:
-  // - bank_statement_agentic_v1 (current)
-  // - or a v8 wrapper { status, msg, result: { ... } }
-  const rawAgentic = result.result || null;
+  // - top-level result (future API)
+  // - quick.result (current bank_v1_quick contract)
+  // - quick.structured (older style)
+  const rawAgentic =
+    result.result ||
+    result.quick?.result ||
+    result.quick?.structured ||
+    null;
+
   const agentic = rawAgentic?.result ?? rawAgentic ?? null;
   const agenticStatus = rawAgentic?.status ?? agentic?.status ?? "ok";
 
@@ -549,9 +555,13 @@ export default function Results() {
   const fields = Array.isArray(result?.fields) ? result.fields : [];
   const pipelineStage = result?.statusAudit || null;
 
-  // Agentic payload: support current v1 (bank_statement_agentic_v1)
-  // and future v8-style wrappers (result.result)
-  const rawAgentic = result?.result || null;
+  // Agentic payload: multi-source
+  const rawAgentic =
+    result?.result ||
+    result?.quick?.result ||
+    result?.quick?.structured ||
+    null;
+
   const agentic = rawAgentic?.result ?? rawAgentic ?? null;
 
   // Build a UI summary based on docType + agentic content + fields
@@ -575,6 +585,13 @@ export default function Results() {
   const analysisMode = result?.analysisMode || null;
 
   const { issues, overallStatus, inProgress } = classifyIssues(result);
+
+  // Prefer agentic summary, then fall back
+  const agenticSummary =
+    agentic?.summary ||
+    result?.summary ||
+    result?.quick?.summary ||
+    null;
 
   return (
     <div
@@ -709,14 +726,14 @@ export default function Results() {
                 )}
               </div>
 
-              {/* AI summary (from backend `summary`) */}
-              {result.summary && !inProgress && (
+              {/* AI summary */}
+              {agenticSummary && !inProgress && (
                 <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
                   <h2 className="text-sm font-semibold mb-2">
                     AI summary
                   </h2>
                   <p className="text-sm text-slate-800 whitespace-pre-wrap">
-                    {result.summary}
+                    {agenticSummary}
                   </p>
                 </div>
               )}

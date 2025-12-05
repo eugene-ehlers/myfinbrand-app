@@ -1,0 +1,78 @@
+{
+  "docType": "tax_certificate",
+  "version": "v1",
+  "services": {
+    "ocr": {
+      "enabled": true,
+      "engine": "tesseract",
+      "pageLimit": 6,
+      "captureMode": "text_and_layout"
+    },
+    "summary": {
+      "enabled": true,
+      "maxTokens": 512,
+      "style": "bullet_points",
+      "focus": [
+        "taxpayer_name",
+        "tax_number",
+        "year_of_assessment",
+        "income_declared",
+        "tax_paid_or_refunded"
+      ]
+    },
+    "structured": {
+      "enabled": true,
+      "schema": {
+        "taxpayer_name": "string",
+        "tax_number": "string|null",
+        "id_number": "string|null",
+        "year_of_assessment": "string",
+        "income_declared": "number|null",
+        "tax_payable": "number|null",
+        "tax_refund": "number|null",
+        "employer_name": "string|null",
+        "certificate_type": {
+          "type": "string",
+          "enum": ["employee_tax_certificate", "assessment", "other"]
+        }
+      }
+    },
+    "classification": {
+      "enabled": true,
+      "level": "document",
+      "labels": [
+        "employee_tax_certificate",
+        "tax_assessment",
+        "other_tax_document"
+      ],
+      "output": {
+        "fields": {
+          "doc_label": "string",
+          "confidence": {
+            "type": "number",
+            "min": 0,
+            "max": 100
+          }
+        }
+      }
+    },
+    "ratios": {
+      "enabled": true,
+      "metrics": [
+        {
+          "name": "effective_tax_rate",
+          "formula": "tax_payable / income_declared"
+        }
+      ]
+    },
+    "risk": {
+      "enabled": true,
+      "engine": "rule_and_agent",
+      "score": {
+        "type": "number",
+        "range": [0, 100]
+      },
+      "explanationRequired": false
+    }
+  }
+}

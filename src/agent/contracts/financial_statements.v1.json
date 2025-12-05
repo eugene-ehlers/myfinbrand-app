@@ -1,71 +1,151 @@
 {
-  "version": "1.0",
-  "documentType": "financial_statements",
-  "sections": {
-    "income_statement": {
-      "fields": {
-        "revenue": "number",
-        "cost_of_sales": "number",
-        "gross_profit": "number",
-        "operating_expenses": "number",
-        "operating_profit": "number",
-        "net_profit": "number"
+  "docType": "financial_statements",
+  "version": "v1",
+  "services": {
+    "ocr": {
+      "enabled": true,
+      "engine": "tesseract",
+      "pageLimit": 40,
+      "captureMode": "text_and_layout"
+    },
+    "summary": {
+      "enabled": true,
+      "maxTokens": 1024,
+      "style": "bullet_points",
+      "focus": [
+        "entity_name",
+        "reporting_period",
+        "turnover",
+        "profitability",
+        "key_balance_sheet_items",
+        "key_cashflow_items",
+        "overall_solvency_and_liquidity_view"
+      ]
+    },
+    "structured": {
+      "enabled": true,
+      "schema": {
+        "entity_name": "string",
+        "registration_number": "string|null",
+        "reporting_period_start": "date",
+        "reporting_period_end": "date",
+        "currency": "string",
+        "balance_sheet": {
+          "assets_total": "number",
+          "current_assets": "number|null",
+          "non_current_assets": "number|null",
+          "inventory": "number|null",
+          "cash_and_equivalents": "number|null",
+          "equity": "number|null",
+          "liabilities_total": "number",
+          "current_liabilities": "number|null",
+          "non_current_liabilities": "number|null",
+          "interest_bearing_debt": "number|null"
+        },
+        "income_statement": {
+          "revenue": "number",
+          "cost_of_sales": "number|null",
+          "gross_profit": "number|null",
+          "operating_expenses": "number|null",
+          "ebitda": "number|null",
+          "depreciation_and_amortisation": "number|null",
+          "operating_profit": "number|null",
+          "finance_costs": "number|null",
+          "profit_before_tax": "number|null",
+          "tax_expense": "number|null",
+          "profit_after_tax": "number"
+        },
+        "cash_flow_statement": {
+          "cash_from_operations": "number|null",
+          "cash_from_investing": "number|null",
+          "cash_from_financing": "number|null",
+          "net_cash_movement": "number|null",
+          "opening_cash_balance": "number|null",
+          "closing_cash_balance": "number|null"
+        }
       }
     },
-    "balance_sheet": {
-      "fields": {
-        "total_assets": "number",
-        "current_assets": "number",
-        "non_current_assets": "number",
-        "total_liabilities": "number",
-        "current_liabilities": "number",
-        "non_current_liabilities": "number",
-        "equity": "number"
+    "classification": {
+      "enabled": true,
+      "level": "document",
+      "labels": [
+        "annual_financial_statements",
+        "management_accounts",
+        "trial_balance_export",
+        "other_financial_report"
+      ],
+      "output": {
+        "fields": {
+          "doc_label": "string",
+          "period_type": {
+            "type": "string",
+            "enum": ["annual", "interim", "other", "unknown"]
+          },
+          "confidence": {
+            "type": "number",
+            "min": 0,
+            "max": 100
+          }
+        }
       }
     },
-    "cash_flow_statement": {
-      "fields": {
-        "operating_cash_flow": "number",
-        "investing_cash_flow": "number",
-        "financing_cash_flow": "number",
-        "net_cash_flow": "number",
-        "cash_at_beginning": "number",
-        "cash_at_end": "number"
-      }
+    "ratios": {
+      "enabled": true,
+      "metrics": [
+        {
+          "name": "current_ratio",
+          "formula": "current_assets / current_liabilities"
+        },
+        {
+          "name": "quick_ratio",
+          "formula": "(current_assets - inventory) / current_liabilities"
+        },
+        {
+          "name": "debt_to_equity_ratio",
+          "formula": "interest_bearing_debt / equity"
+        },
+        {
+          "name": "gross_margin",
+          "formula": "gross_profit / revenue"
+        },
+        {
+          "name": "operating_margin",
+          "formula": "operating_profit / revenue"
+        },
+        {
+          "name": "net_margin",
+          "formula": "profit_after_tax / revenue"
+        },
+        {
+          "name": "return_on_assets",
+          "formula": "profit_after_tax / assets_total"
+        },
+        {
+          "name": "return_on_equity",
+          "formula": "profit_after_tax / equity"
+        },
+        {
+          "name": "debt_service_coverage_ratio",
+          "formula": "cash_from_operations / finance_costs"
+        },
+        {
+          "name": "cash_flow_coverage_ratio",
+          "formula": "cash_from_operations / liabilities_total"
+        },
+        {
+          "name": "debt_to_cashflow_years",
+          "formula": "interest_bearing_debt / cash_from_operations"
+        }
+      ]
+    },
+    "risk": {
+      "enabled": true,
+      "engine": "rule_and_agent",
+      "score": {
+        "type": "number",
+        "range": [0, 100]
+      },
+      "explanationRequired": false
     }
-  },
-  "ratios": {
-    "profitability": [
-      "net_profit_margin",
-      "operating_margin",
-      "gross_margin",
-      "roa",
-      "roe"
-    ],
-    "liquidity": [
-      "current_ratio",
-      "quick_ratio",
-      "cash_ratio"
-    ],
-    "leverage": [
-      "debt_to_equity",
-      "interest_coverage",
-      "dscr"
-    ],
-    "cash_flow": [
-      "operating_cf_ratio",
-      "free_cash_flow",
-      "cash_conversion_cycle"
-    ],
-    "efficiency": [
-      "asset_turnover",
-      "working_capital_turnover"
-    ]
-  },
-  "risk": {
-    "score": "0-100"
-  },
-  "summary": {
-    "length": "medium"
   }
 }

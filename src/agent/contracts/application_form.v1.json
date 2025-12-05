@@ -1,0 +1,68 @@
+{
+  "docType": "application_form",
+  "version": "v1",
+  "services": {
+    "ocr": {
+      "enabled": true,
+      "engine": "tesseract",
+      "pageLimit": 10,
+      "captureMode": "text_and_layout"
+    },
+    "summary": {
+      "enabled": true,
+      "maxTokens": 512,
+      "style": "bullet_points",
+      "focus": [
+        "applicant_name",
+        "application_type",
+        "loan_amount_requested",
+        "term_requested"
+      ]
+    },
+    "structured": {
+      "enabled": true,
+      "schema": {
+        "application_type": "string|null",
+        "applicant_name": "string|null",
+        "id_number": "string|null",
+        "business_name": "string|null",
+        "registration_number": "string|null",
+        "loan_amount_requested": "number|null",
+        "term_requested_months": "number|null",
+        "purpose_of_loan": "string|null"
+      }
+    },
+    "classification": {
+      "enabled": true,
+      "level": "document",
+      "labels": [
+        "personal_loan_application",
+        "business_loan_application",
+        "overdraft_application",
+        "other"
+      ],
+      "output": {
+        "fields": {
+          "doc_label": "string",
+          "confidence": {
+            "type": "number",
+            "min": 0,
+            "max": 100
+          }
+        }
+      }
+    },
+    "ratios": {
+      "enabled": false
+    },
+    "risk": {
+      "enabled": true,
+      "engine": "rule_and_agent",
+      "score": {
+        "type": "number",
+        "range": [0, 100]
+      },
+      "explanationRequired": false
+    }
+  }
+}

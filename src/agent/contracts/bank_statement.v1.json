@@ -1,78 +1,187 @@
 {
-  "version": "1.0",
-  "documentType": "bank_statement",
+  "docType": "bank_statement",
+  "version": "v1",
   "services": {
+    "ocr": {
+      "enabled": true,
+      "engine": "tesseract",
+      "pageLimit": 20,
+      "captureMode": "text_and_layout"
+    },
+    "summary": {
+      "enabled": true,
+      "maxTokens": 512,
+      "style": "bullet_points",
+      "focus": [
+        "bank_name",
+        "account_holder_name",
+        "account_number",
+        "statement_period",
+        "opening_balance",
+        "closing_balance",
+        "total_credits",
+        "total_debits",
+        "inferred_income_frequency",
+        "high_level_cashflow_pattern"
+      ]
+    },
     "structured": {
-      "fields": {
-        "account_holder": "string",
-        "bank_name": "string",
-        "account_number": "string",
-        "statement_period_start": "date",
-        "statement_period_end": "date",
-        "opening_balance": "number",
-        "closing_balance": "number",
-        "currency": "string"
+      "enabled": true,
+      "schema": {
+        "bank_name": "string|null",
+        "account_holder_name": "string|null",
+        "account_number": "string|null",
+        "branch_code": "string|null",
+        "currency": "string|null",
+        "statement_period_start": "date|null",
+        "statement_period_end": "date|null",
+        "statement_date": "date|null",
+        "opening_balance": "number|null",
+        "closing_balance": "number|null",
+        "minimum_balance": "number|null",
+        "maximum_balance": "number|null",
+        "total_credits": "number|null",
+        "total_debits": "number|null",
+        "inferred_income_frequency": {
+          "type": "string",
+          "enum": [
+            "weekly",
+            "fortnightly",
+            "monthly",
+            "infrequent",
+            "unknown"
+          ]
+        },
+        "transactions": [
+          {
+            "transaction_id": "string",
+            "date": "date",
+            "posting_date": "date|null",
+            "description": "string",
+            "reference": "string|null",
+            "amount": "number",
+            "balance": "number|null",
+            "direction": {
+              "type": "string",
+              "enum": ["credit", "debit", "unknown"]
+            },
+            "channel": "string|null",
+            "counterparty_name": "string|null",
+            "counterparty_account": "string|null",
+            "label": "string|null",
+            "category": "string|null",
+            "subcategory": "string|null"
+          }
+        ]
       }
     },
     "classification": {
-      "transaction_categories": {
-        "income": [
-          "salary",
-          "dividends",
-          "business_revenue",
-          "loan_proceeds",
-          "rental_income",
-          "transfers_between_own_accounts",
-          "infrequent_income"
-        ],
-        "expenses": [
-          "food_groceries",
-          "transport",
-          "fuel",
-          "utilities",
-          "rent",
-          "insurance",
-          "entertainment",
-          "gambling",
-          "medical",
-          "investments",
-          "cash_withdrawals",
-          "loan_repayments",
-          "general_expense",
-          "subscriptions",
-          "shopping"
-        ],
-        "flags": [
-          "suspicious_pattern",
-          "gambling_pattern",
-          "repeated_merchant",
-          "large_unusual_inflow",
-          "large_unusual_outflow"
-        ]
+      "enabled": true,
+      "level": "transaction",
+      "labels": [
+        "income",
+        "expense",
+        "transfer",
+        "fee",
+        "refund",
+        "unknown"
+      ],
+      "categories": [
+        "salary",
+        "wages",
+        "business_income",
+        "dividends",
+        "interest_income",
+        "rental_income",
+        "other_income",
+        "food_and_groceries",
+        "restaurants_and_takeaways",
+        "transport",
+        "fuel",
+        "vehicle_maintenance",
+        "public_transport",
+        "ride_hailing",
+        "housing_rent",
+        "bond_repayment",
+        "utilities",
+        "municipal_rates",
+        "internet_and_telecoms",
+        "insurance",
+        "medical_aid",
+        "health_and_wellness",
+        "education",
+        "school_fees",
+        "training_and_courses",
+        "entertainment",
+        "subscriptions",
+        "travel_and_holidays",
+        "investments",
+        "savings",
+        "retirement_contributions",
+        "loan_repayment",
+        "credit_card_repayment",
+        "overdraft_fees",
+        "business_expense",
+        "tax_payment",
+        "government_fees",
+        "cash_withdrawal",
+        "uncategorised"
+      ],
+      "output": {
+        "fields": {
+          "transaction_id": "string",
+          "label": "string",
+          "category": "string",
+          "subcategory": "string|null",
+          "is_income": "boolean",
+          "is_expense": "boolean",
+          "confidence": {
+            "type": "number",
+            "min": 0,
+            "max": 100
+          }
+        }
       },
-      "income_frequency": [
-        "weekly",
-        "fortnightly",
-        "monthly",
-        "infrequent"
-      ]
+      "engine": {
+        "mode": "rule_and_agent",
+        "ruleHints": [
+          "Map employer and salary-like descriptions to salary or business_income",
+          "Map grocery retailers to food_and_groceries",
+          "Map petrol stations to fuel",
+          "Map investment and trading platforms to investments or savings",
+          "Map debit order loan/credit card payments to loan_repayment or credit_card_repayment"
+        ]
+      }
     },
     "ratios": {
-      "required": [
-        "inflow_outflow_ratio",
-        "average_monthly_income",
-        "average_monthly_expense",
-        "net_position",
-        "income_volatility",
-        "largest_income_share",
-        "largest_expense_share"
+      "enabled": true,
+      "metrics": [
+        {
+          "name": "net_cash_flow",
+          "formula": "total_credits - total_debits"
+        },
+        {
+          "name": "inflow_to_outflow_ratio",
+          "formula": "total_credits / total_debits"
+        },
+        {
+          "name": "closing_to_opening_balance_ratio",
+          "formula": "closing_balance / opening_balance"
+        }
       ]
     },
     "risk": {
-      "score": "0-100"
-    },
-    "summary": {
-      "length": "short"
+      "enabled": true,
+      "engine": "rule_and_agent",
+      "score": {
+        "type": "number",
+        "range": [0, 100],
+        "bands": {
+          "low_max": 33,
+          "medium_max": 66
+        }
+      },
+      "explanationRequired": false
     }
   }
 }

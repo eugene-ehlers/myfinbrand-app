@@ -1,0 +1,71 @@
+{
+  "version": "1.0",
+  "documentType": "financial_statements",
+  "sections": {
+    "income_statement": {
+      "fields": {
+        "revenue": "number",
+        "cost_of_sales": "number",
+        "gross_profit": "number",
+        "operating_expenses": "number",
+        "operating_profit": "number",
+        "net_profit": "number"
+      }
+    },
+    "balance_sheet": {
+      "fields": {
+        "total_assets": "number",
+        "current_assets": "number",
+        "non_current_assets": "number",
+        "total_liabilities": "number",
+        "current_liabilities": "number",
+        "non_current_liabilities": "number",
+        "equity": "number"
+      }
+    },
+    "cash_flow_statement": {
+      "fields": {
+        "operating_cash_flow": "number",
+        "investing_cash_flow": "number",
+        "financing_cash_flow": "number",
+        "net_cash_flow": "number",
+        "cash_at_beginning": "number",
+        "cash_at_end": "number"
+      }
+    }
+  },
+  "ratios": {
+    "profitability": [
+      "net_profit_margin",
+      "operating_margin",
+      "gross_margin",
+      "roa",
+      "roe"
+    ],
+    "liquidity": [
+      "current_ratio",
+      "quick_ratio",
+      "cash_ratio"
+    ],
+    "leverage": [
+      "debt_to_equity",
+      "interest_coverage",
+      "dscr"
+    ],
+    "cash_flow": [
+      "operating_cf_ratio",
+      "free_cash_flow",
+      "cash_conversion_cycle"
+    ],
+    "efficiency": [
+      "asset_turnover",
+      "working_capital_turnover"
+    ]
+  },
+  "risk": {
+    "score": "0-100"
+  },
+  "summary": {
+    "length": "medium"
+  }
+}

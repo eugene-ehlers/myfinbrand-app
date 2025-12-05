@@ -1,0 +1,77 @@
+{
+  "docType": "proof_of_address",
+  "version": "v1",
+  "services": {
+    "ocr": {
+      "enabled": true,
+      "engine": "tesseract",
+      "pageLimit": 6,
+      "captureMode": "text_and_layout"
+    },
+    "summary": {
+      "enabled": true,
+      "maxTokens": 256,
+      "style": "key_values",
+      "focus": [
+        "customer_name",
+        "address",
+        "issue_date",
+        "issuing_institution"
+      ]
+    },
+    "structured": {
+      "enabled": true,
+      "schema": {
+        "customer_name": "string",
+        "address_lines": ["string"],
+        "postal_code": "string|null",
+        "country": "string|null",
+        "issue_date": "date|null",
+        "document_type": {
+          "type": "string",
+          "enum": [
+            "bank_statement",
+            "utility_bill",
+            "rates_and_taxes",
+            "lease_agreement",
+            "other"
+          ]
+        },
+        "issuer_name": "string|null"
+      }
+    },
+    "classification": {
+      "enabled": true,
+      "level": "document",
+      "labels": [
+        "bank_statement",
+        "utility_bill",
+        "municipal_bill",
+        "lease_agreement",
+        "other"
+      ],
+      "output": {
+        "fields": {
+          "doc_label": "string",
+          "confidence": {
+            "type": "number",
+            "min": 0,
+            "max": 100
+          }
+        }
+      }
+    },
+    "ratios": {
+      "enabled": false
+    },
+    "risk": {
+      "enabled": true,
+      "engine": "rule_and_agent",
+      "score": {
+        "type": "number",
+        "range": [0, 100]
+      },
+      "explanationRequired": false
+    }
+  }
+}

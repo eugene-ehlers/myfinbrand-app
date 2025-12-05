@@ -1,0 +1,72 @@
+{
+  "docType": "credit_report",
+  "version": "v1",
+  "services": {
+    "ocr": {
+      "enabled": true,
+      "engine": "tesseract",
+      "pageLimit": 20,
+      "captureMode": "text_and_layout"
+    },
+    "summary": {
+      "enabled": true,
+      "maxTokens": 1024,
+      "style": "bullet_points",
+      "focus": [
+        "bureau_score",
+        "accounts_summary",
+        "judgments",
+        "defaults",
+        "enquiries"
+      ]
+    },
+    "structured": {
+      "enabled": true,
+      "schema": {
+        "subject_name": "string",
+        "id_number": "string|null",
+        "report_date": "date|null",
+        "bureau_score": "number|null",
+        "score_band": "string|null",
+        "total_open_accounts": "number|null",
+        "total_past_due": "number|null",
+        "current_arrears_amount": "number|null",
+        "judgments_count": "number|null",
+        "defaults_count": "number|null"
+      }
+    },
+    "classification": {
+      "enabled": true,
+      "level": "document",
+      "labels": ["consumer_report", "business_report", "other"],
+      "output": {
+        "fields": {
+          "doc_label": "string",
+          "confidence": {
+            "type": "number",
+            "min": 0,
+            "max": 100
+          }
+        }
+      }
+    },
+    "ratios": {
+      "enabled": true,
+      "metrics": [
+        {
+          "name": "arrears_to_open_accounts_ratio",
+          "formula": "total_past_due / total_open_accounts"
+        }
+      ]
+    },
+    "risk": {
+      "enabled": true,
+      "engine": "rule_and_agent",
+      "score": {
+        "type": "number",
+        "range": [0, 100]
+      },
+      "explanationRequired": false
+    }
+  }
+}

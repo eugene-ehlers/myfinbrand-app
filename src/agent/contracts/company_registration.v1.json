@@ -1,0 +1,79 @@
+{
+  "docType": "company_registration",
+  "version": "v1",
+  "services": {
+    "ocr": {
+      "enabled": true,
+      "engine": "tesseract",
+      "pageLimit": 8,
+      "captureMode": "text_and_layout"
+    },
+    "summary": {
+      "enabled": true,
+      "maxTokens": 512,
+      "style": "bullet_points",
+      "focus": [
+        "entity_name",
+        "registration_number",
+        "incorporation_date",
+        "directors",
+        "shareholders"
+      ]
+    },
+    "structured": {
+      "enabled": true,
+      "schema": {
+        "entity_name": "string",
+        "trading_name": "string|null",
+        "registration_number": "string",
+        "tax_number": "string|null",
+        "country_of_registration": "string",
+        "incorporation_date": "date|null",
+        "entity_type": {
+          "type": "string",
+          "enum": ["pty_ltd", "cc", "sole_prop", "ngo", "trust", "other"]
+        },
+        "registered_address": "string|null",
+        "directors": [
+          {
+            "full_name": "string",
+            "id_number": "string|null"
+          }
+        ],
+        "shareholders": [
+          {
+            "name": "string",
+            "percentage": "number|null"
+          }
+        ]
+      }
+    },
+    "classification": {
+      "enabled": true,
+      "level": "document",
+      "labels": ["company_registration", "amendment_document", "other"],
+      "output": {
+        "fields": {
+          "doc_label": "string",
+          "confidence": {
+            "type": "number",
+            "min": 0,
+            "max": 100
+          }
+        }
+      }
+    },
+    "ratios": {
+      "enabled": false
+    },
+    "risk": {
+      "enabled": true,
+      "engine": "rule_and_agent",
+      "score": {
+        "type": "number",
+        "range": [0, 100]
+      },
+      "explanationRequired": false
+    }
+  }
+}

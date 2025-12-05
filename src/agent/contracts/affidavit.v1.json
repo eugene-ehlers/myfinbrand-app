@@ -1,0 +1,64 @@
+{
+  "docType": "affidavit",
+  "version": "v1",
+  "services": {
+    "ocr": {
+      "enabled": true,
+      "engine": "tesseract",
+      "pageLimit": 6,
+      "captureMode": "text_and_layout"
+    },
+    "summary": {
+      "enabled": true,
+      "maxTokens": 512,
+      "style": "paragraph",
+      "focus": [
+        "deponent_name",
+        "purpose",
+        "key_declarations"
+      ]
+    },
+    "structured": {
+      "enabled": true,
+      "schema": {
+        "deponent_name": "string",
+        "id_number": "string|null",
+        "date_signed": "date|null",
+        "place_signed": "string|null",
+        "purpose": "string|null"
+      }
+    },
+    "classification": {
+      "enabled": true,
+      "level": "document",
+      "labels": [
+        "loss_of_document",
+        "income_declaration",
+        "residence_declaration",
+        "other_affidavit"
+      ],
+      "output": {
+        "fields": {
+          "doc_label": "string",
+          "confidence": {
+            "type": "number",
+            "min": 0,
+            "max": 100
+          }
+        }
+      }
+    },
+    "ratios": {
+      "enabled": false
+    },
+    "risk": {
+      "enabled": true,
+      "engine": "rule_and_agent",
+      "score": {
+        "type": "number",
+        "range": [0, 100]
+      },
+      "explanationRequired": false
+    }
+  }
+}

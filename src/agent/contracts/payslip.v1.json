@@ -1,0 +1,92 @@
+{
+  "docType": "payslip",
+  "version": "v1",
+  "services": {
+    "ocr": {
+      "enabled": true,
+      "engine": "tesseract",
+      "pageLimit": 4,
+      "captureMode": "text_and_layout"
+    },
+    "summary": {
+      "enabled": true,
+      "maxTokens": 512,
+      "style": "bullet_points",
+      "focus": [
+        "employer_name",
+        "employee_name",
+        "net_pay",
+        "pay_period",
+        "income_frequency",
+        "deductions_summary",
+        "allowances_summary"
+      ]
+    },
+    "structured": {
+      "enabled": true,
+      "schema": {
+        "employer_name": "string",
+        "employer_registration_number": "string|null",
+        "employee_name": "string",
+        "employee_id": "string|null",
+        "id_number": "string|null",
+        "pay_period_start": "date",
+        "pay_period_end": "date",
+        "pay_date": "date",
+        "income_frequency": {
+          "type": "string",
+          "enum": ["weekly", "fortnightly", "monthly", "infrequent"]
+        },
+        "gross_pay": "number",
+        "net_pay": "number",
+        "tax_payable": "number|null",
+        "pension_contribution": "number|null",
+        "medical_aid_contribution": "number|null",
+        "other_deductions_total": "number|null",
+        "allowances_total": "number|null",
+        "currency": "string"
+      }
+    },
+    "classification": {
+      "enabled": true,
+      "level": "document",
+      "labels": ["payslip"],
+      "output": {
+        "fields": {
+          "doc_label": "string",
+          "confidence": {
+            "type": "number",
+            "min": 0,
+            "max": 100
+          }
+        }
+      }
+    },
+    "ratios": {
+      "enabled": true,
+      "metrics": [
+        {
+          "name": "net_to_gross_income_ratio",
+          "formula": "net_pay / gross_pay"
+        },
+        {
+          "name": "deductions_to_gross_ratio",
+          "formula": "(gross_pay - net_pay) / gross_pay"
+        }
+      ]
+    },
+    "risk": {
+      "enabled": true,
+      "engine": "rule_and_agent",
+      "score": {
+        "type": "number",
+        "range": [0, 100],
+        "bands": {
+          "low_max": 33,
+          "medium_max": 66
+        }
+      },
+      "explanationRequired": false
+    }
+  }
+}

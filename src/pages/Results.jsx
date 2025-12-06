@@ -67,17 +67,12 @@ function classifyIssues(result) {
   // ───────────────────────────────────────────────
   // 1) PIPELINE IN-PROGRESS / QUEUED STATE
   // ───────────────────────────────────────────────
-  //
-  // If the pipeline is at "uploaded" or "ocr_completed" but we don't yet
-  // have quick/detailed results, treat the run as IN PROGRESS rather than warning/fail.
-  //
   const isInProgress =
     (!hasAnyFinalResult &&
       (pipelineStage === "uploaded" || pipelineStage === "ocr_completed")) ||
     (!hasAnyFinalResult && qualityStatus === "pending");
 
   if (isInProgress) {
-    // We don't push any user-facing "issues" here – this is a normal state.
     return {
       issues: [],
       overallStatus: "in_progress",
@@ -114,14 +109,13 @@ function classifyIssues(result) {
     issues.push({
       stage: "OCR text extraction",
       level: "error",
-      category, // "internal" | "document"
+      category,
       userMessage,
       rawMessage: msg,
     });
   }
 
   // ---- QUALITY decision (STOP) → real blocking error ----
-  // We only treat hard STOP as an "error". A "pending" / "ok" status is NOT an issue.
   if (qualityDecision === "STOP") {
     const reasonText =
       qualityReasons.length > 0
@@ -180,15 +174,12 @@ function classifyIssues(result) {
   }
 
   // ---- Suspicious-but-not-crashing cases ----
-  // Only relevant for bank statements – other docs don't have transactions.
   if (!ocrEngine.error && agentic && agenticStatus !== "error") {
     if (docType === "bank_statements") {
       let txs = [];
-      // v8 style: agentic.structured.transactions
       if (Array.isArray(agentic?.structured?.transactions)) {
         txs = agentic.structured.transactions;
       }
-      // current v1: agentic.transactions
       if (!txs.length && Array.isArray(agentic?.transactions)) {
         txs = agentic.transactions;
       }
@@ -206,7 +197,6 @@ function classifyIssues(result) {
     }
   }
 
-  // Overall status for a simple badge
   let overallStatus = "ok";
   if (issues.some((i) => i.level === "error")) {
     overallStatus = "error";
@@ -267,12 +257,11 @@ const DOC_TYPE_LABELS = {
 function buildUiSummary(docType, agentic, fields = []) {
   if (!agentic && !fields.length) return null;
 
-  // Helper to read from fields array by name
   const getField = (name) =>
     fields.find((f) => f.name && f.name.toLowerCase() === name.toLowerCase())
       ?.value ?? null;
 
-  // BANK STATEMENTS: bank_statement_agentic_v1
+  // BANK STATEMENTS
   if (docType === "bank_statements") {
     const account = agentic?.account || {};
     const txs = Array.isArray(agentic?.transactions)
@@ -335,7 +324,7 @@ function buildUiSummary(docType, agentic, fields = []) {
     };
   }
 
-  // PAYSLIPS – derive from fields
+  // PAYSLIPS
   if (docType === "payslips") {
     return {
       kind: "payslip",
@@ -359,7 +348,7 @@ function buildUiSummary(docType, agentic, fields = []) {
     };
   }
 
-  // ID DOCUMENTS – derive from fields
+  // ID DOCUMENTS
   if (docType === "id_documents") {
     return {
       kind: "id",
@@ -385,7 +374,7 @@ function buildUiSummary(docType, agentic, fields = []) {
     };
   }
 
-  // PROOF OF ADDRESS – derive from fields
+  // PROOF OF ADDRESS
   if (docType === "proof_of_address") {
     return {
       kind: "address",
@@ -418,7 +407,6 @@ function buildUiSummary(docType, agentic, fields = []) {
     };
   }
 
-  // Default: nothing special
   return null;
 }
 
@@ -428,8 +416,11 @@ export default function Results() {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); // string
+  const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
+
+  // NEW: view toggle – "summary" (client) vs "agent"
+  const [activeView, setActiveView] = useState("summary");
 
   const functionUrl =
     "https://rip7ft5vrq6ltl7r7btoop4whm0fqcnp.lambda-url.us-east-1.on.aws/";
@@ -593,7 +584,7 @@ export default function Results() {
     result?.quick?.summary ||
     null;
 
-  // NEW: ratios & cashflow summaries (for bank + financial statements)
+  // Ratios & cashflow summaries (for bank + financial statements)
   const ratios =
     agentic?.ratios ||
     agentic?.financial_ratios ||
@@ -606,7 +597,7 @@ export default function Results() {
     agentic?.cashflow ||
     null;
 
-  // Convenience extractions for display – all optional and defensive
+  // Convenience extractions for display
   const currentRatio =
     ratios?.current_ratio ??
     ratios?.liquidity?.current_ratio ??
@@ -640,6 +631,12 @@ export default function Results() {
     ratios?.cashflow_coverage ??
     ratios?.coverage?.cashflow_coverage ??
     null;
+
+  // Optional generic scores block, if contracts expose it
+  const genericScores =
+    agentic?.scores && typeof agentic.scores === "object"
+      ? agentic.scores
+      : null;
 
   return (
     <div
@@ -689,197 +686,708 @@ export default function Results() {
 
           {!loading && !error && result && (
             <>
-              {/* Run status / issues */}
-              <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-slate-50 px-4 py-3">
-                <div className="flex flex-wrap items-center gap-3 mb-2">
-                  <div className="font-medium text-sm">Run status</div>
-                  {formatStatusBadge(overallStatus)}
-                  {pipelineStage && (
-                    <span className="text-xs text-slate-500">
-                      (Pipeline stage: {pipelineStage})
-                    </span>
-                  )}
-                  {qualityStatus && !inProgress && (
-                    <span className="text-xs text-slate-500">
-                      • Quality status: {qualityStatus}
-                    </span>
-                  )}
+              {/* View toggle: Client vs Agent */}
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div className="inline-flex rounded-full bg-slate-100 p-1 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setActiveView("summary")}
+                    className={`px-3 py-1 rounded-full transition ${
+                      activeView === "summary"
+                        ? "bg-white shadow-sm text-slate-900"
+                        : "text-slate-600"
+                    }`}
+                  >
+                    Client view
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveView("agent")}
+                    className={`px-3 py-1 rounded-full transition ${
+                      activeView === "agent"
+                        ? "bg-white shadow-sm text-slate-900"
+                        : "text-slate-600"
+                    }`}
+                  >
+                    Agent view
+                  </button>
                 </div>
-
-                {inProgress && (
-                  <p className="text-sm text-slate-700">
-                    The document has been uploaded and is queued for OCR and
-                    AI analysis. Results will appear here once processing
-                    completes.
-                  </p>
-                )}
-
-                {!inProgress && issues.length === 0 && (
-                  <p className="text-sm text-slate-700">
-                    All processing stages completed without any detected
-                    issues.
-                  </p>
-                )}
-
-                {!inProgress && issues.length > 0 && (
-                  <>
-                    <ul className="space-y-2 text-sm">
-                      {issues.map((issue, idx) => (
-                        <li
-                          key={idx}
-                          className="border-t border-slate-200 pt-2 first:border-t-0 first:pt-0"
-                        >
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-medium">
-                              {issue.stage}
-                            </span>
-                            {issue.level === "error" && (
-                              <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-red-100 text-red-800">
-                                Error
-                              </span>
-                            )}
-                            {issue.level === "warning" && (
-                              <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-amber-100 text-amber-800">
-                                Warning
-                              </span>
-                            )}
-                            {issue.category === "internal" && (
-                              <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-sky-100 text-sky-800">
-                                On our side
-                              </span>
-                            )}
-                            {issue.category === "document" && (
-                              <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-slate-100 text-slate-800">
-                                Document / input issue
-                              </span>
-                            )}
-                          </div>
-                          <p className="mt-1 text-slate-700">
-                            {issue.userMessage}
-                          </p>
-                        </li>
-                      ))}
-                    </ul>
-
-                    {/* Support-only technical details */}
-                    <details className="mt-3 text-xs text-slate-600">
-                      <summary className="cursor-pointer underline underline-offset-2">
-                        Technical details (for support teams)
-                      </summary>
-                      <pre className="mt-2 max-h-48 overflow-auto rounded bg-slate-900 text-slate-100 p-2 text-[11px]">
-                        {JSON.stringify(issues, null, 2)}
-                      </pre>
-                    </details>
-                  </>
-                )}
               </div>
 
-              {/* AI summary */}
-              {agenticSummary && !inProgress && (
-                <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-                  <h2 className="text-sm font-semibold mb-2">
-                    AI summary
-                  </h2>
-                  <p className="text-sm text-slate-800 whitespace-pre-wrap">
-                    {agenticSummary}
-                  </p>
-                </div>
-              )}
+              {/* ─────────────────────────────
+                  CLIENT / SUMMARY VIEW
+                  ───────────────────────────── */}
+              {activeView === "summary" && (
+                <>
+                  {/* Run status / issues */}
+                  <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-slate-50 px-4 py-3">
+                    <div className="flex flex-wrap items-center gap-3 mb-2">
+                      <div className="font-medium text-sm">Run status</div>
+                      {formatStatusBadge(overallStatus)}
+                      {pipelineStage && (
+                        <span className="text-xs text-slate-500">
+                          (Pipeline stage: {pipelineStage})
+                        </span>
+                      )}
+                      {qualityStatus && !inProgress && (
+                        <span className="text-xs text-slate-500">
+                          • Quality status: {qualityStatus}
+                        </span>
+                      )}
+                    </div>
 
-              {/* Summary cards */}
-              <div className="grid gap-4 md:grid-cols-4 mb-6">
-                <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
-                  <div className="text-xs uppercase tracking-wide opacity-70">
-                    Risk Score
-                  </div>
-                  <div className="mt-1 text-2xl font-semibold">
-                    {typeof riskScore === "number"
-                      ? riskScore.toFixed(2)
-                      : "—"}
-                    {riskBand && typeof riskScore === "number" && (
-                      <span className="ml-2 text-sm font-normal uppercase tracking-wide text-slate-600">
-                        ({riskBand})
-                      </span>
+                    {inProgress && (
+                      <p className="text-sm text-slate-700">
+                        The document has been uploaded and is queued for OCR and
+                        AI analysis. Results will appear here once processing
+                        completes.
+                      </p>
+                    )}
+
+                    {!inProgress && issues.length === 0 && (
+                      <p className="text-sm text-slate-700">
+                        All processing stages completed without any detected
+                        issues.
+                      </p>
+                    )}
+
+                    {!inProgress && issues.length > 0 && (
+                      <>
+                        <ul className="space-y-2 text-sm">
+                          {issues.map((issue, idx) => (
+                            <li
+                              key={idx}
+                              className="border-t border-slate-200 pt-2 first:border-t-0 first:pt-0"
+                            >
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-medium">
+                                  {issue.stage}
+                                </span>
+                                {issue.level === "error" && (
+                                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-red-100 text-red-800">
+                                    Error
+                                  </span>
+                                )}
+                                {issue.level === "warning" && (
+                                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-amber-100 text-amber-800">
+                                    Warning
+                                  </span>
+                                )}
+                                {issue.category === "internal" && (
+                                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-sky-100 text-sky-800">
+                                    On our side
+                                  </span>
+                                )}
+                                {issue.category === "document" && (
+                                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-slate-100 text-slate-800">
+                                    Document / input issue
+                                  </span>
+                                )}
+                              </div>
+                              <p className="mt-1 text-slate-700">
+                                {issue.userMessage}
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+
+                        <details className="mt-3 text-xs text-slate-600">
+                          <summary className="cursor-pointer underline underline-offset-2">
+                            Technical details (for support teams)
+                          </summary>
+                          <pre className="mt-2 max-h-48 overflow-auto rounded bg-slate-900 text-slate-100 p-2 text-[11px]">
+                            {JSON.stringify(issues, null, 2)}
+                          </pre>
+                        </details>
+                      </>
                     )}
                   </div>
-                </div>
-                <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
-                  <div className="text-xs uppercase tracking-wide opacity-70">
-                    Confidence
-                  </div>
-                  <div className="mt-1 text-2xl font-semibold">
-                    {typeof confidence === "number"
-                      ? (confidence * 100).toFixed(1) + "%"
-                      : "—"}
-                  </div>
-                </div>
-                <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
-                  <div className="text-xs uppercase tracking-wide opacity-70">
-                    Document Type
-                  </div>
-                  <div className="mt-1 text-2xl font-semibold">
-                    {docTypeLabel}
-                  </div>
-                </div>
-                <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
-                  <div className="text-xs uppercase tracking-wide opacity-70">
-                    Analysis Mode
-                  </div>
-                  <div className="mt-1 text-2xl font-semibold">
-                    {analysisMode === "detailed"
-                      ? "Detailed"
-                      : analysisMode === "quick"
-                      ? "Quick"
-                      : inProgress
-                      ? "Processing"
-                      : "—"}
-                  </div>
-                </div>
-              </div>
 
-              {/* Doc-type aware summary */}
-              {uiSummary && !inProgress && (
-                <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-                  <h2 className="text-sm font-semibold mb-3">
-                    {uiSummary.kind === "bank" && "Bank statement summary"}
-                    {uiSummary.kind === "financials" &&
-                      "Financial statement summary"}
-                    {uiSummary.kind === "payslip" && "Payslip summary"}
-                    {uiSummary.kind === "id" && "ID / Passport summary"}
-                    {uiSummary.kind === "address" &&
-                      "Proof of address summary"}
-                    {!uiSummary.kind && "Document summary"}
-                  </h2>
+                  {/* AI summary */}
+                  {agenticSummary && !inProgress && (
+                    <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
+                      <h2 className="text-sm font-semibold mb-2">
+                        AI summary
+                      </h2>
+                      <p className="text-sm text-slate-800 whitespace-pre-wrap">
+                        {agenticSummary}
+                      </p>
+                    </div>
+                  )}
 
-                  {/* BANK STATEMENTS */}
-                  {uiSummary.kind === "bank" && (
-                    <>
-                      <div className="grid gap-4 md:grid-cols-3 text-sm">
+                  {/* Summary cards */}
+                  <div className="grid gap-4 md:grid-cols-4 mb-6">
+                    <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
+                      <div className="text-xs uppercase tracking-wide opacity-70">
+                        Risk Score
+                      </div>
+                      <div className="mt-1 text-2xl font-semibold">
+                        {typeof riskScore === "number"
+                          ? riskScore.toFixed(2)
+                          : "—"}
+                        {riskBand && typeof riskScore === "number" && (
+                          <span className="ml-2 text-sm font-normal uppercase tracking-wide text-slate-600">
+                            ({riskBand})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
+                      <div className="text-xs uppercase tracking-wide opacity-70">
+                        Confidence
+                      </div>
+                      <div className="mt-1 text-2xl font-semibold">
+                        {typeof confidence === "number"
+                          ? (confidence * 100).toFixed(1) + "%"
+                          : "—"}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
+                      <div className="text-xs uppercase tracking-wide opacity-70">
+                        Document Type
+                      </div>
+                      <div className="mt-1 text-2xl font-semibold">
+                        {docTypeLabel}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
+                      <div className="text-xs uppercase tracking-wide opacity-70">
+                        Analysis Mode
+                      </div>
+                      <div className="mt-1 text-2xl font-semibold">
+                        {analysisMode === "detailed"
+                          ? "Detailed"
+                          : analysisMode === "quick"
+                          ? "Quick"
+                          : inProgress
+                          ? "Processing"
+                          : "—"}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Doc-type aware summary */}
+                  {uiSummary && !inProgress && (
+                    <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
+                      <h2 className="text-sm font-semibold mb-3">
+                        {uiSummary.kind === "bank" && "Bank statement summary"}
+                        {uiSummary.kind === "financials" &&
+                          "Financial statement summary"}
+                        {uiSummary.kind === "payslip" && "Payslip summary"}
+                        {uiSummary.kind === "id" && "ID / Passport summary"}
+                        {uiSummary.kind === "address" &&
+                          "Proof of address summary"}
+                        {!uiSummary.kind && "Document summary"}
+                      </h2>
+
+                      {/* BANK STATEMENTS */}
+                      {uiSummary.kind === "bank" && (
+                        <>
+                          <div className="grid gap-4 md:grid-cols-3 text-sm">
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Account Holder
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.account_holder || "—"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Statement Period
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.period_start || "—"}{" "}
+                                {uiSummary.period_end
+                                  ? `to ${uiSummary.period_end}`
+                                  : ""}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Currency
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.currency || "—"}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 grid gap-4 md:grid-cols-4 text-sm">
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Opening Balance
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.opening_balance != null
+                                  ? uiSummary.opening_balance.toLocaleString(
+                                      "en-ZA"
+                                    )
+                                  : "—"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Closing Balance
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.closing_balance != null
+                                  ? uiSummary.closing_balance.toLocaleString(
+                                      "en-ZA"
+                                    )
+                                  : "—"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Total Credits
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.total_credits != null
+                                  ? uiSummary.total_credits.toLocaleString(
+                                      "en-ZA"
+                                    )
+                                  : "—"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Total Debits
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.total_debits != null
+                                  ? uiSummary.total_debits.toLocaleString(
+                                      "en-ZA"
+                                    )
+                                  : "—"}
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* FINANCIAL STATEMENTS */}
+                      {uiSummary.kind === "financials" && (
+                        <>
+                          <div className="grid gap-4 md:grid-cols-3 text-sm">
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Entity
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.entity_name || "—"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Reporting Period
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.period_start || "—"}{" "}
+                                {uiSummary.period_end
+                                  ? `to ${uiSummary.period_end}`
+                                  : ""}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Currency
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.currency || "—"}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 grid gap-4 md:grid-cols-3 text-sm">
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Revenue
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.revenue != null
+                                  ? uiSummary.revenue.toLocaleString("en-ZA")
+                                  : "—"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                EBITDA
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.ebitda != null
+                                  ? uiSummary.ebitda.toLocaleString("en-ZA")
+                                  : "—"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Net profit
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.net_profit != null
+                                  ? uiSummary.net_profit.toLocaleString("en-ZA")
+                                  : "—"}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 grid gap-4 md:grid-cols-3 text-sm">
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Total assets
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.total_assets != null
+                                  ? uiSummary.total_assets.toLocaleString(
+                                      "en-ZA"
+                                    )
+                                  : "—"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Total liabilities
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.total_liabilities != null
+                                  ? uiSummary.total_liabilities.toLocaleString(
+                                      "en-ZA"
+                                    )
+                                  : "—"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Equity
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.equity != null
+                                  ? uiSummary.equity.toLocaleString("en-ZA")
+                                  : "—"}
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* PAYSLIP SUMMARY */}
+                      {uiSummary.kind === "payslip" && (
+                        <>
+                          <div className="grid gap-4 md:grid-cols-3 text-sm">
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Employee
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.employee_name || "—"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Employer
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.employer_name || "—"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Period
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.period_label || "—"}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 grid gap-4 md:grid-cols-2 text-sm">
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Gross pay
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.gross_pay != null
+                                  ? uiSummary.gross_pay.toLocaleString("en-ZA")
+                                  : "—"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Net pay
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.net_pay != null
+                                  ? uiSummary.net_pay.toLocaleString("en-ZA")
+                                  : "—"}
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* ID SUMMARY */}
+                      {uiSummary.kind === "id" && (
+                        <>
+                          <div className="grid gap-4 md:grid-cols-3 text-sm">
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                First name(s)
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.first_names || "—"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Surname
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.surname || "—"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Date of birth
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.date_of_birth || "—"}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 grid gap-4 md:grid-cols-3 text-sm">
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                ID type
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.id_type || "—"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                ID / Passport number
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.id_number || "—"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Issuing country
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.issuing_country || "—"}
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* PROOF OF ADDRESS SUMMARY */}
+                      {uiSummary.kind === "address" && (
+                        <>
+                          <div className="grid gap-4 md:grid-cols-3 text-sm">
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Address holder
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.holder_name || "—"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Holder type
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.holder_type || "—"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Country
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.country || "—"}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 grid gap-4 md:grid-cols-3 text-sm">
+                            <div className="md:col-span-2">
+                              <div className="text-slate-500 text-xs uppercase">
+                                Address
+                              </div>
+                              <div className="font-medium whitespace-pre-line">
+                                {uiSummary.address_line_1 || "—"}
+                                {uiSummary.address_line_2
+                                  ? `\n${uiSummary.address_line_2}`
+                                  : ""}
+                                {(uiSummary.city ||
+                                  uiSummary.province ||
+                                  uiSummary.postal_code) && "\n"}
+                                {uiSummary.city || ""}
+                                {uiSummary.city && uiSummary.province
+                                  ? ", "
+                                  : ""}
+                                {uiSummary.province || ""}
+                                {(uiSummary.city || uiSummary.province) &&
+                                uiSummary.postal_code
+                                  ? " "
+                                  : ""}
+                                {uiSummary.postal_code || ""}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">
+                                Provider / Issuer
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.proof_entity_name || "—"}
+                              </div>
+                              <div className="mt-2 text-slate-500 text-xs uppercase">
+                                Issue date
+                              </div>
+                              <div className="font-medium">
+                                {uiSummary.document_issue_date || "—"}
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Simple income / expense view for personal bank statements */}
+                  {classification &&
+                    classification.income_summary &&
+                    classification.expense_summary &&
+                    !inProgress && (
+                      <div className="mb-6 grid gap-4 md:grid-cols-2">
+                        <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
+                          <h2 className="text-sm font-semibold mb-3">
+                            Income (Personal)
+                          </h2>
+                          <div className="text-2xl font-semibold mb-1">
+                            {classification.income_summary.total_income != null
+                              ? classification.income_summary.total_income.toLocaleString(
+                                  "en-ZA"
+                                )
+                              : "—"}
+                          </div>
+                          <p className="text-xs text-slate-600 mb-2">
+                            Income frequency:&nbsp;
+                            <span className="font-medium">
+                              {classification.income_summary.frequency ||
+                                classification.income_summary
+                                  .income_frequency ||
+                                classification.income_frequency ||
+                                "—"}
+                            </span>
+                          </p>
+                          <p className="text-xs text-slate-600 mb-2">
+                            Breakdown (where detectable):
+                          </p>
+                          <div className="text-xs text-slate-700 space-y-1">
+                            <div>
+                              Salary:{" "}
+                              {classification.income_summary.salary?.toLocaleString(
+                                "en-ZA"
+                              ) || 0}
+                            </div>
+                            <div>
+                              Other recurring / third-party:{" "}
+                              {classification.income_summary.third_party_income?.toLocaleString(
+                                "en-ZA"
+                              ) || 0}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
+                          <h2 className="text-sm font-semibold mb-3">
+                            Expenses (Budget Categories)
+                          </h2>
+                          <div className="text-2xl font-semibold mb-1">
+                            {classification.expense_summary.total_expenses != null
+                              ? classification.expense_summary.total_expenses.toLocaleString(
+                                  "en-ZA"
+                                )
+                              : "—"}
+                          </div>
+                          <p className="text-xs text-slate-600 mb-2">
+                            Examples from this statement:
+                          </p>
+                          <div className="text-xs text-slate-700 space-y-1">
+                            <div>
+                              Housing:{" "}
+                              {classification.expense_summary.housing?.toLocaleString(
+                                "en-ZA"
+                              ) || 0}
+                            </div>
+                            <div>
+                              Food &amp; Groceries:{" "}
+                              {classification.expense_summary.food_groceries?.toLocaleString(
+                                "en-ZA"
+                              ) || 0}
+                            </div>
+                            <div>
+                              Transport:{" "}
+                              {classification.expense_summary.transport?.toLocaleString(
+                                "en-ZA"
+                              ) || 0}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Key ratios panel */}
+                  {ratios && !inProgress && (
+                    <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
+                      <h2 className="text-sm font-semibold mb-3">
+                        Key ratios (from statements)
+                      </h2>
+                      <div className="grid gap-4 md:grid-cols-4 text-sm">
                         <div>
                           <div className="text-slate-500 text-xs uppercase">
-                            Account Holder
+                            Current ratio
                           </div>
                           <div className="font-medium">
-                            {uiSummary.account_holder || "—"}
+                            {currentRatio != null
+                              ? Number(currentRatio).toFixed(2)
+                              : "—"}
                           </div>
                         </div>
                         <div>
                           <div className="text-slate-500 text-xs uppercase">
-                            Statement Period
+                            Quick ratio
                           </div>
                           <div className="font-medium">
-                            {uiSummary.period_start || "—"}{" "}
-                            {uiSummary.period_end
-                              ? `to ${uiSummary.period_end}`
-                              : ""}
+                            {quickRatio != null
+                              ? Number(quickRatio).toFixed(2)
+                              : "—"}
                           </div>
                         </div>
                         <div>
                           <div className="text-slate-500 text-xs uppercase">
-                            Currency
+                            Debt to equity
                           </div>
                           <div className="font-medium">
-                            {uiSummary.currency || "—"}
+                            {debtToEquity != null
+                              ? Number(debtToEquity).toFixed(2)
+                              : "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Interest cover
+                          </div>
+                          <div className="font-medium">
+                            {interestCover != null
+                              ? Number(interestCover).toFixed(2)
+                              : "—"}
                           </div>
                         </div>
                       </div>
@@ -887,586 +1395,457 @@ export default function Results() {
                       <div className="mt-4 grid gap-4 md:grid-cols-4 text-sm">
                         <div>
                           <div className="text-slate-500 text-xs uppercase">
-                            Opening Balance
+                            Net margin
                           </div>
                           <div className="font-medium">
-                            {uiSummary.opening_balance != null
-                              ? uiSummary.opening_balance.toLocaleString(
-                                  "en-ZA"
-                                )
+                            {netMargin != null
+                              ? Number(netMargin).toFixed(2)
                               : "—"}
                           </div>
                         </div>
                         <div>
                           <div className="text-slate-500 text-xs uppercase">
-                            Closing Balance
+                            Return on assets
                           </div>
                           <div className="font-medium">
-                            {uiSummary.closing_balance != null
-                              ? uiSummary.closing_balance.toLocaleString(
-                                  "en-ZA"
-                                )
+                            {returnOnAssets != null
+                              ? Number(returnOnAssets).toFixed(2)
                               : "—"}
                           </div>
                         </div>
                         <div>
                           <div className="text-slate-500 text-xs uppercase">
-                            Total Credits
+                            Debt service coverage
                           </div>
                           <div className="font-medium">
-                            {uiSummary.total_credits != null
-                              ? uiSummary.total_credits.toLocaleString(
-                                  "en-ZA"
-                                )
+                            {debtServiceCoverage != null
+                              ? Number(debtServiceCoverage).toFixed(2)
                               : "—"}
                           </div>
                         </div>
                         <div>
                           <div className="text-slate-500 text-xs uppercase">
-                            Total Debits
+                            Cashflow coverage
                           </div>
                           <div className="font-medium">
-                            {uiSummary.total_debits != null
-                              ? uiSummary.total_debits.toLocaleString(
-                                  "en-ZA"
-                                )
+                            {cashflowCoverage != null
+                              ? Number(cashflowCoverage).toFixed(2)
                               : "—"}
                           </div>
                         </div>
                       </div>
-                    </>
+
+                      {cashflowSummary && (
+                        <details className="mt-3 text-xs text-slate-600">
+                          <summary className="cursor-pointer underline underline-offset-2">
+                            Cashflow summary (technical)
+                          </summary>
+                          <pre className="mt-2 max-h-48 overflow-auto rounded bg-slate-900 text-slate-100 p-2 text-[11px]">
+                            {JSON.stringify(cashflowSummary, null, 2)}
+                          </pre>
+                        </details>
+                      )}
+                    </div>
                   )}
 
-                  {/* FINANCIAL STATEMENTS */}
-                  {uiSummary.kind === "financials" && (
-                    <>
-                      <div className="grid gap-4 md:grid-cols-3 text-sm">
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Entity
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.entity_name || "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Reporting Period
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.period_start || "—"}{" "}
-                            {uiSummary.period_end
-                              ? `to ${uiSummary.period_end}`
-                              : ""}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Currency
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.currency || "—"}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 grid gap-4 md:grid-cols-3 text-sm">
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Revenue
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.revenue != null
-                              ? uiSummary.revenue.toLocaleString("en-ZA")
-                              : "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            EBITDA
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.ebitda != null
-                              ? uiSummary.ebitda.toLocaleString("en-ZA")
-                              : "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Net profit
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.net_profit != null
-                              ? uiSummary.net_profit.toLocaleString("en-ZA")
-                              : "—"}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 grid gap-4 md:grid-cols-3 text-sm">
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Total assets
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.total_assets != null
-                              ? uiSummary.total_assets.toLocaleString("en-ZA")
-                              : "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Total liabilities
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.total_liabilities != null
-                              ? uiSummary.total_liabilities.toLocaleString(
-                                  "en-ZA"
-                                )
-                              : "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Equity
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.equity != null
-                              ? uiSummary.equity.toLocaleString("en-ZA")
-                              : "—"}
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  {/* PAYSLIP SUMMARY */}
-                  {uiSummary.kind === "payslip" && (
-                    <>
-                      <div className="grid gap-4 md:grid-cols-3 text-sm">
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Employee
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.employee_name || "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Employer
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.employer_name || "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Period
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.period_label || "—"}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 grid gap-4 md:grid-cols-2 text-sm">
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Gross pay
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.gross_pay != null
-                              ? uiSummary.gross_pay.toLocaleString("en-ZA")
-                              : "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Net pay
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.net_pay != null
-                              ? uiSummary.net_pay.toLocaleString("en-ZA")
-                              : "—"}
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  {/* ID SUMMARY */}
-                  {uiSummary.kind === "id" && (
-                    <>
-                      <div className="grid gap-4 md:grid-cols-3 text-sm">
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            First name(s)
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.first_names || "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Surname
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.surname || "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Date of birth
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.date_of_birth || "—"}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 grid gap-4 md:grid-cols-3 text-sm">
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            ID type
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.id_type || "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            ID / Passport number
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.id_number || "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Issuing country
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.issuing_country || "—"}
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  {/* PROOF OF ADDRESS SUMMARY */}
-                  {uiSummary.kind === "address" && (
-                    <>
-                      <div className="grid gap-4 md:grid-cols-3 text-sm">
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Address holder
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.holder_name || "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Holder type
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.holder_type || "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Country
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.country || "—"}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 grid gap-4 md:grid-cols-3 text-sm">
-                        <div className="md:col-span-2">
-                          <div className="text-slate-500 text-xs uppercase">
-                            Address
-                          </div>
-                          <div className="font-medium whitespace-pre-line">
-                            {uiSummary.address_line_1 || "—"}
-                            {uiSummary.address_line_2
-                              ? `\n${uiSummary.address_line_2}`
-                              : ""}
-                            {(uiSummary.city ||
-                              uiSummary.province ||
-                              uiSummary.postal_code) && "\n"}
-                            {uiSummary.city || ""}
-                            {uiSummary.city && uiSummary.province ? ", " : ""}
-                            {uiSummary.province || ""}
-                            {(uiSummary.city || uiSummary.province) &&
-                            uiSummary.postal_code
-                              ? " "
-                              : ""}
-                            {uiSummary.postal_code || ""}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Provider / Issuer
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.proof_entity_name || "—"}
-                          </div>
-                          <div className="mt-2 text-slate-500 text-xs uppercase">
-                            Issue date
-                          </div>
-                          <div className="font-medium">
-                            {uiSummary.document_issue_date || "—"}
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
+                  {/* Raw parsed fields table from stub */}
+                  <div className="rounded-lg border border-[rgb(var(--border))] overflow-x-auto bg-white">
+                    <table className="min-w-full text-sm">
+                      <thead className="bg-slate-50">
+                        <tr>
+                          <th className="text-left p-3 border-b border-[rgb(var(--border))]">
+                            Field
+                          </th>
+                          <th className="text-left p-3 border-b border-[rgb(var(--border))]">
+                            Value
+                          </th>
+                          <th className="text-left p-3 border-b border-[rgb(var(--border))]">
+                            Confidence
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {fields.length === 0 && (
+                          <tr>
+                            <td
+                              colSpan={3}
+                              className="p-3 border-b border-[rgb(var(--border))] text-center opacity-70"
+                            >
+                              {inProgress
+                                ? "Structured fields will appear here once analysis completes."
+                                : "No structured fields found. Check the raw JSON download for more details."}
+                            </td>
+                          </tr>
+                        )}
+                        {fields.map((f, idx) => (
+                          <tr key={idx} className="odd:bg-slate-50/50">
+                            <td className="p-3 border-b border-[rgb(var(--border))]">
+                              {f.name}
+                            </td>
+                            <td className="p-3 border-b border-[rgb(var(--border))] whitespace-pre-wrap">
+                              {f.value}
+                            </td>
+                            <td className="p-3 border-b border-[rgb(var(--border))]">
+                              {typeof f.confidence === "number"
+                                ? (f.confidence * 100).toFixed(1) + "%"
+                                : f.confidence ?? "—"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               )}
 
-              {/* Simple income / expense view for personal bank statements (when classification exists) */}
-              {classification &&
-                classification.income_summary &&
-                classification.expense_summary &&
-                !inProgress && (
-                  <div className="mb-6 grid gap-4 md:grid-cols-2">
-                    <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-                      <h2 className="text-sm font-semibold mb-3">
-                        Income (Personal)
-                      </h2>
-                      <div className="text-2xl font-semibold mb-1">
-                        {classification.income_summary.total_income != null
-                          ? classification.income_summary.total_income.toLocaleString(
-                              "en-ZA"
-                            )
-                          : "—"}
-                      </div>
-
-                      {/* NEW: income frequency (weekly / fortnightly / monthly / infrequent) */}
-                      <p className="text-xs text-slate-600 mb-2">
-                        Income frequency:&nbsp;
-                        <span className="font-medium">
-                          {classification.income_summary.frequency ||
-                            classification.income_summary.income_frequency ||
-                            classification.income_frequency ||
-                            "—"}
+              {/* ─────────────────────────────
+                  AGENT VIEW – SCORE-ONLY
+                  ───────────────────────────── */}
+              {activeView === "agent" && (
+                <>
+                  {/* Run status / pipeline */}
+                  <div className="mb-4 rounded-lg border border-[rgb(var(--border))] bg-slate-50 px-4 py-3 text-sm">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="font-medium">Run status</span>
+                      {formatStatusBadge(overallStatus)}
+                      {pipelineStage && (
+                        <span className="text-xs text-slate-500">
+                          Stage: {pipelineStage}
                         </span>
-                      </p>
+                      )}
+                      {qualityStatus && !inProgress && (
+                        <span className="text-xs text-slate-500">
+                          • Quality: {qualityStatus}
+                        </span>
+                      )}
+                    </div>
+                  </div>
 
-                      <p className="text-xs text-slate-600 mb-2">
-                        Breakdown (where detectable):
-                      </p>
-                      <div className="text-xs text-slate-700 space-y-1">
-                        <div>
-                          Salary:{" "}
-                          {classification.income_summary.salary?.toLocaleString(
-                            "en-ZA"
-                          ) || 0}
-                        </div>
-                        <div>
-                          Other recurring / third-party:{" "}
-                          {classification.income_summary.third_party_income?.toLocaleString(
-                            "en-ZA"
-                          ) || 0}
-                        </div>
+                  {/* Core scores */}
+                  <div className="mb-4 grid gap-4 md:grid-cols-4 text-sm">
+                    <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
+                      <div className="text-slate-500 text-xs uppercase">
+                        Risk score
+                      </div>
+                      <div className="mt-1 text-2xl font-semibold">
+                        {typeof riskScore === "number"
+                          ? riskScore.toFixed(2)
+                          : "—"}
+                      </div>
+                      <div className="mt-1 text-xs text-slate-600">
+                        Band: {riskBand || "—"}
                       </div>
                     </div>
                     <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-                      <h2 className="text-sm font-semibold mb-3">
-                        Expenses (Budget Categories)
-                      </h2>
-                      <div className="text-2xl font-semibold mb-1">
-                        {classification.expense_summary.total_expenses != null
-                          ? classification.expense_summary.total_expenses.toLocaleString(
-                              "en-ZA"
-                            )
-                          : "—"}
-                      </div>
-                      <p className="text-xs text-slate-600 mb-2">
-                        Examples from this statement:
-                      </p>
-                      <div className="text-xs text-slate-700 space-y-1">
-                        <div>
-                          Housing:{" "}
-                          {classification.expense_summary.housing?.toLocaleString(
-                            "en-ZA"
-                          ) || 0}
-                        </div>
-                        <div>
-                          Food &amp; Groceries:{" "}
-                          {classification.expense_summary.food_groceries?.toLocaleString(
-                            "en-ZA"
-                          ) || 0}
-                        </div>
-                        <div>
-                          Transport:{" "}
-                          {classification.expense_summary.transport?.toLocaleString(
-                            "en-ZA"
-                          ) || 0}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-              {/* NEW: Key ratios panel (bank + financial statements) */}
-              {ratios && !inProgress && (
-                <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-                  <h2 className="text-sm font-semibold mb-3">
-                    Key ratios (from statements)
-                  </h2>
-                  <div className="grid gap-4 md:grid-cols-4 text-sm">
-                    <div>
                       <div className="text-slate-500 text-xs uppercase">
-                        Current ratio
+                        Confidence
                       </div>
-                      <div className="font-medium">
-                        {currentRatio != null
-                          ? Number(currentRatio).toFixed(2)
+                      <div className="mt-1 text-2xl font-semibold">
+                        {typeof confidence === "number"
+                          ? (confidence * 100).toFixed(1) + "%"
                           : "—"}
                       </div>
                     </div>
-                    <div>
+                    <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
                       <div className="text-slate-500 text-xs uppercase">
-                        Quick ratio
+                        Document
                       </div>
-                      <div className="font-medium">
-                        {quickRatio != null
-                          ? Number(quickRatio).toFixed(2)
+                      <div className="mt-1 text-lg font-semibold">
+                        {docTypeLabel}
+                      </div>
+                      <div className="mt-1 text-xs text-slate-600">
+                        Mode:{" "}
+                        {analysisMode === "detailed"
+                          ? "Detailed"
+                          : analysisMode === "quick"
+                          ? "Quick"
+                          : inProgress
+                          ? "Processing"
                           : "—"}
                       </div>
                     </div>
-                    <div>
+                    <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
                       <div className="text-slate-500 text-xs uppercase">
-                        Debt to equity
+                        Period
                       </div>
-                      <div className="font-medium">
-                        {debtToEquity != null
-                          ? Number(debtToEquity).toFixed(2)
-                          : "—"}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-slate-500 text-xs uppercase">
-                        Interest cover
-                      </div>
-                      <div className="font-medium">
-                        {interestCover != null
-                          ? Number(interestCover).toFixed(2)
-                          : "—"}
+                      <div className="mt-1 text-sm font-medium">
+                        {uiSummary?.period_start || "—"}
+                        {uiSummary?.period_end
+                          ? ` → ${uiSummary.period_end}`
+                          : ""}
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-4 grid gap-4 md:grid-cols-4 text-sm">
-                    <div>
-                      <div className="text-slate-500 text-xs uppercase">
-                        Net margin
+                  {/* Income & cashflow metrics */}
+                  {classification?.income_summary && !inProgress && (
+                    <div className="mb-4 rounded-lg border border-[rgb(var(--border))] bg-white p-4 text-sm">
+                      <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-sm font-semibold">
+                          Income &amp; expenses (scores)
+                        </h2>
                       </div>
-                      <div className="font-medium">
-                        {netMargin != null
-                          ? Number(netMargin).toFixed(2)
-                          : "—"}
+                      <div className="grid gap-4 md:grid-cols-4">
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Total income
+                          </div>
+                          <div className="font-medium">
+                            {classification.income_summary.total_income != null
+                              ? classification.income_summary.total_income.toLocaleString(
+                                  "en-ZA"
+                                )
+                              : "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Frequency
+                          </div>
+                          <div className="font-medium">
+                            {classification.income_summary.frequency ||
+                              classification.income_summary
+                                .income_frequency ||
+                              classification.income_frequency ||
+                              "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Salary component
+                          </div>
+                          <div className="font-medium">
+                            {classification.income_summary.salary != null
+                              ? classification.income_summary.salary.toLocaleString(
+                                  "en-ZA"
+                                )
+                              : "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Other recurring income
+                          </div>
+                          <div className="font-medium">
+                            {classification.income_summary
+                              .third_party_income != null
+                              ? classification.income_summary.third_party_income.toLocaleString(
+                                  "en-ZA"
+                                )
+                              : "—"}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <div className="text-slate-500 text-xs uppercase">
-                        Return on assets
-                      </div>
-                      <div className="font-medium">
-                        {returnOnAssets != null
-                          ? Number(returnOnAssets).toFixed(2)
-                          : "—"}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-slate-500 text-xs uppercase">
-                        Debt service coverage
-                      </div>
-                      <div className="font-medium">
-                        {debtServiceCoverage != null
-                          ? Number(debtServiceCoverage).toFixed(2)
-                          : "—"}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-slate-500 text-xs uppercase">
-                        Cashflow coverage
-                      </div>
-                      <div className="font-medium">
-                        {cashflowCoverage != null
-                          ? Number(cashflowCoverage).toFixed(2)
-                          : "—"}
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Optional: show raw cashflow summary if present */}
-                  {cashflowSummary && (
-                    <details className="mt-3 text-xs text-slate-600">
-                      <summary className="cursor-pointer underline underline-offset-2">
-                        Cashflow summary (technical)
-                      </summary>
-                      <pre className="mt-2 max-h-48 overflow-auto rounded bg-slate-900 text-slate-100 p-2 text-[11px]">
-                        {JSON.stringify(cashflowSummary, null, 2)}
-                      </pre>
-                    </details>
+                      {classification.expense_summary && (
+                        <div className="mt-4 grid gap-4 md:grid-cols-4">
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Total expenses
+                            </div>
+                            <div className="font-medium">
+                              {classification.expense_summary
+                                .total_expenses != null
+                                ? classification.expense_summary.total_expenses.toLocaleString(
+                                    "en-ZA"
+                                  )
+                                : "—"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Housing
+                            </div>
+                            <div className="font-medium">
+                              {classification.expense_summary.housing != null
+                                ? classification.expense_summary.housing.toLocaleString(
+                                    "en-ZA"
+                                  )
+                                : "—"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Food &amp; groceries
+                            </div>
+                            <div className="font-medium">
+                              {classification.expense_summary
+                                .food_groceries != null
+                                ? classification.expense_summary.food_groceries.toLocaleString(
+                                    "en-ZA"
+                                  )
+                                : "—"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Transport
+                            </div>
+                            <div className="font-medium">
+                              {classification.expense_summary.transport != null
+                                ? classification.expense_summary.transport.toLocaleString(
+                                    "en-ZA"
+                                  )
+                                : "—"}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   )}
-                </div>
+
+                  {/* Ratios – same numbers as client view, tighter layout */}
+                  {ratios && !inProgress && (
+                    <div className="mb-4 rounded-lg border border-[rgb(var(--border))] bg-white p-4 text-sm">
+                      <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-sm font-semibold">
+                          Financial ratios
+                        </h2>
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-4">
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Current ratio
+                          </div>
+                          <div className="font-medium">
+                            {currentRatio != null
+                              ? Number(currentRatio).toFixed(2)
+                              : "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Quick ratio
+                          </div>
+                          <div className="font-medium">
+                            {quickRatio != null
+                              ? Number(quickRatio).toFixed(2)
+                              : "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Debt / Equity
+                          </div>
+                          <div className="font-medium">
+                            {debtToEquity != null
+                              ? Number(debtToEquity).toFixed(2)
+                              : "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Interest cover
+                          </div>
+                          <div className="font-medium">
+                            {interestCover != null
+                              ? Number(interestCover).toFixed(2)
+                              : "—"}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 grid gap-4 md:grid-cols-4">
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Net margin
+                          </div>
+                          <div className="font-medium">
+                            {netMargin != null
+                              ? Number(netMargin).toFixed(2)
+                              : "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Return on assets
+                          </div>
+                          <div className="font-medium">
+                            {returnOnAssets != null
+                              ? Number(returnOnAssets).toFixed(2)
+                              : "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Debt service coverage
+                          </div>
+                          <div className="font-medium">
+                            {debtServiceCoverage != null
+                              ? Number(debtServiceCoverage).toFixed(2)
+                              : "—"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Cashflow coverage
+                          </div>
+                          <div className="font-medium">
+                            {cashflowCoverage != null
+                              ? Number(cashflowCoverage).toFixed(2)
+                              : "—"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Generic scores table (if contracts expose scores[]) */}
+                  {genericScores && !inProgress && (
+                    <div className="mb-4 rounded-lg border border-[rgb(var(--border))] bg-white p-4 text-sm">
+                      <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-sm font-semibold">
+                          Model scores
+                        </h2>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full text-xs">
+                          <thead className="bg-slate-50">
+                            <tr>
+                              <th className="text-left p-2 border-b border-[rgb(var(--border))]">
+                                Metric
+                              </th>
+                              <th className="text-left p-2 border-b border-[rgb(var(--border))]">
+                                Value
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {Object.entries(genericScores).map(
+                              ([key, value]) => (
+                                <tr key={key} className="odd:bg-slate-50/50">
+                                  <td className="p-2 border-b border-[rgb(var(--border))]">
+                                    {key}
+                                  </td>
+                                  <td className="p-2 border-b border-[rgb(var(--border))]">
+                                    {typeof value === "number"
+                                      ? value.toFixed(4)
+                                      : String(value)}
+                                  </td>
+                                </tr>
+                              )
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* For agents: quick access to raw JSON */}
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[rgb(var(--border))] bg-white"
+                      onClick={handleDownloadJson}
+                    >
+                      <Download className="h-4 w-4" />
+                      Download raw JSON
+                    </button>
+                  </div>
+                </>
               )}
 
-              {/* Raw parsed fields table from stub */}
-              <div className="rounded-lg border border-[rgb(var(--border))] overflow-x-auto bg-white">
-                <table className="min-w-full text-sm">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="text-left p-3 border-b border-[rgb(var(--border))]">
-                        Field
-                      </th>
-                      <th className="text-left p-3 border-b border-[rgb(var(--border))]">
-                        Value
-                      </th>
-                      <th className="text-left p-3 border-b border-[rgb(var(--border))]">
-                        Confidence
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {fields.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={3}
-                          className="p-3 border-b border-[rgb(var(--border))] text-center opacity-70"
-                        >
-                          {inProgress
-                            ? "Structured fields will appear here once analysis completes."
-                            : "No structured fields found. Check the raw JSON download for more details."}
-                        </td>
-                      </tr>
-                    )}
-                    {fields.map((f, idx) => (
-                      <tr key={idx} className="odd:bg-slate-50/50">
-                        <td className="p-3 border-b border-[rgb(var(--border))]">
-                          {f.name}
-                        </td>
-                        <td className="p-3 border-b border-[rgb(var(--border))] whitespace-pre-wrap">
-                          {f.value}
-                        </td>
-                        <td className="p-3 border-b border-[rgb(var(--border))]">
-                          {typeof f.confidence === "number"
-                            ? (f.confidence * 100).toFixed(1) + "%"
-                            : f.confidence ?? "—"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Downloads / navigation actions */}
+              {/* Downloads / navigation actions – always visible */}
               <div className="mt-6 flex flex-wrap gap-3">
                 <button
                   type="button"

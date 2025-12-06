@@ -593,6 +593,54 @@ export default function Results() {
     result?.quick?.summary ||
     null;
 
+  // NEW: ratios & cashflow summaries (for bank + financial statements)
+  const ratios =
+    agentic?.ratios ||
+    agentic?.financial_ratios ||
+    agentic?.statement_ratios ||
+    null;
+
+  const cashflowSummary =
+    agentic?.cashflow_summary ||
+    agentic?.cash_flow_summary ||
+    agentic?.cashflow ||
+    null;
+
+  // Convenience extractions for display – all optional and defensive
+  const currentRatio =
+    ratios?.current_ratio ??
+    ratios?.liquidity?.current_ratio ??
+    null;
+  const quickRatio =
+    ratios?.quick_ratio ??
+    ratios?.liquidity?.quick_ratio ??
+    null;
+  const debtToEquity =
+    ratios?.debt_to_equity ??
+    ratios?.leverage?.debt_to_equity ??
+    null;
+  const interestCover =
+    ratios?.interest_cover ??
+    ratios?.coverage?.interest_cover ??
+    null;
+  const netMargin =
+    ratios?.net_margin ??
+    ratios?.profitability?.net_margin ??
+    null;
+  const returnOnAssets =
+    ratios?.return_on_assets ??
+    ratios?.profitability?.return_on_assets ??
+    null;
+  const debtServiceCoverage =
+    ratios?.debt_service_coverage ??
+    ratios?.dscr ??
+    ratios?.coverage?.debt_service_coverage ??
+    null;
+  const cashflowCoverage =
+    ratios?.cashflow_coverage ??
+    ratios?.coverage?.cashflow_coverage ??
+    null;
+
   return (
     <div
       className="min-h-screen text-slate-900"
@@ -1196,6 +1244,18 @@ export default function Results() {
                             )
                           : "—"}
                       </div>
+
+                      {/* NEW: income frequency (weekly / fortnightly / monthly / infrequent) */}
+                      <p className="text-xs text-slate-600 mb-2">
+                        Income frequency:&nbsp;
+                        <span className="font-medium">
+                          {classification.income_summary.frequency ||
+                            classification.income_summary.income_frequency ||
+                            classification.income_frequency ||
+                            "—"}
+                        </span>
+                      </p>
+
                       <p className="text-xs text-slate-600 mb-2">
                         Breakdown (where detectable):
                       </p>
@@ -1251,6 +1311,112 @@ export default function Results() {
                     </div>
                   </div>
                 )}
+
+              {/* NEW: Key ratios panel (bank + financial statements) */}
+              {ratios && !inProgress && (
+                <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
+                  <h2 className="text-sm font-semibold mb-3">
+                    Key ratios (from statements)
+                  </h2>
+                  <div className="grid gap-4 md:grid-cols-4 text-sm">
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase">
+                        Current ratio
+                      </div>
+                      <div className="font-medium">
+                        {currentRatio != null
+                          ? Number(currentRatio).toFixed(2)
+                          : "—"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase">
+                        Quick ratio
+                      </div>
+                      <div className="font-medium">
+                        {quickRatio != null
+                          ? Number(quickRatio).toFixed(2)
+                          : "—"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase">
+                        Debt to equity
+                      </div>
+                      <div className="font-medium">
+                        {debtToEquity != null
+                          ? Number(debtToEquity).toFixed(2)
+                          : "—"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase">
+                        Interest cover
+                      </div>
+                      <div className="font-medium">
+                        {interestCover != null
+                          ? Number(interestCover).toFixed(2)
+                          : "—"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid gap-4 md:grid-cols-4 text-sm">
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase">
+                        Net margin
+                      </div>
+                      <div className="font-medium">
+                        {netMargin != null
+                          ? Number(netMargin).toFixed(2)
+                          : "—"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase">
+                        Return on assets
+                      </div>
+                      <div className="font-medium">
+                        {returnOnAssets != null
+                          ? Number(returnOnAssets).toFixed(2)
+                          : "—"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase">
+                        Debt service coverage
+                      </div>
+                      <div className="font-medium">
+                        {debtServiceCoverage != null
+                          ? Number(debtServiceCoverage).toFixed(2)
+                          : "—"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase">
+                        Cashflow coverage
+                      </div>
+                      <div className="font-medium">
+                        {cashflowCoverage != null
+                          ? Number(cashflowCoverage).toFixed(2)
+                          : "—"}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Optional: show raw cashflow summary if present */}
+                  {cashflowSummary && (
+                    <details className="mt-3 text-xs text-slate-600">
+                      <summary className="cursor-pointer underline underline-offset-2">
+                        Cashflow summary (technical)
+                      </summary>
+                      <pre className="mt-2 max-h-48 overflow-auto rounded bg-slate-900 text-slate-100 p-2 text-[11px]">
+                        {JSON.stringify(cashflowSummary, null, 2)}
+                      </pre>
+                    </details>
+                  )}
+                </div>
+              )}
 
               {/* Raw parsed fields table from stub */}
               <div className="rounded-lg border border-[rgb(var(--border))] overflow-x-auto bg-white">

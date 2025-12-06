@@ -16,6 +16,75 @@ function useQuery() {
   return React.useMemo(() => new URLSearchParams(search), [search]);
 }
 
+/**
+ * Derive a unified "agentic" payload from the backend result.
+ *
+ * Supports multiple shapes:
+ * - result.agentic (future explicit contract)
+ * - result.detailed = {
+ *     docType,
+ *     analysisMode,
+ *     quality,
+ *     result: { summary, structured, classification, ratios, risk_score, scores, ... }
+ *   }
+ * - legacy: result.result
+ * - legacy: result.quick.result
+ * - legacy: result.quick.structured
+ */
+function deriveAgenticFromResult(result) {
+  if (!result) {
+    return { agentic: null, rawAgentic: null, detailedEnvelope: null };
+  }
+
+  const detailedEnvelope = result.detailed || null;
+
+  // 1) If backend already provides top-level agentic, prefer that
+  if (result.agentic && typeof result.agentic === "object") {
+    return {
+      agentic: result.agentic,
+      rawAgentic: result.agentic,
+      detailedEnvelope,
+    };
+  }
+
+  // 2) If we have a detailed envelope using the new contract
+  let agenticFromDetailed = null;
+  if (
+    detailedEnvelope &&
+    typeof detailedEnvelope === "object" &&
+    detailedEnvelope.result &&
+    typeof detailedEnvelope.result === "object"
+  ) {
+    const r = detailedEnvelope.result;
+    agenticFromDetailed = {
+      docType:
+        detailedEnvelope.docType ||
+        result.docType ||
+        r.docType ||
+        "unknown",
+      analysisMode:
+        detailedEnvelope.analysisMode ||
+        result.analysisMode ||
+        "detailed",
+      quality: detailedEnvelope.quality || result.quality || null,
+      // Flatten result.* into the agentic object
+      ...r,
+    };
+  }
+
+  // 3) Legacy / quick-path contracts
+  const rawAgentic =
+    result.result ||
+    agenticFromDetailed ||
+    result.quick?.result ||
+    result.quick?.structured ||
+    null;
+
+  const agentic = rawAgentic?.result ?? rawAgentic ?? null;
+
+  return { agentic, rawAgentic, detailedEnvelope };
+}
+
 // ---- Helpers to interpret errors & run status ----
 
 /**
@@ -44,17 +113,8 @@ function classifyIssues(result) {
   const ocrEngine = result.ocr_engine || {};
   const docType = result.docType || null;
 
-  // agentic can be:
-  // - top-level result (future API)
-  // - quick.result (current bank_v1_quick contract)
-  // - quick.structured (older style)
-  const rawAgentic =
-    result.result ||
-    result.quick?.result ||
-    result.quick?.structured ||
-    null;
-
-  const agentic = rawAgentic?.result ?? rawAgentic ?? null;
+  // Agentic / AI payload via unified helper
+  const { agentic, rawAgentic } = deriveAgenticFromResult(result);
   const agenticStatus = rawAgentic?.status ?? agentic?.status ?? "ok";
 
   const quality = result.quality || {};
@@ -540,20 +600,17 @@ export default function Results() {
     );
   }
 
+  // Agentic payload: unified view across old and new contracts
+  const { agentic } = deriveAgenticFromResult(result);
+
   // High-level fields from the stub / aggregator
-  const docType = result?.docType ?? "—";
+  const docType =
+    agentic?.docType ??
+    result?.docType ??
+    "—";
   const docTypeLabel = DOC_TYPE_LABELS[docType] || docType || "—";
   const fields = Array.isArray(result?.fields) ? result.fields : [];
   const pipelineStage = result?.statusAudit || null;
-
-  // Agentic payload: multi-source
-  const rawAgentic =
-    result?.result ||
-    result?.quick?.result ||
-    result?.quick?.structured ||
-    null;
-
-  const agentic = rawAgentic?.result ?? rawAgentic ?? null;
 
   // Build a UI summary based on docType + agentic content + fields
   const uiSummary = buildUiSummary(docType, agentic, fields);
@@ -572,8 +629,11 @@ export default function Results() {
       : null;
   const qualityStatus = quality.status || null;
 
-  // Analysis mode from backend
-  const analysisMode = result?.analysisMode || null;
+  // Analysis mode from backend / agentic
+  const analysisMode =
+    agentic?.analysisMode ||
+    result?.analysisMode ||
+    null;
 
   const { issues, overallStatus, inProgress } = classifyIssues(result);
 
@@ -1889,3 +1949,4 @@ export default function Results() {
     </div>
   );
 }
+

@@ -318,91 +318,74 @@ function buildUiSummary(docType, agentic, fields = []) {
   if (!agentic && !fields.length) return null;
 
   const getField = (name) =>
-    fields.find((f) => f.name && f.name.toLowerCase() === name.toLowerCase())
-      ?.value ?? null;
+    fields.find(
+      (f) => f.name && f.name.toLowerCase() === name.toLowerCase()
+    )?.value ?? null;
 
   // BANK STATEMENTS
   if (docType === "bank_statements") {
-    // Prefer any existing account/transactions if contracts already supply them
-    let account = agentic?.account || {};
-    let txs = Array.isArray(agentic?.transactions)
-      ? agentic.transactions
-      : [];
+    // New contract: agentic.structured.statement_summary + .transactions
+    const stmt =
+      agentic?.structured?.statement_summary ||
+      agentic?.statement_summary ||
+      {};
 
-    // NEW: fall back to structured.statement_summary / structured.transactions
-    const ss = agentic?.structured?.statement_summary || null;
-    const structuredTxs = Array.isArray(agentic?.structured?.transactions)
-      ? agentic.structured.transactions
-      : [];
+    const txs =
+      (agentic?.structured &&
+        Array.isArray(agentic.structured.transactions) &&
+        agentic.structured.transactions) ||
+      (Array.isArray(agentic?.transactions) ? agentic.transactions : []);
 
-    // If no explicit account object, derive it from statement_summary
-    if (ss && Object.keys(account).length === 0) {
-      account = {
-        accountName: ss.account_holder ?? account.accountName,
-        startDate: ss.statement_start_date ?? account.startDate,
-        endDate: ss.statement_end_date ?? account.endDate,
-        openingBalance:
-          typeof ss.opening_balance === "number"
-            ? ss.opening_balance
-            : account.openingBalance,
-        closingBalance:
-          typeof ss.closing_balance === "number"
-            ? ss.closing_balance
-            : account.closingBalance,
-        currency: ss.currency ?? account.currency ?? "ZAR",
-      };
-    }
+    let totalCredits = null;
+    let totalDebits = null;
 
-    // If no agentic.transactions array, derive one from structured.transactions
-    if (!txs.length && structuredTxs.length) {
-      txs = structuredTxs.map((t) => {
-        const rawAmount = t.amount;
+    // Prefer backend totals if present
+    if (
+      typeof stmt.total_credits === "number" ||
+      typeof stmt.total_debits === "number"
+    ) {
+      totalCredits =
+        typeof stmt.total_credits === "number" ? stmt.total_credits : null;
+      totalDebits =
+        typeof stmt.total_debits === "number" ? stmt.total_debits : null;
+    } else if (txs.length) {
+      // Fallback: compute from signed amounts
+      let credits = 0;
+      let debits = 0;
+      for (const tx of txs) {
+        const rawAmount = tx.amount;
         const amount =
           typeof rawAmount === "number"
             ? rawAmount
             : parseFloat(rawAmount ?? 0) || 0;
 
-        // Simple direction inference: positives = IN, negatives = OUT
-        const direction = amount >= 0 ? "IN" : "OUT";
-
-        return {
-          ...t,
-          amount,
-          direction,
-        };
-      });
-    }
-
-    let totalCredits = 0;
-    let totalDebits = 0;
-
-    for (const tx of txs) {
-      const dir = (tx.direction || "").toUpperCase();
-      const amount =
-        typeof tx.amount === "number"
-          ? tx.amount
-          : parseFloat(tx.amount ?? 0) || 0;
-
-      if (dir === "IN") totalCredits += amount;
-      else if (dir === "OUT") totalDebits += Math.abs(amount);
+        if (amount >= 0) credits += amount;
+        else debits += Math.abs(amount);
+      }
+      totalCredits = credits;
+      totalDebits = debits;
     }
 
     return {
       kind: "bank",
-      account_holder: account.accountName || null,
-      period_start: account.startDate || null,
-      period_end: account.endDate || null,
+      account_holder:
+        stmt.account_holder ||
+        stmt.account_name ||
+        stmt.account_name_normalised ||
+        null,
+      period_start: stmt.statement_start_date || stmt.period_start || null,
+      period_end: stmt.statement_end_date || stmt.period_end || null,
       opening_balance:
-        typeof account.openingBalance === "number"
-          ? account.openingBalance
+        typeof stmt.opening_balance === "number"
+          ? stmt.opening_balance
           : null,
       closing_balance:
-        typeof account.closingBalance === "number"
-          ? account.closingBalance
+        typeof stmt.closing_balance === "number"
+          ? stmt.closing_balance
           : null,
-      total_credits: totalCredits || null,
-      total_debits: totalDebits || null,
-      currency: account.currency || "ZAR",
+      total_credits: totalCredits,
+      total_debits: totalDebits,
+      currency: stmt.currency || "ZAR",
     };
   }
 
@@ -473,8 +456,7 @@ function buildUiSummary(docType, agentic, fields = []) {
         getField("Country") ||
         getField("Nationality") ||
         null,
-      date_of_birth:
-        getField("Date of Birth") || getField("DOB") || null,
+      date_of_birth: getField("Date of Birth") || getField("DOB") || null,
     };
   }
 
@@ -673,11 +655,15 @@ export default function Results() {
       : null;
   const qualityStatus = quality.status || null;
 
-  // Analysis mode from backend / agentic
-  const analysisMode =
+  // Analysis mode from backend / agentic (with fallback)
+  const analysisModeRaw =
     agentic?.analysisMode ||
     result?.analysisMode ||
     null;
+
+  const analysisMode =
+    analysisModeRaw ||
+    (result?.detailed ? "detailed" : result?.quick ? "quick" : null);
 
   const { issues, overallStatus, inProgress } = classifyIssues(result);
 
@@ -688,12 +674,16 @@ export default function Results() {
     result?.quick?.summary ||
     null;
 
-  // Ratios & cashflow summaries (for bank + financial statements)
+  // Ratios & cashflow summaries
   const ratios =
     agentic?.ratios ||
     agentic?.financial_ratios ||
     agentic?.statement_ratios ||
     null;
+
+  const bankRatios = docType === "bank_statements" ? ratios : null;
+  const financialRatios =
+    docType === "financial_statements" ? ratios : null;
 
   const cashflowSummary =
     agentic?.cashflow_summary ||
@@ -701,40 +691,48 @@ export default function Results() {
     agentic?.cashflow ||
     null;
 
-  // Convenience extractions for display
+  // Financial statement ratio convenience
   const currentRatio =
-    ratios?.current_ratio ??
-    ratios?.liquidity?.current_ratio ??
+    financialRatios?.current_ratio ??
+    financialRatios?.liquidity?.current_ratio ??
     null;
   const quickRatio =
-    ratios?.quick_ratio ??
-    ratios?.liquidity?.quick_ratio ??
+    financialRatios?.quick_ratio ??
+    financialRatios?.liquidity?.quick_ratio ??
     null;
   const debtToEquity =
-    ratios?.debt_to_equity ??
-    ratios?.leverage?.debt_to_equity ??
+    financialRatios?.debt_to_equity ??
+    financialRatios?.leverage?.debt_to_equity ??
     null;
   const interestCover =
-    ratios?.interest_cover ??
-    ratios?.coverage?.interest_cover ??
+    financialRatios?.interest_cover ??
+    financialRatios?.coverage?.interest_cover ??
     null;
   const netMargin =
-    ratios?.net_margin ??
-    ratios?.profitability?.net_margin ??
+    financialRatios?.net_margin ??
+    financialRatios?.profitability?.net_margin ??
     null;
   const returnOnAssets =
-    ratios?.return_on_assets ??
-    ratios?.profitability?.return_on_assets ??
+    financialRatios?.return_on_assets ??
+    financialRatios?.profitability?.return_on_assets ??
     null;
   const debtServiceCoverage =
-    ratios?.debt_service_coverage ??
-    ratios?.dscr ??
-    ratios?.coverage?.debt_service_coverage ??
+    financialRatios?.debt_service_coverage ??
+    financialRatios?.dscr ??
+    financialRatios?.coverage?.debt_service_coverage ??
     null;
   const cashflowCoverage =
-    ratios?.cashflow_coverage ??
-    ratios?.coverage?.cashflow_coverage ??
+    financialRatios?.cashflow_coverage ??
+    financialRatios?.coverage?.cashflow_coverage ??
     null;
+
+  // Bank-statement specific ratios
+  const bankNetCashFlow =
+    bankRatios?.net_cash_flow ?? null;
+  const bankInflowToOutflow =
+    bankRatios?.inflow_to_outflow_ratio ?? null;
+  const bankClosingToOpening =
+    bankRatios?.closing_to_opening_balance_ratio ?? null;
 
   // Optional generic scores block, if contracts expose it
   const genericScores =
@@ -1397,21 +1395,15 @@ export default function Results() {
                           <div className="text-xs text-slate-700 space-y-1">
                             <div>
                               Salary:{" "}
-                              {(
-                                classification.income_summary.salary ??
-                                classification.income_summary
-                                  .salary_income ??
-                                0
-                              ).toLocaleString("en-ZA")}
+                              {classification.income_summary.salary?.toLocaleString(
+                                "en-ZA"
+                              ) || 0}
                             </div>
                             <div>
                               Other recurring / third-party:{" "}
-                              {(
-                                classification.income_summary
-                                  .third_party_income ??
-                                classification.income_summary.other_income ??
-                                0
-                              ).toLocaleString("en-ZA")}
+                              {classification.income_summary.third_party_income?.toLocaleString(
+                                "en-ZA"
+                              ) || 0}
                             </div>
                           </div>
                         </div>
@@ -1453,110 +1445,153 @@ export default function Results() {
                       </div>
                     )}
 
-                  {/* Key ratios panel */}
-                  {ratios && !inProgress && (
+                  {/* Bank-statement ratios panel */}
+                  {bankRatios && !inProgress && docType === "bank_statements" && (
                     <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
                       <h2 className="text-sm font-semibold mb-3">
-                        Key ratios (from statements)
+                        Bank statement cashflow metrics
                       </h2>
-                      <div className="grid gap-4 md:grid-cols-4 text-sm">
+                      <div className="grid gap-4 md:grid-cols-3 text-sm">
                         <div>
                           <div className="text-slate-500 text-xs uppercase">
-                            Current ratio
+                            Net cash flow
                           </div>
                           <div className="font-medium">
-                            {currentRatio != null
-                              ? Number(currentRatio).toFixed(2)
+                            {bankNetCashFlow != null
+                              ? bankNetCashFlow.toLocaleString("en-ZA")
                               : "—"}
                           </div>
                         </div>
                         <div>
                           <div className="text-slate-500 text-xs uppercase">
-                            Quick ratio
+                            Inflow / outflow ratio
                           </div>
                           <div className="font-medium">
-                            {quickRatio != null
-                              ? Number(quickRatio).toFixed(2)
+                            {bankInflowToOutflow != null
+                              ? Number(bankInflowToOutflow).toFixed(2)
                               : "—"}
                           </div>
                         </div>
                         <div>
                           <div className="text-slate-500 text-xs uppercase">
-                            Debt to equity
+                            Closing vs opening balance
                           </div>
                           <div className="font-medium">
-                            {debtToEquity != null
-                              ? Number(debtToEquity).toFixed(2)
-                              : "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Interest cover
-                          </div>
-                          <div className="font-medium">
-                            {interestCover != null
-                              ? Number(interestCover).toFixed(2)
+                            {bankClosingToOpening != null
+                              ? Number(bankClosingToOpening).toFixed(2)
                               : "—"}
                           </div>
                         </div>
                       </div>
-
-                      <div className="mt-4 grid gap-4 md:grid-cols-4 text-sm">
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Net margin
-                          </div>
-                          <div className="font-medium">
-                            {netMargin != null
-                              ? Number(netMargin).toFixed(2)
-                              : "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Return on assets
-                          </div>
-                          <div className="font-medium">
-                            {returnOnAssets != null
-                              ? Number(returnOnAssets).toFixed(2)
-                              : "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Debt service coverage
-                          </div>
-                          <div className="font-medium">
-                            {debtServiceCoverage != null
-                              ? Number(debtServiceCoverage).toFixed(2)
-                              : "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Cashflow coverage
-                          </div>
-                          <div className="font-medium">
-                            {cashflowCoverage != null
-                              ? Number(cashflowCoverage).toFixed(2)
-                              : "—"}
-                          </div>
-                        </div>
-                      </div>
-
-                      {cashflowSummary && (
-                        <details className="mt-3 text-xs text-slate-600">
-                          <summary className="cursor-pointer underline underline-offset-2">
-                            Cashflow summary (technical)
-                          </summary>
-                          <pre className="mt-2 max-h-48 overflow-auto rounded bg-slate-900 text-slate-100 p-2 text-[11px]">
-                            {JSON.stringify(cashflowSummary, null, 2)}
-                          </pre>
-                        </details>
-                      )}
                     </div>
                   )}
+
+                  {/* Financial-statement ratios panel */}
+                  {financialRatios &&
+                    !inProgress &&
+                    docType === "financial_statements" && (
+                      <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
+                        <h2 className="text-sm font-semibold mb-3">
+                          Key ratios (from statements)
+                        </h2>
+                        <div className="grid gap-4 md:grid-cols-4 text-sm">
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Current ratio
+                            </div>
+                            <div className="font-medium">
+                              {currentRatio != null
+                                ? Number(currentRatio).toFixed(2)
+                                : "—"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Quick ratio
+                            </div>
+                            <div className="font-medium">
+                              {quickRatio != null
+                                ? Number(quickRatio).toFixed(2)
+                                : "—"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Debt to equity
+                            </div>
+                            <div className="font-medium">
+                              {debtToEquity != null
+                                ? Number(debtToEquity).toFixed(2)
+                                : "—"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Interest cover
+                            </div>
+                            <div className="font-medium">
+                              {interestCover != null
+                                ? Number(interestCover).toFixed(2)
+                                : "—"}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 grid gap-4 md:grid-cols-4 text-sm">
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Net margin
+                            </div>
+                            <div className="font-medium">
+                              {netMargin != null
+                                ? Number(netMargin).toFixed(2)
+                                : "—"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Return on assets
+                            </div>
+                            <div className="font-medium">
+                              {returnOnAssets != null
+                                ? Number(returnOnAssets).toFixed(2)
+                                : "—"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Debt service coverage
+                            </div>
+                            <div className="font-medium">
+                              {debtServiceCoverage != null
+                                ? Number(debtServiceCoverage).toFixed(2)
+                                : "—"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Cashflow coverage
+                            </div>
+                            <div className="font-medium">
+                              {cashflowCoverage != null
+                                ? Number(cashflowCoverage).toFixed(2)
+                                : "—"}
+                            </div>
+                          </div>
+                        </div>
+
+                        {cashflowSummary && (
+                          <details className="mt-3 text-xs text-slate-600">
+                            <summary className="cursor-pointer underline underline-offset-2">
+                              Cashflow summary (technical)
+                            </summary>
+                            <pre className="mt-2 max-h-48 overflow-auto rounded bg-slate-900 text-slate-100 p-2 text-[11px]">
+                              {JSON.stringify(cashflowSummary, null, 2)}
+                            </pre>
+                          </details>
+                        )}
+                      </div>
+                    )}
 
                   {/* Raw parsed fields table from stub */}
                   <div className="rounded-lg border border-[rgb(var(--border))] overflow-x-auto bg-white">
@@ -1725,11 +1760,11 @@ export default function Results() {
                             Salary component
                           </div>
                           <div className="font-medium">
-                            {(
-                              classification.income_summary.salary ??
-                              classification.income_summary.salary_income ??
-                              0
-                            ).toLocaleString("en-ZA")}
+                            {classification.income_summary.salary != null
+                              ? classification.income_summary.salary.toLocaleString(
+                                  "en-ZA"
+                                )
+                              : "—"}
                           </div>
                         </div>
                         <div>
@@ -1737,12 +1772,12 @@ export default function Results() {
                             Other recurring income
                           </div>
                           <div className="font-medium">
-                            {(
-                              classification.income_summary
-                                .third_party_income ??
-                              classification.income_summary.other_income ??
-                              0
-                            ).toLocaleString("en-ZA")}
+                            {classification.income_summary
+                              .third_party_income != null
+                              ? classification.income_summary.third_party_income.toLocaleString(
+                                  "en-ZA"
+                                )
+                              : "—"}
                           </div>
                         </div>
                       </div>
@@ -1804,101 +1839,146 @@ export default function Results() {
                     </div>
                   )}
 
-                  {/* Ratios – same numbers as client view, tighter layout */}
-                  {ratios && !inProgress && (
+                  {/* Bank ratios – agent view */}
+                  {bankRatios && !inProgress && docType === "bank_statements" && (
                     <div className="mb-4 rounded-lg border border-[rgb(var(--border))] bg-white p-4 text-sm">
                       <div className="flex items-center justify-between mb-3">
                         <h2 className="text-sm font-semibold">
-                          Financial ratios
+                          Bank statement cashflow metrics
                         </h2>
                       </div>
-                      <div className="grid gap-4 md:grid-cols-4">
+                      <div className="grid gap-4 md:grid-cols-3">
                         <div>
                           <div className="text-slate-500 text-xs uppercase">
-                            Current ratio
+                            Net cash flow
                           </div>
                           <div className="font-medium">
-                            {currentRatio != null
-                              ? Number(currentRatio).toFixed(2)
+                            {bankNetCashFlow != null
+                              ? bankNetCashFlow.toLocaleString("en-ZA")
                               : "—"}
                           </div>
                         </div>
                         <div>
                           <div className="text-slate-500 text-xs uppercase">
-                            Quick ratio
+                            Inflow / outflow ratio
                           </div>
                           <div className="font-medium">
-                            {quickRatio != null
-                              ? Number(quickRatio).toFixed(2)
+                            {bankInflowToOutflow != null
+                              ? Number(bankInflowToOutflow).toFixed(2)
                               : "—"}
                           </div>
                         </div>
                         <div>
                           <div className="text-slate-500 text-xs uppercase">
-                            Debt / Equity
+                            Closing vs opening balance
                           </div>
                           <div className="font-medium">
-                            {debtToEquity != null
-                              ? Number(debtToEquity).toFixed(2)
-                              : "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Interest cover
-                          </div>
-                          <div className="font-medium">
-                            {interestCover != null
-                              ? Number(interestCover).toFixed(2)
-                              : "—"}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 grid gap-4 md:grid-cols-4">
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Net margin
-                          </div>
-                          <div className="font-medium">
-                            {netMargin != null
-                              ? Number(netMargin).toFixed(2)
-                              : "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Return on assets
-                          </div>
-                          <div className="font-medium">
-                            {returnOnAssets != null
-                              ? Number(returnOnAssets).toFixed(2)
-                              : "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Debt service coverage
-                          </div>
-                          <div className="font-medium">
-                            {debtServiceCoverage != null
-                              ? Number(debtServiceCoverage).toFixed(2)
-                              : "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Cashflow coverage
-                          </div>
-                          <div className="font-medium">
-                            {cashflowCoverage != null
-                              ? Number(cashflowCoverage).toFixed(2)
+                            {bankClosingToOpening != null
+                              ? Number(bankClosingToOpening).toFixed(2)
                               : "—"}
                           </div>
                         </div>
                       </div>
                     </div>
                   )}
+
+                  {/* Financial ratios – agent view */}
+                  {financialRatios &&
+                    !inProgress &&
+                    docType === "financial_statements" && (
+                      <div className="mb-4 rounded-lg border border-[rgb(var(--border))] bg-white p-4 text-sm">
+                        <div className="flex items-center justify-between mb-3">
+                          <h2 className="text-sm font-semibold">
+                            Financial ratios
+                          </h2>
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-4">
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Current ratio
+                            </div>
+                            <div className="font-medium">
+                              {currentRatio != null
+                                ? Number(currentRatio).toFixed(2)
+                                : "—"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Quick ratio
+                            </div>
+                            <div className="font-medium">
+                              {quickRatio != null
+                                ? Number(quickRatio).toFixed(2)
+                                : "—"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Debt / Equity
+                            </div>
+                            <div className="font-medium">
+                              {debtToEquity != null
+                                ? Number(debtToEquity).toFixed(2)
+                                : "—"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Interest cover
+                            </div>
+                            <div className="font-medium">
+                              {interestCover != null
+                                ? Number(interestCover).toFixed(2)
+                                : "—"}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 grid gap-4 md:grid-cols-4">
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Net margin
+                            </div>
+                            <div className="font-medium">
+                              {netMargin != null
+                                ? Number(netMargin).toFixed(2)
+                                : "—"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Return on assets
+                            </div>
+                            <div className="font-medium">
+                              {returnOnAssets != null
+                                ? Number(returnOnAssets).toFixed(2)
+                                : "—"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Debt service coverage
+                            </div>
+                            <div className="font-medium">
+                              {debtServiceCoverage != null
+                                ? Number(debtServiceCoverage).toFixed(2)
+                                : "—"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Cashflow coverage
+                            </div>
+                            <div className="font-medium">
+                              {cashflowCoverage != null
+                                ? Number(cashflowCoverage).toFixed(2)
+                                : "—"}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                   {/* Generic scores table (if contracts expose scores[]) */}
                   {genericScores && !inProgress && (
@@ -1999,3 +2079,4 @@ export default function Results() {
     </div>
   );
 }
+

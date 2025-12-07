@@ -34,7 +34,14 @@ const DOC_TYPE_OPTIONS = {
 
 // Which services are meaningful per docType
 const DOC_TYPE_SERVICE_CONFIG = {
-  bank_statements: ["ocr", "summary", "structured", "classification", "ratios", "risk"],
+  bank_statements: [
+    "ocr",
+    "summary",
+    "structured",
+    "classification",
+    "ratios",
+    "risk",
+  ],
   financial_statements: ["ocr", "summary", "structured", "ratios", "risk"],
   payslips: ["ocr", "summary", "structured", "risk"],
   id_documents: ["ocr", "structured", "risk"],
@@ -91,15 +98,15 @@ export default function Dashboard() {
   const [customerType, setCustomerType] = useState("personal");
   const [docType, setDocType] = useState("bank_statements");
 
-  // NEW: analysis depth selection
+  // Analysis depth selection
   const [analysisMode, setAnalysisMode] = useState("quick"); // "quick" | "detailed"
 
   // which services the requester wants the platform to run
   const [services, setServices] = useState({
-    ocr: true, // always on in your flow, but keep it explicit
+    ocr: true,
     summary: true,
-    structured: true, // parse account + transactions / key fields
-    classification: true, // label transactions/categories
+    structured: true,
+    classification: true,
     ratios: false,
     risk: false,
   });
@@ -112,7 +119,7 @@ export default function Dashboard() {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState(null); // { type: "info" | "success" | "error", message: string }
 
-  // Presign Lambda URL
+  // Presign Lambda URL (GeneratePresignedPost-dev)
   const functionUrl =
     "https://rip7ft5vrq6ltl7r7btoop4whm0fqcnp.lambda-url.us-east-1.on.aws/";
 
@@ -187,12 +194,11 @@ export default function Dashboard() {
       return;
     }
 
-    // flatten checked services into an array of strings,
+    // Flatten checked services into an array of strings,
     // but only those that make sense for this docType AND analysisMode
     const selectedServices = Object.entries(services)
       .filter(
-        ([name, enabled]) =>
-          enabled && allowedServicesForMode.includes(name)
+        ([name, enabled]) => enabled && allowedServicesForMode.includes(name)
       )
       .map(([name]) => name);
 
@@ -252,8 +258,8 @@ export default function Dashboard() {
           caseName: caseName.trim(),
           customerType,
           services: selectedServices,
-          captureMode, // tell backend how this was captured
-          analysisMode, // NEW: quick vs detailed
+          captureMode, // how this was captured
+          analysisMode, // quick vs detailed
         }),
       });
 
@@ -266,7 +272,30 @@ export default function Dashboard() {
         return;
       }
 
-      const { url, fields, objectKey } = await presignRes.json();
+      let presignJson;
+      try {
+        presignJson = await presignRes.json();
+      } catch (jsonErr) {
+        console.error("Failed to parse presign JSON", jsonErr);
+        setStatus({
+          type: "error",
+          message:
+            "Upload initialisation returned an unexpected response. Please try again or contact support.",
+        });
+        return;
+      }
+
+      const { url, fields, objectKey } = presignJson || {};
+
+      if (!url || !fields || !objectKey) {
+        console.error("Presign response missing fields", presignJson);
+        setStatus({
+          type: "error",
+          message:
+            "Upload initialisation was incomplete. Please try again or contact support.",
+        });
+        return;
+      }
 
       // 2) Upload directly to S3 with the returned form fields
       setStatus({
@@ -280,18 +309,18 @@ export default function Dashboard() {
 
       const s3Res = await fetch(url, { method: "POST", body: form });
 
-      if (s3Res.status === 204) {
+      if (s3Res.ok) {
         setStatus({
           type: "success",
           message:
             "Upload complete. OCR and agentic analysis will start automatically.",
         });
 
-        // clear selections
+        // Clear selections
         setFile(null);
         setPages([]);
 
-        // navigate to Results for this object
+        // Navigate to Results for this object
         navigate(`/results?objectKey=${encodeURIComponent(objectKey)}`);
       } else {
         const text = await s3Res.text().catch(() => "");
@@ -302,11 +331,12 @@ export default function Dashboard() {
         });
       }
     } catch (err) {
-      console.error(err);
+      console.error("Unexpected error during upload:", err);
       setStatus({
         type: "error",
         message:
-          "Unexpected error during upload. Please check your connection and try again.",
+          "Unexpected error during upload. " +
+          (err?.message || "Please check your connection and try again."),
       });
     } finally {
       setBusy(false);
@@ -411,7 +441,9 @@ export default function Dashboard() {
                 <p className="text-xs text-slate-500">
                   Choose <span className="font-semibold">Business</span> for
                   companies, close corporations, and{" "}
-                  <span className="font-semibold">sole traders / trading as</span>{" "}
+                  <span className="font-semibold">
+                    sole traders / trading as
+                  </span>{" "}
                   that provide financial statements.
                 </p>
               </div>
@@ -505,8 +537,8 @@ export default function Dashboard() {
                 Services are tailored to the selected{" "}
                 <span className="font-semibold">document type</span> and{" "}
                 <span className="font-semibold">analysis depth</span>. Some
-                heavy services (like ratios) are only available in Detailed
-                mode on supported documents.
+                heavy services (like ratios) are only available in Detailed mode
+                on supported documents.
               </p>
             </div>
 

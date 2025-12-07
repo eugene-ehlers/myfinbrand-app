@@ -323,24 +323,68 @@ function buildUiSummary(docType, agentic, fields = []) {
 
   // BANK STATEMENTS
   if (docType === "bank_statements") {
-    const account = agentic?.account || {};
-    const txs = Array.isArray(agentic?.transactions)
+    // Prefer any existing account/transactions if contracts already supply them
+    let account = agentic?.account || {};
+    let txs = Array.isArray(agentic?.transactions)
       ? agentic.transactions
       : [];
+
+    // NEW: fall back to structured.statement_summary / structured.transactions
+    const ss = agentic?.structured?.statement_summary || null;
+    const structuredTxs = Array.isArray(agentic?.structured?.transactions)
+      ? agentic.structured.transactions
+      : [];
+
+    // If no explicit account object, derive it from statement_summary
+    if (ss && Object.keys(account).length === 0) {
+      account = {
+        accountName: ss.account_holder ?? account.accountName,
+        startDate: ss.statement_start_date ?? account.startDate,
+        endDate: ss.statement_end_date ?? account.endDate,
+        openingBalance:
+          typeof ss.opening_balance === "number"
+            ? ss.opening_balance
+            : account.openingBalance,
+        closingBalance:
+          typeof ss.closing_balance === "number"
+            ? ss.closing_balance
+            : account.closingBalance,
+        currency: ss.currency ?? account.currency ?? "ZAR",
+      };
+    }
+
+    // If no agentic.transactions array, derive one from structured.transactions
+    if (!txs.length && structuredTxs.length) {
+      txs = structuredTxs.map((t) => {
+        const rawAmount = t.amount;
+        const amount =
+          typeof rawAmount === "number"
+            ? rawAmount
+            : parseFloat(rawAmount ?? 0) || 0;
+
+        // Simple direction inference: positives = IN, negatives = OUT
+        const direction = amount >= 0 ? "IN" : "OUT";
+
+        return {
+          ...t,
+          amount,
+          direction,
+        };
+      });
+    }
 
     let totalCredits = 0;
     let totalDebits = 0;
 
     for (const tx of txs) {
       const dir = (tx.direction || "").toUpperCase();
-      const rawAmount = tx.amount;
       const amount =
-        typeof rawAmount === "number"
-          ? rawAmount
-          : parseFloat(rawAmount ?? 0) || 0;
+        typeof tx.amount === "number"
+          ? tx.amount
+          : parseFloat(tx.amount ?? 0) || 0;
 
       if (dir === "IN") totalCredits += amount;
-      else if (dir === "OUT") totalDebits += amount;
+      else if (dir === "OUT") totalDebits += Math.abs(amount);
     }
 
     return {
@@ -1353,15 +1397,21 @@ export default function Results() {
                           <div className="text-xs text-slate-700 space-y-1">
                             <div>
                               Salary:{" "}
-                              {classification.income_summary.salary?.toLocaleString(
-                                "en-ZA"
-                              ) || 0}
+                              {(
+                                classification.income_summary.salary ??
+                                classification.income_summary
+                                  .salary_income ??
+                                0
+                              ).toLocaleString("en-ZA")}
                             </div>
                             <div>
                               Other recurring / third-party:{" "}
-                              {classification.income_summary.third_party_income?.toLocaleString(
-                                "en-ZA"
-                              ) || 0}
+                              {(
+                                classification.income_summary
+                                  .third_party_income ??
+                                classification.income_summary.other_income ??
+                                0
+                              ).toLocaleString("en-ZA")}
                             </div>
                           </div>
                         </div>
@@ -1675,11 +1725,11 @@ export default function Results() {
                             Salary component
                           </div>
                           <div className="font-medium">
-                            {classification.income_summary.salary != null
-                              ? classification.income_summary.salary.toLocaleString(
-                                  "en-ZA"
-                                )
-                              : "—"}
+                            {(
+                              classification.income_summary.salary ??
+                              classification.income_summary.salary_income ??
+                              0
+                            ).toLocaleString("en-ZA")}
                           </div>
                         </div>
                         <div>
@@ -1687,12 +1737,12 @@ export default function Results() {
                             Other recurring income
                           </div>
                           <div className="font-medium">
-                            {classification.income_summary
-                              .third_party_income != null
-                              ? classification.income_summary.third_party_income.toLocaleString(
-                                  "en-ZA"
-                                )
-                              : "—"}
+                            {(
+                              classification.income_summary
+                                .third_party_income ??
+                              classification.income_summary.other_income ??
+                              0
+                            ).toLocaleString("en-ZA")}
                           </div>
                         </div>
                       </div>
@@ -1949,4 +1999,3 @@ export default function Results() {
     </div>
   );
 }
-

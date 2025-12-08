@@ -73,14 +73,20 @@ function deriveAgenticFromResult(result) {
   }
 
   // 3) Legacy / quick-path contracts
+  // 3) PRIORITY ORDER FOR AGENTIC PAYLOAD
+  //    1. detailedEnvelope.result (new contract, most reliable)
+  //    2. result.agentic (future explicit contract)
+  //    3. quick.result or quick.structured (legacy fallbacks)
   const rawAgentic =
-    result.result ||
-    agenticFromDetailed ||
-    result.quick?.result ||
-    result.quick?.structured ||
-    null;
+      agenticFromDetailed ||
+      result.agentic ||
+      result.quick?.result ||
+      result.quick?.structured ||
+      null;
 
-  const agentic = rawAgentic?.result ?? rawAgentic ?? null;
+// Unwrap `.result` if nested (legacy shape)
+const agentic = rawAgentic?.result ?? rawAgentic ?? null;
+
 
   return { agentic, rawAgentic, detailedEnvelope };
 }

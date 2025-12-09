@@ -15,6 +15,8 @@ import { Link } from "react-router-dom";
 import SiteHeader from "../components/layout/SiteHeader.jsx";
 import SiteFooter from "../components/layout/SiteFooter.jsx";
 import decisionEngineOverviewPdf from "../assets/docs/Our-decision-engine-onepage.pdf";
+import decisionLoopImg from "../assets/docs/decision-loop.png";
+
 
 const Section = ({ id, className = "", children }) => (
   <section
@@ -534,6 +536,15 @@ export default function Landing() {
     </p>
   </div>
 
+  {/* Decision Loop graphic */}
+  <div className="mt-8 flex justify-center">
+    <img
+      src={decisionLoopImg}
+      alt="The Decision Loop – Get Data, Analyse, Execution with feedback"
+      className="max-w-xl w-full h-auto rounded-2xl border bg-white shadow-sm"
+    />
+  </div>
+
   <div className="mt-10 grid md:grid-cols-3 gap-5">
     <div className="p-6 rounded-2xl border bg-white">
       <h3 className="text-lg font-semibold">Proven & Production-Ready</h3>
@@ -606,6 +617,7 @@ export default function Landing() {
     </a>
   </div>
 </Section>
+
 
 
       {/* XDS PARTNERSHIP */}

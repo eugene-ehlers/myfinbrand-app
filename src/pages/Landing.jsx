@@ -351,6 +351,18 @@ export default function Landing() {
             managed platforms that deliver measurable value within months.
           </p>
         </div>
+
+        {/* Decision Loop mini graphic */}
+        <div className="mt-6 flex justify-center">
+          <img
+            src={decisionLoopImg}
+            alt="The Decision Loop – Get Data, Analyse, Execution with feedback"
+            className="max-w-md w-full h-auto rounded-2xl border bg-white shadow-sm"
+          />
+        </div>
+
+
+        
         <div className="mt-10 grid md:grid-cols-2 lg:grid-cols-4 gap-5">
           <Pillar
             icon={Layers}

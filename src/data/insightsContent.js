@@ -106,7 +106,7 @@ export const INSIGHTS = [
   {
   title: "Decision Cohesion: Balancing Risk, Revenue, and Growth",
   slug: "decision-cohesion",
-  path: "/docs/Three-curves.docx",
+  path: "/docs/Three-curves.pdf",
   date: "2025-12-05",
   summary: "Explores how risk, sales, and finance optimise different curves — and how a unified decision engine aligns them around profitable, sustainable growth.",
   category: "Credit Strategy",

@@ -81,6 +81,35 @@ export const INSIGHTS = [
     audience: "Executives & Senior Management",
   },
 
+  {
+  title: "The Five Decisions Every Organisation Must Clarify Before Using AI",
+  slug: "five-decisions",
+  path: "/docs/Five-decisions.pdf",
+  date: "2025-12-01",
+  summary: "A practical framework for clarifying fixed, flexible, and judgement-based decisions before layering in AI, automation, or decision engines.",
+  category: "Decision Architecture",
+  type: "White Paper",
+  tags: ["AI Readiness", "Decision Architecture", "Governance", "Automation"],
+  featured: true,
+  read: "6 min read"
+},
+
+  {
+  title: "Decision Cohesion: Balancing Risk, Revenue, and Growth",
+  slug: "decision-cohesion",
+  path: "/docs/Three-curves.docx",
+  date: "2025-12-05",
+  summary: "Explores how risk, sales, and finance optimise different curves — and how a unified decision engine aligns them around profitable, sustainable growth.",
+  category: "Credit Strategy",
+  type: "White Paper",
+  tags: ["Credit Strategy", "Profitability", "Risk Appetite", "Decision Engines"],
+  featured: false,
+  read: "7 min read"
+},
+
+
+  
+
   // Example of a future technical guide:
   // {
   //   slug: "decision-engine-architecture",

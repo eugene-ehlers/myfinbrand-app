@@ -97,7 +97,7 @@ export const INSIGHTS = [
     category: "Decision Architecture",
     type: "White Paper",
     tags: ["AI Strategy", "Decisioning", "Governance", "Automation"],
-    featured: true,
+    //featured: true,
     read: "6 min read",
   },
 
@@ -110,7 +110,7 @@ export const INSIGHTS = [
     summary:
       "Explores how risk, sales, and finance often optimise different curves — and how a unified decision engine and decision framework align them around profitable, sustainable growth.",
     category: ["Credit Strategy", "Profitability", "Credit & Risk", "Decisioning"],
-    type: "White Paper,
+    type: "White Paper",
     tags: ["Credit Strategy", "Profitability", "Credit & Risk", "Decisioning"],
     featured: true, // set true so it appears in the featured row as well
     read: "7 min read",

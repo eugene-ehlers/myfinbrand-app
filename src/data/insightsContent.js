@@ -14,11 +14,7 @@ export const CATEGORIES = [
   "Automation",
 ];
 
-export const TYPES = [
-  "White Paper",
-  "Executive Briefing",
-  "Article",
-];
+export const TYPES = ["White Paper", "Executive Briefing", "Article"];
 
 export const INSIGHTS = [
   {
@@ -26,8 +22,7 @@ export const INSIGHTS = [
     title: "Decision Engines 101: From Rules to ROI",
     summary:
       "A practical primer on decision automation for credit and risk leaders: core concepts, architecture building blocks, governance requirements, and a 90-day rollout pattern from pilot to production.",
-    // Route to the article page (with PDF download link inside)
-    path: "/insights/decision-engines-101",
+    path: "/insights/decision-engines-101", // internal article route
     date: "2025-11-10",
     read: "12 min read",
     tags: ["Decision Automation", "Credit", "Risk", "Architecture"],
@@ -41,8 +36,7 @@ export const INSIGHTS = [
     title: "From Buzzword to Bottom Line: AI-Driven Business Advantage",
     summary:
       "An executive framework to move from AI buzzwords to measurable business value: prioritising use cases, aligning with strategy, and setting up the right foundations for analytics and decisioning.",
-    // Route to the article page (with PDF download link inside)
-    path: "/insights/ai-driven-business-advantage",
+    path: "/insights/ai-driven-business-advantage", // internal article route
     date: "2025-11-11",
     read: "10 min read",
     tags: ["AI Strategy", "Transformation", "ROI", "Executive"],
@@ -56,7 +50,7 @@ export const INSIGHTS = [
     title: "Building Predictive Models In-House: What Your Business Needs",
     summary:
       "A practical guide to what it really takes to build and host your own scorecards and ML models – skills, data, tooling, infrastructure, governance – and how this compares to bureau models or models-as-a-service.",
-    path: "/insights/building-predictive-models-in-house",
+    path: "/insights/building-predictive-models-in-house", // internal article route
     date: "2025-11-15",
     read: "9 min read",
     tags: ["Predictive Models", "Scorecards", "Analytics", "Operating Model"],
@@ -66,11 +60,11 @@ export const INSIGHTS = [
   },
 
   {
-    slug: "agentic-vs-decision-engines",
+    slug: "agentic-vs-decision-engine",
     title: "Agentic AI vs Decision Engines: Why You Still Need a Governed Core",
     summary:
       "Explores the strengths of agentic AI for orchestration and analysis, and explains why high-stakes, regulated decisions still require a deterministic, governed decision engine at the core.",
-    path: "/insights/agentic-vs-decision-engine",
+    path: "/insights/agentic-vs-decision-engine", // internal article route
     date: "2025-11-16",
     read: "11 min read",
     tags: ["Agentic AI", "Decision Engines", "Governance", "Compliance"],
@@ -80,11 +74,11 @@ export const INSIGHTS = [
   },
 
   {
-    slug: "why-machine-learning",
+    slug: "why-ml",
     title: "Why Machine Learning? From Manual Decisions to Modern Models",
     summary:
       "An executive overview of how decisioning evolved from manual judgement to scorecards and now machine learning – and when simpler, transparent models still outperform complex technology in practice.",
-    path: "/insights/why-ml",
+    path: "/insights/why-ml", // internal article route
     date: "2025-11-17",
     read: "8 min read",
     tags: ["Machine Learning", "Scorecards", "Risk Models", "Executive"],
@@ -94,35 +88,35 @@ export const INSIGHTS = [
   },
 
   {
-  title: "The Five Decisions Every Organisation Must Clarify Before Using AI",
-  slug: "five-decisions",
-  path: "/docs/Five-decisions.pdf",
-  date: "2025-12-01",
-  summary: "A practical framework for clarifying fixed, flexible, and judgement-based decisions before layering in AI, automation, or decision engines.",
-  category: "Decision Architecture",
-  type: "White Paper",
-  tags: ["AI Strategy", "Decisioning", "Governance", "Automation"],
-  featured: true,
-  read: "6 min read"
-},
+    title: "The Five Decisions Every Organisation Must Clarify Before Using AI",
+    slug: "five-decisions",
+    path: "/docs/Five-decisions.pdf", // public/docs/Five-decisions.pdf
+    date: "2025-12-01",
+    summary:
+      "A practical framework for clarifying fixed, flexible, and judgement-based decisions before layering in AI, automation, or decision engines.",
+    category: "Decision Architecture",
+    type: "White Paper",
+    tags: ["AI Strategy", "Decisioning", "Governance", "Automation"],
+    featured: true,
+    read: "6 min read",
+  },
 
   {
-  title: "Decision Cohesion: Balancing Risk, Revenue, and Growth",
-  slug: "decision-cohesion",
-  path: "/docs/Three-curves.pdf",
-  date: "2025-12-05",
-  summary: "Explores how risk, sales, and finance optimise different curves — and how a unified decision engine aligns them around profitable, sustainable growth.",
-  category: ["Credit Strategy","Profitability", "Credit & Risk", "Decisioning"]
-  type: "White Paper",
-  tags: ["Credit & Risk", "Profitability", "Decisioning"],
-  featured: false,
-  read: "7 min read"
-},
+    title:
+      "Decision Cohesion: Balancing Risk, Revenue, and Growth (Three Curves)",
+    slug: "decision-cohesion",
+    path: "/docs/Three-curves.pdf", // public/docs/Three-curves.pdf
+    date: "2025-12-05",
+    summary:
+      "Explores how risk, sales, and finance often optimise different curves — and how a unified decision engine and decision framework align them around profitable, sustainable growth.",
+    category: "Credit Strategy",
+    type: "White Paper",
+    tags: ["Credit Strategy", "Profitability", "Credit & Risk", "Decisioning"],
+    featured: true, // set true so it appears in the featured row as well
+    read: "7 min read",
+  },
 
-
-  
-
-  // Example of a future technical guide:
+  // future example:
   // {
   //   slug: "decision-engine-architecture",
   //   title: "Inside a Modern Decision Engine Architecture",

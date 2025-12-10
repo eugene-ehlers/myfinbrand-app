@@ -112,9 +112,9 @@ export const INSIGHTS = [
   path: "/docs/Three-curves.pdf",
   date: "2025-12-05",
   summary: "Explores how risk, sales, and finance optimise different curves — and how a unified decision engine aligns them around profitable, sustainable growth.",
-  category: "Credit Strategy",
+  category: ["Credit Strategy","Profitability", "Credit & Risk", "Decisioning"]
   type: "White Paper",
-  tags: ["Credit Strategy", "Profitability", "Credit & Risk", "Decisioning"],
+  tags: ["Credit & Risk", "Profitability", "Decisioning"],
   featured: false,
   read: "7 min read"
 },

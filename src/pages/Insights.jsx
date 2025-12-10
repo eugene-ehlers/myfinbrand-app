@@ -148,6 +148,7 @@ export default function Insights() {
       </header>
 
       <main className="page-container mx-auto max-w-5xl px-4 pb-16">
+        {/* Dynamic insight cards */}
         {filtered.length === 0 ? (
           <p className="text-sm text-slate-500">
             No insights match these filters yet.
@@ -195,6 +196,62 @@ export default function Insights() {
             ))}
           </div>
         )}
+
+        {/* STATIC SECTION: Decision white papers you mentioned */}
+        <section className="mt-12">
+          <h2 className="text-lg font-semibold tracking-tight">
+            Decision Guides & White Papers
+          </h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Download concise, practitioner-led white papers on decision
+            architecture, AI, and modern credit strategy.
+          </p>
+
+          <div className="mt-4 grid gap-5 sm:grid-cols-2">
+            {/* Five Decisions white paper */}
+            <a
+              href="/docs/Five-decisions.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-2xl border p-5 hover:shadow transition-shadow block"
+            >
+              <div className="text-xs text-slate-500 flex items-center justify-between">
+                <span>White Paper</span>
+                <span>2025-12</span>
+              </div>
+              <h3 className="mt-2 text-lg font-semibold">
+                The Five Decisions Every Organisation Must Clarify Before Using
+                AI
+              </h3>
+              <p className="mt-2 text-sm text-slate-700">
+                A practical framework for clarifying fixed, flexible, and
+                judgement-based decisions before layering in AI, automation, or
+                decision engines.
+              </p>
+            </a>
+
+            {/* Three Curves / Decision Cohesion paper */}
+            <a
+              href="/docs/Three-curves.docx"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-2xl border p-5 hover:shadow transition-shadow block"
+            >
+              <div className="text-xs text-slate-500 flex items-center justify-between">
+                <span>White Paper</span>
+                <span>2025-12</span>
+              </div>
+              <h3 className="mt-2 text-lg font-semibold">
+                Decision Cohesion: Balancing Risk, Revenue, and Growth
+              </h3>
+              <p className="mt-2 text-sm text-slate-700">
+                Explores how risk, sales, and finance often optimise different
+                curves, and how a unified decision architecture and decision
+                engine align them around profitable, sustainable growth.
+              </p>
+            </a>
+          </div>
+        </section>
 
         {/* Optional: bring your founder credibility in here later */}
         {/* <div className="mt-12">

@@ -4,9 +4,18 @@ export const CATEGORIES = [
   "Strategy & Transformation",
   "Decision Automation & Use Cases",
   "Technology & Implementation",
+  "Decisioning",
+  "AI Strategy",
+  "Credit & Risk",
+  "Decision Architecture",
+  "Credit Strategy",
 ];
 
-export const TYPES = ["White Paper", "Article"];
+export const TYPES = [
+  "White Paper",
+  "Executive Briefing",
+  "Article",
+];
 
 export const INSIGHTS = [
   {

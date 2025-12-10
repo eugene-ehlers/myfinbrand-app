@@ -9,6 +9,9 @@ export const CATEGORIES = [
   "Credit & Risk",
   "Decision Architecture",
   "Credit Strategy",
+  "Profitability",
+  "Governance",
+  "Automation",
 ];
 
 export const TYPES = [
@@ -98,7 +101,7 @@ export const INSIGHTS = [
   summary: "A practical framework for clarifying fixed, flexible, and judgement-based decisions before layering in AI, automation, or decision engines.",
   category: "Decision Architecture",
   type: "White Paper",
-  tags: ["AI Readiness", "Decision Architecture", "Governance", "Automation"],
+  tags: ["AI Strategy", "Decisioning", "Governance", "Automation"],
   featured: true,
   read: "6 min read"
 },
@@ -111,7 +114,7 @@ export const INSIGHTS = [
   summary: "Explores how risk, sales, and finance optimise different curves — and how a unified decision engine aligns them around profitable, sustainable growth.",
   category: "Credit Strategy",
   type: "White Paper",
-  tags: ["Credit Strategy", "Profitability", "Risk Appetite", "Decision Engines"],
+  tags: ["Credit Strategy", "Profitability", "Credit & Risk", "Decisioning"],
   featured: false,
   read: "7 min read"
 },

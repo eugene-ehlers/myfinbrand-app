@@ -109,8 +109,8 @@ export const INSIGHTS = [
     date: "2025-12-05",
     summary:
       "Explores how risk, sales, and finance often optimise different curves — and how a unified decision engine and decision framework align them around profitable, sustainable growth.",
-    category: "Credit Strategy",
-    type: "White Paper",
+    category: ["Credit Strategy", "Profitability", "Credit & Risk", "Decisioning"],
+    type: "White Paper,
     tags: ["Credit Strategy", "Profitability", "Credit & Risk", "Decisioning"],
     featured: true, // set true so it appears in the featured row as well
     read: "7 min read",

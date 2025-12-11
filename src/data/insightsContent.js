@@ -1,220 +1,133 @@
-// src/pages/Insights.jsx
-import React, { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
-import Seo from "../components/Seo.jsx";
-import SiteHeader from "../components/layout/SiteHeader.jsx";
-import SiteFooter from "../components/layout/SiteFooter.jsx";
-import { INSIGHTS, CATEGORIES, TYPES } from "../data/insightsContent";
-// import FounderBio from "../components/FounderBio.jsx";
+// src/data/insightsContent.js
 
-export default function Insights() {
-  const [category, setCategory] = useState("All");
-  const [type, setType] = useState("All");
+export const CATEGORIES = [
+  "Strategy & Transformation",
+  "Decision Automation & Use Cases",
+  "Technology & Implementation",
+  "Decisioning",
+  "AI Strategy",
+  "Credit & Risk",
+  "Decision Architecture",
+  "Credit Strategy",
+  "Profitability",
+  "Governance",
+  "Automation",
+];
 
-  // Sort newest → oldest
-  const sortedInsights = useMemo(() => {
-    return [...INSIGHTS].sort((a, b) => {
-      if (!a.date || !b.date) return 0;
-      return b.date.localeCompare(a.date);
-    });
-  }, []);
+export const TYPES = ["White Paper", "Executive Briefing", "Article"];
 
-  const filtered = sortedInsights.filter((item) => {
-    const matchCategory = category === "All" || item.category === category;
-    const matchType = type === "All" || item.type === type;
-    return matchCategory && matchType;
-  });
+export const INSIGHTS = [
+  {
+    slug: "decision-engines-101",
+    title: "Decision Engines 101: From Rules to ROI",
+    summary:
+      "A practical primer on decision automation for credit and risk leaders: core concepts, architecture building blocks, governance requirements, and a 90-day rollout pattern from pilot to production.",
+    path: "/insights/decision-engines-101", // internal article route
+    date: "2025-11-10",
+    read: "12 min read",
+    tags: ["Decision Automation", "Credit", "Risk", "Architecture"],
+    category: "Decision Automation & Use Cases",
+    type: "White Paper",
+    audience: "Risk & Operations",
+  },
 
-  const featuredInsights = sortedInsights.filter((i) => i.featured);
+  {
+    slug: "ai-driven-business-advantage",
+    title: "From Buzzword to Bottom Line: AI-Driven Business Advantage",
+    summary:
+      "An executive framework to move from AI buzzwords to measurable business value: prioritising use cases, aligning with strategy, and setting up the right foundations for analytics and decisioning.",
+    path: "/insights/ai-driven-business-advantage", // internal article route
+    date: "2025-11-11",
+    read: "10 min read",
+    tags: ["AI Strategy", "Transformation", "ROI", "Executive"],
+    category: "Strategy & Transformation",
+    type: "White Paper",
+    audience: "Executives & Boards",
+  },
 
-  // Helper: render a single card, using <Link> for internal pages
-  // and <a> for direct documents in /docs/
-  const renderCard = (a, small = false) => {
-    const isDoc = a.path && a.path.startsWith("/docs/");
-    const CardTag = isDoc ? "a" : Link;
-    const cardProps = isDoc
-      ? {
-          href: a.path,
-          target: "_blank",
-          rel: "noopener noreferrer",
-        }
-      : {
-          to: a.path,
-        };
+  {
+    slug: "building-predictive-models-in-house",
+    title: "Building Predictive Models In-House: What Your Business Needs",
+    summary:
+      "A practical guide to what it really takes to build and host your own scorecards and ML models – skills, data, tooling, infrastructure, governance – and how this compares to bureau models or models-as-a-service.",
+    path: "/insights/building-predictive-models-in-house", // internal article route
+    date: "2025-11-15",
+    read: "9 min read",
+    tags: ["Predictive Models", "Scorecards", "Analytics", "Operating Model"],
+    category: "Technology & Implementation",
+    type: "White Paper",
+    audience: "Risk, Data & IT Leaders",
+  },
 
-    return (
-      <CardTag
-        key={a.slug || a.path}
-        {...cardProps}
-        className={`rounded-2xl border hover:shadow transition-shadow ${
-          small ? "p-4" : "p-5"
-        }`}
-      >
-        <div className="flex items-center justify-between text-xs text-slate-500">
-          <span>
-            {a.date} {a.read ? `• ${a.read}` : null}
-          </span>
-          <div className="flex items-center gap-1">
-            {a.category && (
-              <span className="hidden sm:inline text-[10px] rounded-full border px-2 py-0.5">
-                {a.category}
-              </span>
-            )}
-            {a.type && (
-              <span className="text-[10px] rounded-full border px-2 py-0.5">
-                {a.type}
-              </span>
-            )}
-          </div>
-        </div>
-        <h2
-          className={`mt-2 font-semibold ${
-            small ? "text-sm leading-snug" : "text-xl"
-          }`}
-        >
-          {a.title}
-        </h2>
-        <p className={`mt-2 text-slate-700 ${small ? "text-xs line-clamp-4" : ""}`}>
-          {a.summary}
-        </p>
-        {a.tags && a.tags.length > 0 && !small && (
-          <div className="mt-3 flex gap-2 flex-wrap">
-            {a.tags.map((t) => (
-              <span
-                key={t}
-                className="text-xs rounded-full border px-2 py-0.5"
-              >
-                {t}
-              </span>
-            ))}
-          </div>
-        )}
-      </CardTag>
-    );
-  };
+  {
+    slug: "agentic-vs-decision-engine",
+    title: "Agentic AI vs Decision Engines: Why You Still Need a Governed Core",
+    summary:
+      "Explores the strengths of agentic AI for orchestration and analysis, and explains why high-stakes, regulated decisions still require a deterministic, governed decision engine at the core.",
+    path: "/insights/agentic-vs-decision-engine", // internal article route
+    date: "2025-11-16",
+    read: "11 min read",
+    tags: ["Agentic AI", "Decision Engines", "Governance", "Compliance"],
+    category: "Technology & Implementation",
+    type: "White Paper",
+    audience: "Executives, Risk & Compliance",
+  },
 
-  return (
-    <div className="min-h-screen bg-white text-slate-900">
-      <Seo
-        title="Insights | The Smart Decision Group"
-        description="White papers and practical guides on AI strategy, decision engines, credit strategy, and analytics ROI."
-        canonical="https://www.tsdg.co.za/insights"
-        ogType="website"
-        rssHref="https://www.tsdg.co.za/feed.xml"
-      />
+  {
+    slug: "why-ml",
+    title: "Why Machine Learning? From Manual Decisions to Modern Models",
+    summary:
+      "An executive overview of how decisioning evolved from manual judgement to scorecards and now machine learning – and when simpler, transparent models still outperform complex technology in practice.",
+    path: "/insights/why-ml", // internal article route
+    date: "2025-11-17",
+    read: "8 min read",
+    tags: ["Machine Learning", "Scorecards", "Risk Models", "Executive"],
+    category: "Strategy & Transformation",
+    type: "White Paper",
+    audience: "Executives & Senior Management",
+  },
 
-      <SiteHeader />
+  {
+    title: "The Five Decisions Every Organisation Must Clarify Before Using AI",
+    slug: "five-decisions",
+    path: "/docs/Five-decisions.pdf", // public/docs/Five-decisions.pdf
+    date: "2025-12-01",
+    summary:
+      "A practical framework for clarifying fixed, flexible, and judgement-based decisions before layering in AI, automation, or decision engines.",
+    category: "Decision Architecture",
+    type: "White Paper",
+    tags: ["AI Strategy", "Decisioning", "Governance", "Automation"],
+    read: "6 min read",
+    audience: "Executives, Risk & Data Teams",
+  },
 
-      <header className="page-container mx-auto max-w-5xl px-4 pt-10 pb-6">
-        <h1 className="text-3xl font-semibold tracking-tight">Insights</h1>
-        <p className="mt-2 text-slate-600">
-          Research notes, white papers, and practical guides for executives,
-          risk leaders, credit teams, and data teams modernising their
-          decisioning.
-        </p>
-        <p className="mt-1 text-sm text-slate-500">
-          If you arrived here from LinkedIn, start with the featured pieces
-          below and then explore by category or type.
-        </p>
+  {
+    title:
+      "Decision Cohesion: Balancing Risk, Revenue, and Growth (Three Curves)",
+    slug: "decision-cohesion",
+    path: "/docs/Three-curves.pdf", // public/docs/Three-curves.pdf
+    date: "2025-12-05",
+    summary:
+      "Explores how risk, sales, and finance often optimise different curves — and how a unified decision engine and decision framework align them around profitable, sustainable growth.",
+    category: "Credit Strategy",
+    type: "White Paper",
+    tags: ["Credit Strategy", "Profitability", "Credit & Risk", "Decisioning"],
+    featured: true,
+    read: "7 min read",
+    audience: "Executives, Credit & Finance",
+  },
 
-        {/* Featured row */}
-        {featuredInsights.length > 0 && (
-          <section className="mt-6">
-            <h2 className="text-sm font-semibold tracking-wide text-slate-500 uppercase">
-              Recommended starting points
-            </h2>
-            <div className="mt-3 grid gap-4 md:grid-cols-3">
-              {featuredInsights.map((a) => renderCard(a, true))}
-            </div>
-          </section>
-        )}
-
-        {/* Filters */}
-        <div className="mt-8 flex flex-wrap gap-4 items-center">
-          {/* Category filter */}
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-xs uppercase tracking-wide text-slate-500">
-              Category
-            </span>
-            <button
-              type="button"
-              onClick={() => setCategory("All")}
-              className={`text-xs px-3 py-1 rounded-full border ${
-                category === "All"
-                  ? "bg-slate-900 text-white"
-                  : "bg-white text-slate-700"
-              }`}
-            >
-              All
-            </button>
-            {CATEGORIES.map((c) => (
-              <button
-                type="button"
-                key={c}
-                onClick={() => setCategory(c)}
-                className={`text-xs px-3 py-1 rounded-full border ${
-                  category === c
-                    ? "bg-slate-900 text-white"
-                    : "bg-white text-slate-700"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-
-          {/* Type filter */}
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-xs uppercase tracking-wide text-slate-500">
-              Type
-            </span>
-            <button
-              type="button"
-              onClick={() => setType("All")}
-              className={`text-xs px-3 py-1 rounded-full border ${
-                type === "All"
-                  ? "bg-slate-900 text-white"
-                  : "bg-white text-slate-700"
-              }`}
-            >
-              All
-            </button>
-            {TYPES.map((t) => (
-              <button
-                type="button"
-                key={t}
-                onClick={() => setType(t)}
-                className={`text-xs px-3 py-1 rounded-full border ${
-                  type === t
-                    ? "bg-slate-900 text-white"
-                    : "bg-white text-slate-700"
-                }`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-        </div>
-      </header>
-
-      <main className="page-container mx-auto max-w-5xl px-4 pb-16">
-        {filtered.length === 0 ? (
-          <p className="text-sm text-slate-500">
-            No insights match these filters yet.
-          </p>
-        ) : (
-          <div className="grid gap-5 sm:grid-cols-2">
-            {filtered.map((a) => renderCard(a, false))}
-          </div>
-        )}
-
-        {/* Optional: founder credibility later */}
-        {/* <div className="mt-12">
-          <FounderBio />
-        </div> */}
-      </main>
-
-      <SiteFooter />
-    </div>
-  );
-}
+  // Future example:
+  // {
+  //   slug: "decision-engine-architecture",
+  //   title: "Inside a Modern Decision Engine Architecture",
+  //   summary: "Technical overview for architects and CTOs.",
+  //   path: "/insights/decision-engine-architecture",
+  //   date: "2025-12-01",
+  //   read: "12 min read",
+  //   tags: ["Architecture", "APIs"],
+  //   category: "Technology & Implementation",
+  //   type: "Article",
+  //   audience: "Architects & Engineering",
+  // },
+];

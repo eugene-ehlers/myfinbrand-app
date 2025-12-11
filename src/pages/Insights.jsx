@@ -5,7 +5,6 @@ import Seo from "../components/Seo.jsx";
 import SiteHeader from "../components/layout/SiteHeader.jsx";
 import SiteFooter from "../components/layout/SiteFooter.jsx";
 import { INSIGHTS, CATEGORIES, TYPES } from "../data/insightsContent";
-// import FounderBio from "../components/FounderBio.jsx";
 
 export default function Insights() {
   const [category, setCategory] = useState("All");
@@ -20,12 +19,21 @@ export default function Insights() {
   }, []);
 
   const filtered = sortedInsights.filter((item) => {
-    const matchCategory = category === "All" || item.category === category;
+    const matchCategory =
+      category === "All" ||
+      item.category === category ||
+      (Array.isArray(item.category) && item.category.includes(category));
+
     const matchType = type === "All" || item.type === type;
     return matchCategory && matchType;
   });
 
   const featuredInsights = sortedInsights.filter((i) => i.featured);
+
+  // Decide if this item is a static document (PDF) rather than an internal article route
+  const isDocument = (item) =>
+    typeof item.path === "string" &&
+    (item.path.endsWith(".pdf") || item.path.startsWith("/docs/"));
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
@@ -58,24 +66,36 @@ export default function Insights() {
               Recommended starting points
             </h2>
             <div className="mt-3 grid gap-4 md:grid-cols-3">
-              {featuredInsights.map((a) => (
-                <Link
-                  key={a.slug}
-                  to={a.path}
-                  className="rounded-2xl border p-4 hover:shadow-sm transition-shadow"
-                >
-                  <div className="text-[11px] text-slate-500 flex items-center justify-between">
-                    <span>{a.type}</span>
-                    <span>{a.date}</span>
-                  </div>
-                  <h3 className="mt-2 text-sm font-semibold leading-snug">
-                    {a.title}
-                  </h3>
-                  <p className="mt-2 text-xs text-slate-700 line-clamp-4">
-                    {a.summary}
-                  </p>
-                </Link>
-              ))}
+              {featuredInsights.map((a) => {
+                const doc = isDocument(a);
+                const Wrapper = doc ? "a" : Link;
+                const wrapperProps = doc
+                  ? {
+                      href: a.path,
+                      target: "_blank",
+                      rel: "noopener noreferrer",
+                    }
+                  : { to: a.path };
+
+                return (
+                  <Wrapper
+                    key={a.slug || a.path}
+                    {...wrapperProps}
+                    className="rounded-2xl border p-4 hover:shadow-sm transition-shadow"
+                  >
+                    <div className="text-[11px] text-slate-500 flex items-center justify-between">
+                      <span>{a.type}</span>
+                      <span>{a.date}</span>
+                    </div>
+                    <h3 className="mt-2 text-sm font-semibold leading-snug">
+                      {a.title}
+                    </h3>
+                    <p className="mt-2 text-xs text-slate-700 line-clamp-4">
+                      {a.summary}
+                    </p>
+                  </Wrapper>
+                );
+              })}
             </div>
           </section>
         )}
@@ -155,52 +175,61 @@ export default function Insights() {
           </p>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2">
-            {filtered.map((a) => (
-              <Link
-                key={a.slug || a.path}
-                to={a.path}
-                className="rounded-2xl border p-5 hover:shadow transition-shadow"
-              >
-                <div className="flex items-center justify-between text-xs text-slate-500">
-                  <span>
-                    {a.date} {a.read ? `• ${a.read}` : null}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    {a.category && (
-                      <span className="hidden sm:inline text-[10px] rounded-full border px-2 py-0.5">
-                        {a.category}
-                      </span>
-                    )}
-                    {a.type && (
-                      <span className="text-[10px] rounded-full border px-2 py-0.5">
-                        {a.type}
-                      </span>
-                    )}
+            {filtered.map((a) => {
+              const doc = isDocument(a);
+              const Wrapper = doc ? "a" : Link;
+              const wrapperProps = doc
+                ? {
+                    href: a.path,
+                    target: "_blank",
+                    rel: "noopener noreferrer",
+                  }
+                : { to: a.path };
+
+              return (
+                <Wrapper
+                  key={a.slug || a.path}
+                  {...wrapperProps}
+                  className="rounded-2xl border p-5 hover:shadow transition-shadow"
+                >
+                  <div className="flex items-center justify-between text-xs text-slate-500">
+                    <span>
+                      {a.date} {a.read ? `• ${a.read}` : null}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {a.category && (
+                        <span className="hidden sm:inline text-[10px] rounded-full border px-2 py-0.5">
+                          {Array.isArray(a.category)
+                            ? a.category[0]
+                            : a.category}
+                        </span>
+                      )}
+                      {a.type && (
+                        <span className="text-[10px] rounded-full border px-2 py-0.5">
+                          {a.type}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <h2 className="mt-2 text-xl font-semibold">{a.title}</h2>
-                <p className="mt-2 text-slate-700">{a.summary}</p>
-                {a.tags && a.tags.length > 0 && (
-                  <div className="mt-3 flex gap-2 flex-wrap">
-                    {a.tags.map((t) => (
-                      <span
-                        key={t}
-                        className="text-xs rounded-full border px-2 py-0.5"
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </Link>
-            ))}
+                  <h2 className="mt-2 text-xl font-semibold">{a.title}</h2>
+                  <p className="mt-2 text-slate-700">{a.summary}</p>
+                  {a.tags && a.tags.length > 0 && (
+                    <div className="mt-3 flex gap-2 flex-wrap">
+                      {a.tags.map((t) => (
+                        <span
+                          key={t}
+                          className="text-xs rounded-full border px-2 py-0.5"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </Wrapper>
+              );
+            })}
           </div>
         )}
-
-        {/* Optional: founder credibility later */}
-        {/* <div className="mt-12">
-          <FounderBio />
-        </div> */}
       </main>
 
       <SiteFooter />

@@ -58,14 +58,9 @@ function deriveAgenticFromResult(result) {
     const r = detailedEnvelope.result;
     agenticFromDetailed = {
       docType:
-        detailedEnvelope.docType ||
-        result.docType ||
-        r.docType ||
-        "unknown",
+        detailedEnvelope.docType || result.docType || r.docType || "unknown",
       analysisMode:
-        detailedEnvelope.analysisMode ||
-        result.analysisMode ||
-        "detailed",
+        detailedEnvelope.analysisMode || result.analysisMode || "detailed",
       quality: detailedEnvelope.quality || result.quality || null,
       // Flatten result.* into the agentic object
       ...r,
@@ -78,15 +73,14 @@ function deriveAgenticFromResult(result) {
   //    2. result.agentic (future explicit contract)
   //    3. quick.result or quick.structured (legacy fallbacks)
   const rawAgentic =
-      agenticFromDetailed ||
-      result.agentic ||
-      result.quick?.result ||
-      result.quick?.structured ||
-      null;
+    agenticFromDetailed ||
+    result.agentic ||
+    result.quick?.result ||
+    result.quick?.structured ||
+    null;
 
-// Unwrap `.result` if nested (legacy shape)
-const agentic = rawAgentic?.result ?? rawAgentic ?? null;
-
+  // Unwrap `.result` if nested (legacy shape)
+  const agentic = rawAgentic?.result ?? rawAgentic ?? null;
 
   return { agentic, rawAgentic, detailedEnvelope };
 }
@@ -514,8 +508,9 @@ export default function Results() {
   // NEW: view toggle – "summary" (client) vs "agent"
   const [activeView, setActiveView] = useState("summary");
 
+  // NEW AGGREGATOR FUNCTION URL
   const functionUrl =
-    "https://rip7ft5vrq6ltl7r7btoop4whm0fqcnp.lambda-url.us-east-1.on.aws/";
+    "https://5epugrqble4dg6pahfz63wx44a0caasj.lambda-url.us-east-1.on.aws/";
 
   useEffect(() => {
     if (!objectKey) {
@@ -570,7 +565,8 @@ export default function Results() {
         const qualityStatus = data.quality?.status || null;
         const pipelineStage = data.statusAudit || null;
         const inProgress =
-          (!hasQuick && !hasDetailed &&
+          (!hasQuick &&
+            !hasDetailed &&
             (pipelineStage === "uploaded" ||
               pipelineStage === "ocr_completed")) ||
           (!hasQuick && !hasDetailed && qualityStatus === "pending");
@@ -636,10 +632,7 @@ export default function Results() {
   const { agentic } = deriveAgenticFromResult(result);
 
   // High-level fields from the stub / aggregator
-  const docType =
-    agentic?.docType ??
-    result?.docType ??
-    "—";
+  const docType = agentic?.docType ?? result?.docType ?? "—";
   const docTypeLabel = DOC_TYPE_LABELS[docType] || docType || "—";
   const fields = Array.isArray(result?.fields) ? result.fields : [];
   const pipelineStage = result?.statusAudit || null;
@@ -649,23 +642,18 @@ export default function Results() {
 
   // Classification & risk (where present)
   const classification = agentic?.classification || null;
-  const riskScore =
-    agentic?.risk_score?.score ?? result?.riskScore ?? null;
+  const riskScore = agentic?.risk_score?.score ?? result?.riskScore ?? null;
   const riskBand = agentic?.risk_score?.band ?? null;
 
   // Confidence now comes from backend quality.confidence
   const quality = result?.quality || {};
   const confidence =
-    typeof quality.confidence === "number"
-      ? quality.confidence
-      : null;
+    typeof quality.confidence === "number" ? quality.confidence : null;
   const qualityStatus = quality.status || null;
 
   // Analysis mode from backend / agentic (with fallback)
   const analysisModeRaw =
-    agentic?.analysisMode ||
-    result?.analysisMode ||
-    null;
+    agentic?.analysisMode || result?.analysisMode || null;
 
   const analysisMode =
     analysisModeRaw ||
@@ -675,10 +663,7 @@ export default function Results() {
 
   // Prefer agentic summary, then fall back
   const agenticSummary =
-    agentic?.summary ||
-    result?.summary ||
-    result?.quick?.summary ||
-    null;
+    agentic?.summary || result?.summary || result?.quick?.summary || null;
 
   // Ratios & cashflow summaries
   const ratios =
@@ -688,8 +673,7 @@ export default function Results() {
     null;
 
   const bankRatios = docType === "bank_statements" ? ratios : null;
-  const financialRatios =
-    docType === "financial_statements" ? ratios : null;
+  const financialRatios = docType === "financial_statements" ? ratios : null;
 
   const cashflowSummary =
     agentic?.cashflow_summary ||
@@ -733,10 +717,8 @@ export default function Results() {
     null;
 
   // Bank-statement specific ratios
-  const bankNetCashFlow =
-    bankRatios?.net_cash_flow ?? null;
-  const bankInflowToOutflow =
-    bankRatios?.inflow_to_outflow_ratio ?? null;
+  const bankNetCashFlow = bankRatios?.net_cash_flow ?? null;
+  const bankInflowToOutflow = bankRatios?.inflow_to_outflow_ratio ?? null;
   const bankClosingToOpening =
     bankRatios?.closing_to_opening_balance_ratio ?? null;
 
@@ -1452,45 +1434,47 @@ export default function Results() {
                     )}
 
                   {/* Bank-statement ratios panel */}
-                  {bankRatios && !inProgress && docType === "bank_statements" && (
-                    <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-                      <h2 className="text-sm font-semibold mb-3">
-                        Bank statement cashflow metrics
-                      </h2>
-                      <div className="grid gap-4 md:grid-cols-3 text-sm">
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Net cash flow
+                  {bankRatios &&
+                    !inProgress &&
+                    docType === "bank_statements" && (
+                      <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
+                        <h2 className="text-sm font-semibold mb-3">
+                          Bank statement cashflow metrics
+                        </h2>
+                        <div className="grid gap-4 md:grid-cols-3 text-sm">
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Net cash flow
+                            </div>
+                            <div className="font-medium">
+                              {bankNetCashFlow != null
+                                ? bankNetCashFlow.toLocaleString("en-ZA")
+                                : "—"}
+                            </div>
                           </div>
-                          <div className="font-medium">
-                            {bankNetCashFlow != null
-                              ? bankNetCashFlow.toLocaleString("en-ZA")
-                              : "—"}
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Inflow / outflow ratio
+                            </div>
+                            <div className="font-medium">
+                              {bankInflowToOutflow != null
+                                ? Number(bankInflowToOutflow).toFixed(2)
+                                : "—"}
+                            </div>
                           </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Inflow / outflow ratio
-                          </div>
-                          <div className="font-medium">
-                            {bankInflowToOutflow != null
-                              ? Number(bankInflowToOutflow).toFixed(2)
-                              : "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Closing vs opening balance
-                          </div>
-                          <div className="font-medium">
-                            {bankClosingToOpening != null
-                              ? Number(bankClosingToOpening).toFixed(2)
-                              : "—"}
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Closing vs opening balance
+                            </div>
+                            <div className="font-medium">
+                              {bankClosingToOpening != null
+                                ? Number(bankClosingToOpening).toFixed(2)
+                                : "—"}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* Financial-statement ratios panel */}
                   {financialRatios &&
@@ -1846,47 +1830,49 @@ export default function Results() {
                   )}
 
                   {/* Bank ratios – agent view */}
-                  {bankRatios && !inProgress && docType === "bank_statements" && (
-                    <div className="mb-4 rounded-lg border border-[rgb(var(--border))] bg-white p-4 text-sm">
-                      <div className="flex items-center justify-between mb-3">
-                        <h2 className="text-sm font-semibold">
-                          Bank statement cashflow metrics
-                        </h2>
+                  {bankRatios &&
+                    !inProgress &&
+                    docType === "bank_statements" && (
+                      <div className="mb-4 rounded-lg border border-[rgb(var(--border))] bg-white p-4 text-sm">
+                        <div className="flex items-center justify-between mb-3">
+                          <h2 className="text-sm font-semibold">
+                            Bank statement cashflow metrics
+                          </h2>
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-3">
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Net cash flow
+                            </div>
+                            <div className="font-medium">
+                              {bankNetCashFlow != null
+                                ? bankNetCashFlow.toLocaleString("en-ZA")
+                                : "—"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Inflow / outflow ratio
+                            </div>
+                            <div className="font-medium">
+                              {bankInflowToOutflow != null
+                                ? Number(bankInflowToOutflow).toFixed(2)
+                                : "—"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-slate-500 text-xs uppercase">
+                              Closing vs opening balance
+                            </div>
+                            <div className="font-medium">
+                              {bankClosingToOpening != null
+                                ? Number(bankClosingToOpening).toFixed(2)
+                                : "—"}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="grid gap-4 md:grid-cols-3">
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Net cash flow
-                          </div>
-                          <div className="font-medium">
-                            {bankNetCashFlow != null
-                              ? bankNetCashFlow.toLocaleString("en-ZA")
-                              : "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Inflow / outflow ratio
-                          </div>
-                          <div className="font-medium">
-                            {bankInflowToOutflow != null
-                              ? Number(bankInflowToOutflow).toFixed(2)
-                              : "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Closing vs opening balance
-                          </div>
-                          <div className="font-medium">
-                            {bankClosingToOpening != null
-                              ? Number(bankClosingToOpening).toFixed(2)
-                              : "—"}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                    )}
 
                   {/* Financial ratios – agent view */}
                   {financialRatios &&
@@ -2085,4 +2071,5 @@ export default function Results() {
     </div>
   );
 }
+
 

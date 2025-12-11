@@ -643,7 +643,8 @@ export default function Results() {
   // Classification & risk (where present)
   const classification = agentic?.classification || null;
   const riskScore = agentic?.risk_score?.score ?? result?.riskScore ?? null;
-  const riskBand = agentic?.risk_score?.band ?? null;
+  const riskBand =
+    agentic?.risk_score?.band ?? result?.riskScore?.band ?? null;
 
   // Confidence now comes from backend quality.confidence
   const quality = result?.quality || {};
@@ -1804,8 +1805,7 @@ export default function Results() {
                               Food &amp; groceries
                             </div>
                             <div className="font-medium">
-                              {classification.expense_summary
-                                .food_groceries != null
+                              {classification.expense_summary.food_groceries != null
                                 ? classification.expense_summary.food_groceries.toLocaleString(
                                     "en-ZA"
                                   )
@@ -2071,5 +2071,3 @@ export default function Results() {
     </div>
   );
 }
-
-

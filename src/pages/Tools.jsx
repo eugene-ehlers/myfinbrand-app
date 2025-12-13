@@ -1,5 +1,5 @@
 // src/pages/Tools.jsx
-import React, { useState, useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Seo from "../components/Seo.jsx";
 import SiteHeader from "../components/layout/SiteHeader.jsx";
@@ -10,14 +10,14 @@ export default function Tools() {
   const [category, setCategory] = useState("All");
   const [type, setType] = useState("All");
 
-  const sorted = useMemo(() => {
+  const sortedTools = useMemo(() => {
     return [...TOOLS].sort((a, b) => {
       if (!a.date || !b.date) return 0;
       return b.date.localeCompare(a.date);
     });
   }, []);
 
-  const filtered = sorted.filter((item) => {
+  const filtered = sortedTools.filter((item) => {
     const matchCategory =
       category === "All" ||
       item.category === category ||
@@ -27,7 +27,7 @@ export default function Tools() {
     return matchCategory && matchType;
   });
 
-  const featured = sorted.filter((i) => i.featured);
+  const featuredTools = sortedTools.filter((i) => i.featured);
 
   const isDocument = (item) =>
     typeof item.path === "string" &&
@@ -50,18 +50,27 @@ export default function Tools() {
           Quick calculators and assessments to estimate ROI, operating cost, and
           governance impact in under 3 minutes.
         </p>
+        <p className="mt-1 text-sm text-slate-500">
+          Start with the recommended tools below, then filter by category or
+          type.
+        </p>
 
-        {featured.length > 0 && (
+        {/* Featured row */}
+        {featuredTools.length > 0 && (
           <section className="mt-6">
             <h2 className="text-sm font-semibold tracking-wide text-slate-500 uppercase">
               Recommended starting points
             </h2>
             <div className="mt-3 grid gap-4 md:grid-cols-3">
-              {featured.map((a) => {
+              {featuredTools.map((a) => {
                 const doc = isDocument(a);
                 const Wrapper = doc ? "a" : Link;
                 const wrapperProps = doc
-                  ? { href: a.path, target: "_blank", rel: "noopener noreferrer" }
+                  ? {
+                      href: a.path,
+                      target: "_blank",
+                      rel: "noopener noreferrer",
+                    }
                   : { to: a.path };
 
                 return (
@@ -87,7 +96,9 @@ export default function Tools() {
           </section>
         )}
 
+        {/* Filters */}
         <div className="mt-8 flex flex-wrap gap-4 items-center">
+          {/* Category */}
           <div className="flex flex-wrap gap-2 items-center">
             <span className="text-xs uppercase tracking-wide text-slate-500">
               Category
@@ -119,6 +130,7 @@ export default function Tools() {
             ))}
           </div>
 
+          {/* Type */}
           <div className="flex flex-wrap gap-2 items-center">
             <span className="text-xs uppercase tracking-wide text-slate-500">
               Type
@@ -163,7 +175,11 @@ export default function Tools() {
               const doc = isDocument(a);
               const Wrapper = doc ? "a" : Link;
               const wrapperProps = doc
-                ? { href: a.path, target: "_blank", rel: "noopener noreferrer" }
+                ? {
+                    href: a.path,
+                    target: "_blank",
+                    rel: "noopener noreferrer",
+                  }
                 : { to: a.path };
 
               return (
@@ -179,7 +195,9 @@ export default function Tools() {
                     <div className="flex items-center gap-1">
                       {a.category && (
                         <span className="hidden sm:inline text-[10px] rounded-full border px-2 py-0.5">
-                          {Array.isArray(a.category) ? a.category[0] : a.category}
+                          {Array.isArray(a.category)
+                            ? a.category[0]
+                            : a.category}
                         </span>
                       )}
                       {a.type && (
@@ -189,12 +207,17 @@ export default function Tools() {
                       )}
                     </div>
                   </div>
+
                   <h2 className="mt-2 text-xl font-semibold">{a.title}</h2>
                   <p className="mt-2 text-slate-700">{a.summary}</p>
+
                   {a.tags && a.tags.length > 0 && (
                     <div className="mt-3 flex gap-2 flex-wrap">
                       {a.tags.map((t) => (
-                        <span key={t} className="text-xs rounded-full border px-2 py-0.5">
+                        <span
+                          key={t}
+                          className="text-xs rounded-full border px-2 py-0.5"
+                        >
                           {t}
                         </span>
                       ))}

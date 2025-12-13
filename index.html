@@ -2,12 +2,44 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MyFinBrand</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+
+    <!-- Basic SEO defaults (your Seo.jsx will override per route where relevant) -->
+    <title>The Smart Decision Group</title>
+    <meta
+      name="description"
+      content="Decision intelligence, models-as-a-service, and governed decision engines for credit, risk, and operations."
+    />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-FY3G2BQGLZ"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag("js", new Date());
+
+      gtag("config", "G-FY3G2BQGLZ", {
+        anonymize_ip: true
+      });
+    </script>
+
+    <!-- Optional: favicon (leave if you already have it) -->
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   </head>
+
   <body>
     <div id="root"></div>
+
+    <!-- Vite entry -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
+
 

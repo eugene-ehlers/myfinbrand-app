@@ -7,8 +7,6 @@ import SiteFooter from "../components/layout/SiteFooter.jsx";
 import ResourcesHeader from "../components/resources/ResourcesHeader.jsx";
 import { TOOLS, TOOL_CATEGORIES, TOOL_TYPES } from "../data/toolsContent";
 
-const SITE_URL = "https://www.tsdg.co.za";
-
 export default function Tools() {
   const [category, setCategory] = useState("All");
   const [type, setType] = useState("All");
@@ -45,56 +43,6 @@ export default function Tools() {
   const isDocument = (item) =>
     typeof item.path === "string" &&
     (item.path.endsWith(".pdf") || item.path.startsWith("/docs/"));
-
-  // --- SEO: structured data (JSON-LD) ---
-  const pageUrl = `${SITE_URL}/tools`;
-
-  const breadcrumbsJsonLd = useMemo(() => {
-    return {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        {
-          "@type": "ListItem",
-          position: 1,
-          name: "Home",
-          item: `${SITE_URL}/`,
-        },
-        {
-          "@type": "ListItem",
-          position: 2,
-          name: "Tools",
-          item: pageUrl,
-        },
-      ],
-    };
-  }, [pageUrl]);
-
-  const toolsItemListJsonLd = useMemo(() => {
-    const listItems = sortedTools
-      .filter((t) => t?.title && t?.path)
-      .map((t, idx) => {
-        const url = t.path.startsWith("http")
-          ? t.path
-          : `${SITE_URL}${t.path.startsWith("/") ? "" : "/"}${t.path}`;
-
-        return {
-          "@type": "ListItem",
-          position: idx + 1,
-          url,
-          name: t.title,
-        };
-      });
-
-    return {
-      "@context": "https://schema.org",
-      "@type": "ItemList",
-      name: "Tools & Calculators",
-      itemListOrder: "https://schema.org/ItemListOrderDescending",
-      numberOfItems: listItems.length,
-      itemListElement: listItems,
-    };
-  }, [sortedTools]);
 
   const Filters = (
     <div className="flex flex-wrap gap-4 items-center">
@@ -178,19 +126,9 @@ export default function Tools() {
     >
       <Seo
         title="Tools & Calculators | The Smart Decision Group"
-        description="Free calculators and assessments for executives, risk leaders, and credit teams evaluating decision automation ROI, operating cost, and scorecard profitability economics."
-        canonical={pageUrl}
+        description="Free calculators and assessments for executives, risk leaders, and credit teams evaluating decision automation, ROI, scorecard economics, and operating cost."
+        canonical="https://www.tsdg.co.za/tools"
         ogType="website"
-      />
-
-      {/* SEO: JSON-LD structured data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbsJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(toolsItemListJsonLd) }}
       />
 
       <SiteHeader />
@@ -204,6 +142,10 @@ export default function Tools() {
             <Link to="/insights" className="underline underline-offset-2">
               Explore Insights &amp; white papers
             </Link>
+            . Prefer plain-language guidance?{" "}
+            <Link to="/library" className="underline underline-offset-2">
+              Visit the Library
+            </Link>
             .
           </>
         }
@@ -213,75 +155,119 @@ export default function Tools() {
       />
 
       <main className="page-container mx-auto max-w-5xl px-4 pb-16 pt-8">
-        {filtered.length === 0 ? (
-          <p className="text-sm text-slate-500">
-            No tools match these filters yet.
-          </p>
-        ) : (
-          <div className="grid gap-5 sm:grid-cols-2">
-            {filtered.map((a) => {
-              const doc = isDocument(a);
-              const Wrapper = doc ? "a" : Link;
-              const wrapperProps = doc
-                ? { href: a.path, target: "_blank", rel: "noopener noreferrer" }
-                : { to: a.path };
-
-              return (
-                <Wrapper
-                  key={a.slug || a.path}
-                  {...wrapperProps}
-                  className={`rounded-2xl border bg-white p-5 hover:shadow transition-shadow ${accentClass(
-                    a
-                  )}`}
-                >
-                  <div className="flex items-center justify-between text-xs text-slate-500">
-                    <span>
-                      {a.date} {a.read ? `• ${a.read}` : null}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      {a.category && (
-                        <span className="hidden sm:inline text-[10px] rounded-full border px-2 py-0.5">
-                          {Array.isArray(a.category) ? a.category[0] : a.category}
-                        </span>
-                      )}
-                      {a.type && (
-                        <span className="text-[10px] rounded-full border px-2 py-0.5">
-                          {a.type}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <h2 className="mt-2 text-xl font-semibold">{a.title}</h2>
-                  <p className="mt-2 text-slate-700">{a.summary}</p>
-
-                  {a.note ? (
-                    <p className="mt-3 text-sm text-slate-500">{a.note}</p>
-                  ) : null}
-
-                  {a.tags && a.tags.length > 0 && (
-                    <div className="mt-3 flex gap-2 flex-wrap">
-                      {a.tags.map((t) => (
-                        <span
-                          key={t}
-                          className="text-xs rounded-full border px-2 py-0.5"
-                        >
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {a.ctaLabel ? (
-                    <div className="mt-4 text-sm font-medium underline underline-offset-2">
-                      {a.ctaLabel}
-                    </div>
-                  ) : null}
-                </Wrapper>
-              );
-            })}
+        {/* Lightweight discovery block (SEO + user guidance) */}
+        <section className="rounded-2xl border bg-white p-5">
+          <div className="text-xs uppercase tracking-wide text-slate-500">
+            Also in Resources
           </div>
-        )}
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            <div className="rounded-2xl border p-4 bg-slate-50">
+              <div className="text-sm font-semibold">Library (plain-language)</div>
+              <p className="mt-1 text-sm text-slate-700">
+                If your team is not ready for “models and decision engines”, start here:
+                situations, questions, and short briefings written for operators.
+              </p>
+              <div className="mt-3">
+                <Link
+                  to="/library"
+                  className="text-sm font-medium underline underline-offset-2"
+                >
+                  Go to Library
+                </Link>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border p-4 bg-slate-50">
+              <div className="text-sm font-semibold">Insights (papers & guides)</div>
+              <p className="mt-1 text-sm text-slate-700">
+                Prefer the structured view? Executive summaries and downloadable PDFs
+                on decision engines, governance, and analytics ROI.
+              </p>
+              <div className="mt-3">
+                <Link
+                  to="/insights"
+                  className="text-sm font-medium underline underline-offset-2"
+                >
+                  Go to Insights
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="mt-8">
+          {filtered.length === 0 ? (
+            <p className="text-sm text-slate-500">
+              No tools match these filters yet.
+            </p>
+          ) : (
+            <div className="grid gap-5 sm:grid-cols-2">
+              {filtered.map((a) => {
+                const doc = isDocument(a);
+                const Wrapper = doc ? "a" : Link;
+                const wrapperProps = doc
+                  ? { href: a.path, target: "_blank", rel: "noopener noreferrer" }
+                  : { to: a.path };
+
+                return (
+                  <Wrapper
+                    key={a.slug || a.path}
+                    {...wrapperProps}
+                    className={`rounded-2xl border bg-white p-5 hover:shadow transition-shadow ${accentClass(
+                      a
+                    )}`}
+                  >
+                    <div className="flex items-center justify-between text-xs text-slate-500">
+                      <span>
+                        {a.date} {a.read ? `• ${a.read}` : null}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        {a.category && (
+                          <span className="hidden sm:inline text-[10px] rounded-full border px-2 py-0.5">
+                            {Array.isArray(a.category)
+                              ? a.category[0]
+                              : a.category}
+                          </span>
+                        )}
+                        {a.type && (
+                          <span className="text-[10px] rounded-full border px-2 py-0.5">
+                            {a.type}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <h2 className="mt-2 text-xl font-semibold">{a.title}</h2>
+                    <p className="mt-2 text-slate-700">{a.summary}</p>
+
+                    {a.note ? (
+                      <p className="mt-3 text-sm text-slate-500">{a.note}</p>
+                    ) : null}
+
+                    {a.tags && a.tags.length > 0 && (
+                      <div className="mt-3 flex gap-2 flex-wrap">
+                        {a.tags.map((t) => (
+                          <span
+                            key={t}
+                            className="text-xs rounded-full border px-2 py-0.5"
+                          >
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {a.ctaLabel ? (
+                      <div className="mt-4 text-sm font-medium underline underline-offset-2">
+                        {a.ctaLabel}
+                      </div>
+                    ) : null}
+                  </Wrapper>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </main>
 
       <SiteFooter />

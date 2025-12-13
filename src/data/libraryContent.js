@@ -1,202 +1,223 @@
-// src/pages/Library.jsx
-import React, { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import Seo from "../components/Seo.jsx";
-import SiteHeader from "../components/layout/SiteHeader.jsx";
-import SiteFooter from "../components/layout/SiteFooter.jsx";
-import ResourcesHeader from "../components/resources/ResourcesHeader.jsx";
-import { LIBRARY, LIBRARY_CATEGORIES, LIBRARY_TYPES, getFeaturedLibrary } from "../data/libraryContent";
+// src/data/libraryContent.js
 
-export default function Library() {
-  const [category, setCategory] = useState("All");
-  const [type, setType] = useState("All");
+export const LIBRARY_CATEGORIES = [
+  "Start here",
+  "Situations",
+  "Questions",
+  "Field notes",
+  "Briefings",
+];
 
-  const sorted = useMemo(() => {
-    return [...LIBRARY].sort((a, b) => {
-      if (!a.date || !b.date) return 0;
-      return b.date.localeCompare(a.date);
+export const LIBRARY_TYPES = ["Situation", "Question", "Field Note", "Briefing"];
+
+export const LIBRARY = [
+  {
+    slug: "start-here-micro-lender-to-modern-decisions",
+    kind: "briefings",
+    title: "Start Here: From Excel & Rules to Modern Decisioning (Without Losing Control)",
+    summary:
+      "A respectful, practical pathway for small lenders and retailers moving from manual decisioning into repeatable, governed decisions—without big-bank complexity.",
+    date: "2025-12-13",
+    read: "4–5 min",
+    tags: ["Micro lenders", "Retailers", "Rules", "Decisioning"],
+    category: "Start here",
+    type: "Briefing",
+    featured: true,
+    featuredRank: 1,
+    accent: "teal",
+    body: {
+      sections: [
+        {
+          heading: "The real problem is not technology",
+          paragraphs: [
+            "Most small lenders do not lack software; they lack clarity. Decisions sit inside a loan management system (LMS) as a mix of hidden rules, staff habits, and exceptions. That works—until volumes rise, staff change, fraud increases, or the regulator asks “why”.",
+            "A decision engine is not a ‘bank thing’. It is a way of making your rules and trade-offs explicit, testable, auditable, and improvable—without forcing you to become a data science shop.",
+          ],
+        },
+        {
+          heading: "The minimum viable modernisation (what to do first)",
+          bullets: [
+            "Write down your top 10 rules in plain business language (not system fields).",
+            "Separate ‘policy’ from ‘process’ (who decides vs how the work flows).",
+            "Measure 3 numbers: time-to-decision, approval rate, and bad rate by segment.",
+            "Move decisioning out of ‘people memory’ into a governed rules layer.",
+          ],
+        },
+        {
+          heading: "Where scorecards fit (and why distrust is common)",
+          paragraphs: [
+            "If you’ve had a bad experience with bureau scores, you’re not alone. The mistake is treating a bureau score as ‘the decision’. It’s only one input. A practical path is to start with transparent rules, add verification steps, then introduce simple scorecarding as a controlled challenger—measured by profit, not only Gini.",
+          ],
+        },
+      ],
+    },
+  },
+
+  {
+    slug: "situation-lms-does-everything",
+    kind: "situations",
+    title: "Situation: “Our LMS already does originations — why do we need anything else?”",
+    summary:
+      "How to explain the difference between an LMS workflow and a governed decision layer—using language operators recognise.",
+    date: "2025-12-13",
+    read: "3–4 min",
+    tags: ["LMS", "Originations", "Rules", "Governance"],
+    category: "Situations",
+    type: "Situation",
+    featured: true,
+    featuredRank: 2,
+    accent: "navy",
+    body: {
+      sections: [
+        {
+          heading: "What an LMS is great at",
+          bullets: [
+            "Capturing applications and documents",
+            "Managing accounts and repayments",
+            "Producing statements and operational reporting",
+          ],
+        },
+        {
+          heading: "What an LMS is usually bad at",
+          bullets: [
+            "Transparent, testable decision logic (rules are hidden, scattered, or hard-coded)",
+            "Consistent exception handling and audit trails",
+            "Champion/Challenger testing and safe improvement cycles",
+          ],
+        },
+        {
+          heading: "The simplest explanation",
+          paragraphs: [
+            "Think of the LMS as the ‘factory floor’. The decision layer is the ‘quality system’ that tells the factory what rules apply today, what changed, and why.",
+          ],
+        },
+      ],
+    },
+  },
+
+  {
+    slug: "question-what-is-a-scorecard",
+    kind: "questions",
+    title: "Question: “What is a scorecard, in plain terms?”",
+    summary:
+      "A short, jargon-free explanation of scorecards, why they fail in practice, and how to use them safely.",
+    date: "2025-12-13",
+    read: "3 min",
+    tags: ["Scorecards", "Risk", "Plain language"],
+    category: "Questions",
+    type: "Question",
+    featured: true,
+    featuredRank: 3,
+    accent: "slate",
+    body: {
+      sections: [
+        {
+          heading: "Plain definition",
+          paragraphs: [
+            "A scorecard is a consistent way to combine multiple signals (e.g., income, stability, repayment history, identity checks) into one risk indicator—so your decisions are not dependent on who is working the application that day.",
+          ],
+        },
+        {
+          heading: "Why scorecards get distrusted",
+          bullets: [
+            "They are implemented as a black box (no explainability).",
+            "They are applied without policy overlays or verification checks.",
+            "Teams optimise technical metrics and ignore profit economics.",
+            "No monitoring—performance drifts quietly over time.",
+          ],
+        },
+        {
+          heading: "How to use them safely",
+          bullets: [
+            "Start with rules you trust, then introduce the score as one input.",
+            "Pilot with a challenger strategy, not a big-bang replacement.",
+            "Measure profit impact, not only Gini/KS/AUC.",
+          ],
+        },
+      ],
+    },
+  },
+
+  {
+    slug: "field-note-why-5-bad-rate-can-still-hide-risk",
+    kind: "notes",
+    title: "Field Note: “We have a 5% bad rate — we’re fine” (Sometimes you aren’t)",
+    summary:
+      "Why a low headline bad rate can still hide leakage, fraud exposure, and poor growth economics—especially in 1-month products.",
+    date: "2025-12-13",
+    read: "4 min",
+    tags: ["Bad rate", "Short-term loans", "Leakage", "Fraud"],
+    category: "Field notes",
+    type: "Field Note",
+    featured: false,
+    accent: "slate",
+    body: {
+      sections: [
+        {
+          heading: "Common blind spots",
+          bullets: [
+            "Bad rate is averaged across segments—high-risk segments may be growing quietly.",
+            "Fraud and identity issues often show up as ‘good’ until they don’t.",
+            "Short-term products can mask affordability stress that appears on repeat borrowing.",
+          ],
+        },
+        {
+          heading: "A better set of questions",
+          bullets: [
+            "What is bad rate by acquisition channel and branch/agent?",
+            "What is repeat borrowing behaviour by segment?",
+            "What is time-to-decision and dropout before completion?",
+          ],
+        },
+      ],
+    },
+  },
+
+  {
+    slug: "briefing-trust-someone-to-do-it-for-me",
+    kind: "briefings",
+    title: "Briefing: “Just do everything for me” — A Managed Decisioning Model That Still Keeps You Safe",
+    summary:
+      "How a ‘trust someone I trust’ persona can adopt decisioning without building internal capability first—while retaining governance and control.",
+    date: "2025-12-13",
+    read: "4 min",
+    tags: ["Managed service", "Governance", "Outsourcing"],
+    category: "Briefings",
+    type: "Briefing",
+    featured: false,
+    accent: "teal",
+    body: {
+      sections: [
+        {
+          heading: "The risk with outsourcing decisioning",
+          paragraphs: [
+            "Outsourcing can speed up delivery, but it can also create dependency and hidden logic. The answer is not ‘don’t outsource’—it is to structure outsourcing around governance artefacts.",
+          ],
+        },
+        {
+          heading: "What you should insist on (non-negotiables)",
+          bullets: [
+            "Your policy rules documented in business language",
+            "Versioning of decision rules and models",
+            "Reason codes for approvals/declines",
+            "Monthly monitoring pack (quality + profit metrics)",
+          ],
+        },
+      ],
+    },
+  },
+];
+
+export function getLibraryItem(kind, slug) {
+  return LIBRARY.find((x) => x.kind === kind && x.slug === slug);
+}
+
+export function getFeaturedLibrary() {
+  return [...LIBRARY]
+    .filter((x) => x.featured)
+    .sort((a, b) => {
+      const ar = Number.isFinite(a.featuredRank) ? a.featuredRank : 9999;
+      const br = Number.isFinite(b.featuredRank) ? b.featuredRank : 9999;
+      return ar - br || (b.date || "").localeCompare(a.date || "");
     });
-  }, []);
-
-  const featured = useMemo(() => getFeaturedLibrary(), []);
-
-  const filtered = sorted.filter((item) => {
-    const matchCategory =
-      category === "All" ||
-      item.category === category ||
-      (Array.isArray(item.category) && item.category.includes(category));
-
-    const matchType = type === "All" || item.type === type;
-    return matchCategory && matchType;
-  });
-
-  const Filters = (
-    <div className="flex flex-wrap gap-4 items-center">
-      {/* Category filter */}
-      <div className="flex flex-wrap gap-2 items-center">
-        <span className="text-xs uppercase tracking-wide text-slate-500">
-          Category
-        </span>
-        <button
-          type="button"
-          onClick={() => setCategory("All")}
-          className={`text-xs px-3 py-1 rounded-full border ${
-            category === "All"
-              ? "bg-slate-900 text-white"
-              : "bg-white text-slate-700"
-          }`}
-        >
-          All
-        </button>
-        {LIBRARY_CATEGORIES.map((c) => (
-          <button
-            type="button"
-            key={c}
-            onClick={() => setCategory(c)}
-            className={`text-xs px-3 py-1 rounded-full border ${
-              category === c
-                ? "bg-slate-900 text-white"
-                : "bg-white text-slate-700"
-            }`}
-          >
-            {c}
-          </button>
-        ))}
-      </div>
-
-      {/* Type filter */}
-      <div className="flex flex-wrap gap-2 items-center">
-        <span className="text-xs uppercase tracking-wide text-slate-500">
-          Type
-        </span>
-        <button
-          type="button"
-          onClick={() => setType("All")}
-          className={`text-xs px-3 py-1 rounded-full border ${
-            type === "All"
-              ? "bg-slate-900 text-white"
-              : "bg-white text-slate-700"
-          }`}
-        >
-          All
-        </button>
-        {LIBRARY_TYPES.map((t) => (
-          <button
-            type="button"
-            key={t}
-            onClick={() => setType(t)}
-            className={`text-xs px-3 py-1 rounded-full border ${
-              type === t ? "bg-slate-900 text-white" : "bg-white text-slate-700"
-            }`}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  const accentClass = (a) =>
-    a?.accent === "teal"
-      ? "border-t-4 border-t-cyan-400"
-      : a?.accent === "navy"
-      ? "border-t-4 border-t-slate-900"
-      : a?.accent === "slate"
-      ? "border-t-4 border-t-slate-300"
-      : "";
-
-  const isDocument = () => false; // Library is internal content for v1
-
-  return (
-    <div
-      className="min-h-screen text-slate-900"
-      style={{ background: "rgb(var(--surface))" }}
-    >
-      <Seo
-        title="Library | The Smart Decision Group"
-        description="A private advisory library: situations, questions, briefings, and field notes for leaders modernising credit decisioning and operations."
-        canonical="https://www.tsdg.co.za/library"
-        ogType="website"
-      />
-
-      <SiteHeader />
-
-      <ResourcesHeader
-        title="Library"
-        description="A quiet advisory space—situations, questions, and field notes to help you modernise decisioning without needing to be a technical specialist."
-        helper={
-          <>
-            Prefer calculators?{" "}
-            <Link to="/tools" className="underline underline-offset-2">
-              Use Tools &amp; calculators
-            </Link>
-            . Prefer formal papers?{" "}
-            <Link to="/insights" className="underline underline-offset-2">
-              Explore Insights
-            </Link>
-            .
-          </>
-        }
-        featured={featured}
-        isDocument={isDocument}
-        filters={Filters}
-      />
-
-      <main className="page-container mx-auto max-w-5xl px-4 pb-16 pt-8">
-        {filtered.length === 0 ? (
-          <p className="text-sm text-slate-500">
-            No library items match these filters yet.
-          </p>
-        ) : (
-          <div className="grid gap-5 sm:grid-cols-2">
-            {filtered.map((a) => (
-              <Link
-                key={`${a.kind}:${a.slug}`}
-                to={`/library/${a.kind}/${a.slug}`}
-                className={`rounded-2xl border bg-white p-5 hover:shadow transition-shadow ${accentClass(
-                  a
-                )}`}
-              >
-                <div className="flex items-center justify-between text-xs text-slate-500">
-                  <span>
-                    {a.date} {a.read ? `• ${a.read}` : null}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    {a.category && (
-                      <span className="hidden sm:inline text-[10px] rounded-full border px-2 py-0.5">
-                        {Array.isArray(a.category) ? a.category[0] : a.category}
-                      </span>
-                    )}
-                    {a.type && (
-                      <span className="text-[10px] rounded-full border px-2 py-0.5">
-                        {a.type}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <h2 className="mt-2 text-xl font-semibold">{a.title}</h2>
-                <p className="mt-2 text-slate-700">{a.summary}</p>
-
-                {a.tags && a.tags.length > 0 && (
-                  <div className="mt-3 flex gap-2 flex-wrap">
-                    {a.tags.map((t) => (
-                      <span
-                        key={t}
-                        className="text-xs rounded-full border px-2 py-0.5"
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </Link>
-            ))}
-          </div>
-        )}
-      </main>
-
-      <SiteFooter />
-    </div>
-  );
 }

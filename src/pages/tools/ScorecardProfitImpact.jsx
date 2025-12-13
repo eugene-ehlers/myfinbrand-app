@@ -6,14 +6,6 @@ import CalculatorShell from "../../components/tools/CalculatorShell.jsx";
 import HowThisWorks from "../../components/tools/HowThisWorks.jsx";
 import { computeScorecardProfitImpact } from "../../lib/calculators/scorecardProfitImpact.js";
 
-<Link
-  to="/tools/scorecard-compare-profit"
-  className="text-sm rounded-xl border px-3 py-2"
->
-  Compare two scorecards
-</Link>
-
-
 const money = (n) =>
   Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
 
@@ -41,7 +33,8 @@ const driverLabel = ({ lossFromBads, opportunityCost }) => {
   }
 
   return {
-    heading: "Costs are dominated by missed profitable customers (False Negatives)",
+    heading:
+      "Costs are dominated by missed profitable customers (False Negatives)",
     text:
       "Your largest economic drag is declining good customers. The biggest levers are improving true positive rate, refining cut-offs, revisiting policy overlays, or improving segmentation and offer/pricing strategy.",
   };
@@ -105,6 +98,14 @@ export default function ScorecardProfitImpact() {
             <Link to="/tools" className="text-sm rounded-xl border px-3 py-2">
               All Tools
             </Link>
+
+            <Link
+              to="/tools/scorecard-compare-profit"
+              className="text-sm rounded-xl border px-3 py-2"
+            >
+              Compare two scorecards
+            </Link>
+
             <a
               href="mailto:contact@tsdg.co.za?subject=Scorecard%20profit%20impact%20review"
               className="text-sm rounded-xl px-3 py-2"
@@ -144,7 +145,10 @@ export default function ScorecardProfitImpact() {
             />
           </Field>
 
-          <Field label="False positive rate (%)" hint="Bads incorrectly approved">
+          <Field
+            label="False positive rate (%)"
+            hint="Bads incorrectly approved"
+          >
             <Input
               type="number"
               value={inputs.falsePositiveRatePct}
@@ -182,17 +186,18 @@ export default function ScorecardProfitImpact() {
           title="How this calculator works"
           teaser={
             <>
-              Technical scorecard performance does not always translate into higher
-              profit. This calculator applies economic values to the confusion matrix
-              to show real business impact.
+              Technical scorecard performance does not always translate into
+              higher profit. This calculator applies economic values to the
+              confusion matrix to show real business impact.
             </>
           }
         >
           <h3>Why better scorecards don’t always mean better business outcomes</h3>
           <p>
-            Most organisations evaluate credit scorecards using technical metrics such
-            as Gini, KS, AUC, or bad rate at a fixed cut-off. These measures are useful
-            — but they do not tell you whether the scorecard makes more money.
+            Most organisations evaluate credit scorecards using technical
+            metrics such as Gini, KS, AUC, or bad rate at a fixed cut-off. These
+            measures are useful — but they do not tell you whether the scorecard
+            makes more money.
           </p>
           <p>
             This calculator bridges that gap by translating traditional scorecard
@@ -217,10 +222,10 @@ export default function ScorecardProfitImpact() {
             </li>
           </ul>
           <p>
-            Traditional optimisation often focuses on reducing false positives (bad
-            approvals), while false negatives (missed profitable customers) are
-            underweighted. This model assigns an economic value or cost to each outcome
-            to calculate net profit.
+            Traditional optimisation often focuses on reducing false positives
+            (bad approvals), while false negatives (missed profitable customers)
+            are underweighted. This model assigns an economic value or cost to
+            each outcome to calculate net profit.
           </p>
 
           <h3>What this calculator shows</h3>
@@ -240,12 +245,10 @@ export default function ScorecardProfitImpact() {
               Use it for <strong>scenario comparison</strong>, not exact forecasting.
             </li>
             <li>
-              Compare multiple cut-offs, or compare two scorecards under the same
-              assumptions.
+              Compare multiple cut-offs, or compare two scorecards under the same assumptions.
             </li>
             <li>
-              Use realistic unit economics (profit per good, loss per bad, acquisition
-              costs).
+              Use realistic unit economics (profit per good, loss per bad, acquisition costs).
             </li>
             <li>
               Review outputs jointly across <strong>risk, finance, and commercial</strong>.
@@ -259,8 +262,7 @@ export default function ScorecardProfitImpact() {
               It does not calculate Gini/KS/AUC — it uses your provided rates/outcomes.
             </li>
             <li>
-              It does not model second-order effects (collections recovery, pricing
-              optimisation, churn).
+              It does not model second-order effects (collections recovery, pricing optimisation, churn).
             </li>
           </ul>
 
@@ -273,20 +275,16 @@ export default function ScorecardProfitImpact() {
       assumptions={
         <ul className="list-disc pl-5 space-y-2">
           <li>
-            This calculator evaluates <strong>a scorecard at a given cut-off</strong>.
-            It does not optimise technical metrics such as Gini or AUC.
+            This calculator evaluates <strong>a scorecard at a given cut-off</strong>. It does not optimise technical metrics such as Gini or AUC.
           </li>
           <li>
-            Approval rate is <strong>derived</strong> from the true/false positive rates
-            and the base bad rate (rather than entered separately).
+            Approval rate is <strong>derived</strong> from the true/false positive rates and the base bad rate (rather than entered separately).
           </li>
           <li>
-            Opportunity cost represents foregone contribution margin from rejecting
-            otherwise profitable customers.
+            Opportunity cost represents foregone contribution margin from rejecting otherwise profitable customers.
           </li>
           <li>
-            Loss per bad account should reflect expected lifetime loss, not just
-            first-cycle delinquency.
+            Loss per bad account should reflect expected lifetime loss, not just first-cycle delinquency.
           </li>
         </ul>
       }

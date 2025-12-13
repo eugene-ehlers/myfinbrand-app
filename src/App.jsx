@@ -1,5 +1,7 @@
-// src/App.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
+
+// Analytics (GA4 SPA tracking)
+import PageViewTracker from "./components/analytics/PageViewTracker.jsx";
 
 import Landing from "./pages/Landing.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
@@ -9,15 +11,7 @@ import Collections_Results from "./pages/CollectionsResults.jsx";
 import Collections_Strategy from "./pages/CollectionsStrategy.jsx";
 
 import Insights from "./pages/Insights.jsx";
-import Tools from "./pages/Tools.jsx"; // ✅ NEW: Tools index
-
-// Tools (calculator pages)
-import DecisionEngineRoi from "./pages/tools/DecisionEngineRoi.jsx"; // ✅ NEW: ROI calculator
-import ManualUnderwritingCost from "./pages/tools/ManualUnderwritingCost.jsx";
-import BuildVsRentModels from "./pages/tools/BuildVsRentModels.jsx";
-import ScorecardProfitImpact from "./pages/tools/ScorecardProfitImpact.jsx";
-import ScorecardCompareProfit from "./pages/tools/ScorecardCompareProfit.jsx";
-
+import Tools from "./pages/Tools.jsx";
 
 // Solutions
 import Collections from "./pages/solutions/Collections.jsx";
@@ -40,75 +34,103 @@ import Founder from "./pages/Founder.jsx";
 // Results page
 import Results from "./pages/Results.jsx";
 
+// Tools (calculator pages)
+import DecisionEngineROI from "./pages/tools/DecisionEngineROI.jsx";
+import ManualUnderwritingCost from "./pages/tools/ManualUnderwritingCost.jsx";
+import BuildVsRentModels from "./pages/tools/BuildVsRentModels.jsx";
+import ScorecardProfitImpact from "./pages/tools/ScorecardProfitImpact.jsx";
+// If/when you add Champion vs Challenger compare page, wire it here:
+// import ScorecardCompareProfit from "./pages/tools/ScorecardCompareProfit.jsx";
+
 export default function App() {
   return (
-    <Routes>
-      {/* Landing */}
-      <Route path="/" element={<Landing />} />
+    <>
+      <PageViewTracker />
 
-      {/* Founder page */}
-      <Route path="/founder" element={<Founder />} />
+      <Routes>
+        {/* Landing */}
+        <Route path="/" element={<Landing />} />
 
-      {/* Existing routes */}
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/admin" element={<Admin />} />
+        {/* Founder page */}
+        <Route path="/founder" element={<Founder />} />
 
-      {/* Results page – this is where Dashboard navigates after upload */}
-      <Route path="/results" element={<Results />} />
+        {/* Existing app routes */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/results" element={<Results />} />
 
-      {/* Tools hub + calculators */}
-      <Route path="/tools" element={<Tools />} />
-      <Route path="/tools/decision-engine-roi" element={<DecisionEngineRoi />} />
-      <Route path="/tools/manual-underwriting-cost" element={<ManualUnderwritingCost />} />
-      <Route path="/tools/build-vs-rent-models" element={<BuildVsRentModels />} />
-      <Route path="/tools/scorecard-profit-impact" element={<ScorecardProfitImpact />}/>
-      <Route path="/tools/scorecard-compare-profit" element={<ScorecardCompareProfit />}/>
+        {/* Collections workflow */}
+        <Route path="/collections-upload" element={<Collections_Upload />} />
+        <Route path="/collections-results" element={<Collections_Results />} />
+        <Route path="/collections-strategy" element={<Collections_Strategy />} />
 
-      {/* Solutions */}
-      <Route path="/solutions/collections" element={<Collections />} />
-      <Route path="/solutions/originations" element={<Originations />} />
-      <Route path="/solutions/fraud" element={<Fraud />} />
-      <Route path="/solutions/kyc-fica" element={<KycFica />} />
-      <Route
-        path="/solutions/pricing-optimisation"
-        element={<PricingOptimisation />}
-      />
-      <Route
-        path="/solutions/customer-management"
-        element={<CustomerManagement />}
-      />
-      <Route
-        path="/solutions/our-decision-engine"
-        element={<OurDecisionEngine />}
-      />
+        {/* Solutions */}
+        <Route path="/solutions/collections" element={<Collections />} />
+        <Route path="/solutions/originations" element={<Originations />} />
+        <Route path="/solutions/fraud" element={<Fraud />} />
+        <Route path="/solutions/kyc-fica" element={<KycFica />} />
+        <Route
+          path="/solutions/pricing-optimisation"
+          element={<PricingOptimisation />}
+        />
+        <Route
+          path="/solutions/customer-management"
+          element={<CustomerManagement />}
+        />
+        <Route
+          path="/solutions/our-decision-engine"
+          element={<OurDecisionEngine />}
+        />
 
-      {/* Insights hub + articles */}
-      <Route path="/insights" element={<Insights />} />
-      <Route path="/insights/why-ml" element={<WhyML />} />
-      <Route
-        path="/insights/decision-engines-101"
-        element={<DecisionEngines101 />}
-      />
-      <Route
-        path="/insights/ai-driven-business-advantage"
-        element={<AIDrivenBusinessAdvantage />}
-      />
-      <Route
-        path="/insights/building-predictive-models-in-house"
-        element={<BuildingPredictiveModelsInHouse />}
-      />
-      <Route
-        path="/insights/agentic-vs-decision-engine"
-        element={<AgenticVsDecisionEngine />}
-      />
+        {/* Insights hub + articles */}
+        <Route path="/insights" element={<Insights />} />
+        <Route path="/insights/why-ml" element={<WhyML />} />
+        <Route
+          path="/insights/decision-engines-101"
+          element={<DecisionEngines101 />}
+        />
+        <Route
+          path="/insights/ai-driven-business-advantage"
+          element={<AIDrivenBusinessAdvantage />}
+        />
+        <Route
+          path="/insights/building-predictive-models-in-house"
+          element={<BuildingPredictiveModelsInHouse />}
+        />
+        <Route
+          path="/insights/agentic-vs-decision-engine"
+          element={<AgenticVsDecisionEngine />}
+        />
 
-      {/* Collections tooling */}
-      <Route path="/collections-upload" element={<Collections_Upload />} />
-      <Route path="/collections-results" element={<Collections_Results />} />
-      <Route path="/collections-strategy" element={<Collections_Strategy />} />
+        {/* Tools hub */}
+        <Route path="/tools" element={<Tools />} />
 
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* Tool detail pages (calculators) */}
+        <Route path="/tools/decision-engine-roi" element={<DecisionEngineROI />} />
+        <Route
+          path="/tools/manual-underwriting-cost"
+          element={<ManualUnderwritingCost />}
+        />
+        <Route
+          path="/tools/build-vs-rent-models"
+          element={<BuildVsRentModels />}
+        />
+        <Route
+          path="/tools/scorecard-profit-impact"
+          element={<ScorecardProfitImpact />}
+        />
+
+        {/* Champion vs Challenger compare page (enable when file exists) */}
+        {/*
+        <Route
+          path="/tools/scorecard-compare-profit"
+          element={<ScorecardCompareProfit />}
+        />
+        */}
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }

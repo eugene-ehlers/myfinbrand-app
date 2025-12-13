@@ -1,4 +1,5 @@
 // src/data/toolsContent.js
+
 export const TOOL_CATEGORIES = [
   "ROI & Business Case",
   "Operations & Cost",
@@ -22,14 +23,13 @@ export const TOOLS = [
     category: "ROI & Business Case",
     type: "Calculator",
     featured: true,
-    // optional: recommended download(s) to show on the tool page
     relatedInsights: ["decision-engines-101", "ai-driven-business-advantage"],
   },
   {
     slug: "manual-underwriting-cost",
     title: "Manual Underwriting Cost & Capacity Calculator",
     summary:
-      "Translate volumes and handling time into FTE, monthly cost, and SLA risk under peak demand.",
+      "Translate decision volumes and handling time into FTE, monthly cost, and peak-demand capacity risk.",
     path: "/tools/manual-underwriting-cost",
     date: "2025-12-13",
     read: "2 min",

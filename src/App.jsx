@@ -15,6 +15,7 @@ import Tools from "./pages/Tools.jsx"; // ✅ NEW: Tools index
 import DecisionEngineRoi from "./pages/tools/DecisionEngineRoi.jsx"; // ✅ NEW: ROI calculator
 import ManualUnderwritingCost from "./pages/tools/ManualUnderwritingCost.jsx";
 import BuildVsRentModels from "./pages/tools/BuildVsRentModels.jsx";
+import ScorecardProfitImpact from "./pages/tools/ScorecardProfitImpact.jsx";
 
 
 // Solutions
@@ -57,10 +58,11 @@ export default function App() {
       {/* Tools hub + calculators */}
       <Route path="/tools" element={<Tools />} />
       <Route path="/tools/decision-engine-roi" element={<DecisionEngineRoi />} />
-      {/* Later:
       <Route path="/tools/manual-underwriting-cost" element={<ManualUnderwritingCost />} />
       <Route path="/tools/build-vs-rent-models" element={<BuildVsRentModels />} />
-      */}
+      <Route path="/tools/scorecard-profit-impact" element={<ScorecardProfitImpact />}
+      />
+
 
       {/* Solutions */}
       <Route path="/solutions/collections" element={<Collections />} />

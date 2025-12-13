@@ -7,6 +7,8 @@ import SiteFooter from "../components/layout/SiteFooter.jsx";
 import ResourcesHeader from "../components/resources/ResourcesHeader.jsx";
 import { TOOLS, TOOL_CATEGORIES, TOOL_TYPES } from "../data/toolsContent";
 
+const SITE_URL = "https://www.tsdg.co.za";
+
 export default function Tools() {
   const [category, setCategory] = useState("All");
   const [type, setType] = useState("All");
@@ -43,6 +45,56 @@ export default function Tools() {
   const isDocument = (item) =>
     typeof item.path === "string" &&
     (item.path.endsWith(".pdf") || item.path.startsWith("/docs/"));
+
+  // --- SEO: structured data (JSON-LD) ---
+  const pageUrl = `${SITE_URL}/tools`;
+
+  const breadcrumbsJsonLd = useMemo(() => {
+    return {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: `${SITE_URL}/`,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Tools",
+          item: pageUrl,
+        },
+      ],
+    };
+  }, [pageUrl]);
+
+  const toolsItemListJsonLd = useMemo(() => {
+    const listItems = sortedTools
+      .filter((t) => t?.title && t?.path)
+      .map((t, idx) => {
+        const url = t.path.startsWith("http")
+          ? t.path
+          : `${SITE_URL}${t.path.startsWith("/") ? "" : "/"}${t.path}`;
+
+        return {
+          "@type": "ListItem",
+          position: idx + 1,
+          url,
+          name: t.title,
+        };
+      });
+
+    return {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: "Tools & Calculators",
+      itemListOrder: "https://schema.org/ItemListOrderDescending",
+      numberOfItems: listItems.length,
+      itemListElement: listItems,
+    };
+  }, [sortedTools]);
 
   const Filters = (
     <div className="flex flex-wrap gap-4 items-center">
@@ -126,9 +178,19 @@ export default function Tools() {
     >
       <Seo
         title="Tools & Calculators | The Smart Decision Group"
-        description="Free calculators and assessments for executives, risk leaders, and credit teams evaluating decision automation, ROI, and operating cost."
-        canonical="https://www.tsdg.co.za/tools"
+        description="Free calculators and assessments for executives, risk leaders, and credit teams evaluating decision automation ROI, operating cost, and scorecard profitability economics."
+        canonical={pageUrl}
         ogType="website"
+      />
+
+      {/* SEO: JSON-LD structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbsJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(toolsItemListJsonLd) }}
       />
 
       <SiteHeader />

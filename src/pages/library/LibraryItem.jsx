@@ -1,5 +1,5 @@
 // src/pages/library/LibraryItem.jsx
-import React from "react";
+import React, { useMemo } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
 import Seo from "../../components/Seo.jsx";
 import SiteHeader from "../../components/layout/SiteHeader.jsx";
@@ -38,7 +38,34 @@ export default function LibraryItem() {
     return <Navigate to="/library" replace />;
   }
 
+  const canonical = `https://www.tsdg.co.za/library/${item.kind}/${item.slug}`;
   const title = `${item.title} | TSDG Library`;
+
+  // JSON-LD (SEO)
+  const jsonLd = useMemo(() => {
+    const published = item.date ? `${item.date}T00:00:00+02:00` : undefined;
+
+    return {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: item.title,
+      description: item.summary,
+      mainEntityOfPage: canonical,
+      datePublished: published,
+      author: {
+        "@type": "Organization",
+        name: "The Smart Decision Group",
+      },
+      publisher: {
+        "@type": "Organization",
+        name: "The Smart Decision Group",
+        url: "https://www.tsdg.co.za",
+      },
+      about: (item.tags || []).map((t) => ({ "@type": "Thing", name: t })),
+      articleSection: item.category,
+      keywords: (item.tags || []).join(", "),
+    };
+  }, [item, canonical]);
 
   return (
     <div
@@ -48,9 +75,14 @@ export default function LibraryItem() {
       <Seo
         title={title}
         description={item.summary}
-        canonical={`https://www.tsdg.co.za/library/${item.kind}/${item.slug}`}
+        canonical={canonical}
         ogType="article"
       />
+
+      {/* Structured data for SEO */}
+      <script type="application/ld+json">
+        {JSON.stringify(jsonLd)}
+      </script>
 
       <SiteHeader />
 
@@ -59,9 +91,18 @@ export default function LibraryItem() {
           <div className="text-xs text-slate-500">
             {item.type} {item.read ? `• ${item.read}` : null}
           </div>
-          <Link to="/library" className="text-sm rounded-xl border px-3 py-2">
-            Back to Library
-          </Link>
+
+          <div className="flex flex-wrap gap-2">
+            <Link to="/library" className="text-sm rounded-xl border px-3 py-2">
+              Back to Library
+            </Link>
+            <Link to="/tools" className="text-sm rounded-xl border px-3 py-2">
+              Tools
+            </Link>
+            <Link to="/insights" className="text-sm rounded-xl border px-3 py-2">
+              Insights
+            </Link>
+          </div>
         </div>
 
         <h1 className="mt-3 text-3xl font-semibold tracking-tight">
@@ -72,7 +113,10 @@ export default function LibraryItem() {
         {item.tags?.length ? (
           <div className="mt-4 flex flex-wrap gap-2">
             {item.tags.map((t) => (
-              <span key={t} className="text-xs rounded-full border px-2 py-0.5 bg-white">
+              <span
+                key={t}
+                className="text-xs rounded-full border px-2 py-0.5 bg-white"
+              >
                 {t}
               </span>
             ))}
@@ -91,27 +135,51 @@ export default function LibraryItem() {
             />
           ))}
 
-          <div className="mt-8 rounded-2xl border p-5 bg-slate-50">
-            <div className="text-sm text-slate-700">
-              Want to quantify impact instead of debating opinions?
+          {/* Low-pressure next steps (discovery + conversion) */}
+          <div className="mt-8 grid gap-3 md:grid-cols-3">
+            <div className="rounded-2xl border p-5 bg-slate-50">
+              <div className="text-sm font-semibold">Quantify impact</div>
+              <p className="mt-1 text-sm text-slate-700">
+                Use a calculator to convert uncertainty into a business case.
+              </p>
+              <div className="mt-3">
+                <Link
+                  to="/tools"
+                  className="text-sm font-medium underline underline-offset-2"
+                >
+                  Explore Tools
+                </Link>
+              </div>
             </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Link to="/tools" className="text-sm rounded-xl border px-3 py-2 bg-white">
-                Use Tools &amp; calculators
-              </Link>
-              <Link to="/insights" className="text-sm rounded-xl border px-3 py-2 bg-white">
-                Read Insights
-              </Link>
-              <a
-                href="mailto:contact@tsdg.co.za?subject=Library%20question"
-                className="text-sm rounded-xl px-3 py-2"
-                style={{
-                  background: "rgb(var(--primary))",
-                  color: "rgb(var(--primary-fg))",
-                }}
-              >
-                Ask a private question
-              </a>
+
+            <div className="rounded-2xl border p-5 bg-slate-50">
+              <div className="text-sm font-semibold">Read the formal view</div>
+              <p className="mt-1 text-sm text-slate-700">
+                White papers and executive summaries with more structure.
+              </p>
+              <div className="mt-3">
+                <Link
+                  to="/insights"
+                  className="text-sm font-medium underline underline-offset-2"
+                >
+                  Explore Insights
+                </Link>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border p-5 bg-slate-50">
+              <div className="text-sm font-semibold">Ask privately</div>
+              <p className="mt-1 text-sm text-slate-700">
+                A short question is enough. No public comments, no “training”.
+              </p>
+              <div className="mt-3">
+                <a
+                  href="mailto:contact@tsdg.co.za?subject=Library%20question"
+                  className="text-sm font-medium underline underline-offset-2"
+                >
+                  Email us
+                </a>
+              </div>
             </div>
           </div>
         </article>

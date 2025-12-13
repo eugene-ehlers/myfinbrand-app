@@ -1,5 +1,6 @@
 // src/App.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
+
 import Landing from "./pages/Landing.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Admin from "./pages/Admin.jsx";
@@ -7,8 +8,11 @@ import Collections_Upload from "./pages/CollectionsUpload.jsx";
 import Collections_Results from "./pages/CollectionsResults.jsx";
 import Collections_Strategy from "./pages/CollectionsStrategy.jsx";
 
-
 import Insights from "./pages/Insights.jsx";
+import Tools from "./pages/Tools.jsx"; // ✅ NEW: Tools index
+
+// Tools (calculator pages)
+import DecisionEngineRoi from "./pages/tools/DecisionEngineRoi.jsx"; // ✅ NEW: ROI calculator
 
 // Solutions
 import Collections from "./pages/solutions/Collections.jsx";
@@ -28,7 +32,7 @@ import AgenticVsDecisionEngine from "./pages/articles/AgenticVsDecisionEngine.js
 
 import Founder from "./pages/Founder.jsx";
 
-// 🔹 NEW: import Results page
+// Results page
 import Results from "./pages/Results.jsx";
 
 export default function App() {
@@ -44,8 +48,16 @@ export default function App() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/admin" element={<Admin />} />
 
-      {/* 🔹 NEW: Results page – this is where Dashboard navigates after upload */}
+      {/* Results page – this is where Dashboard navigates after upload */}
       <Route path="/results" element={<Results />} />
+
+      {/* Tools hub + calculators */}
+      <Route path="/tools" element={<Tools />} />
+      <Route path="/tools/decision-engine-roi" element={<DecisionEngineRoi />} />
+      {/* Later:
+      <Route path="/tools/manual-underwriting-cost" element={<ManualUnderwritingCost />} />
+      <Route path="/tools/build-vs-rent-models" element={<BuildVsRentModels />} />
+      */}
 
       {/* Solutions */}
       <Route path="/solutions/collections" element={<Collections />} />
@@ -85,17 +97,10 @@ export default function App() {
         element={<AgenticVsDecisionEngine />}
       />
 
-      <Route path="/collections-upload" 
-        element={<Collections_Upload />} 
-      />
-      <Route path="/collections-results" 
-        element={<Collections_Results />} 
-      />
-
-      <Route path="/collections-strategy" 
-        element={<Collections_Strategy />} 
-      />
-
+      {/* Collections tooling */}
+      <Route path="/collections-upload" element={<Collections_Upload />} />
+      <Route path="/collections-results" element={<Collections_Results />} />
+      <Route path="/collections-strategy" element={<Collections_Strategy />} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

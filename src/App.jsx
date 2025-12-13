@@ -13,6 +13,9 @@ import Tools from "./pages/Tools.jsx"; // ✅ NEW: Tools index
 
 // Tools (calculator pages)
 import DecisionEngineRoi from "./pages/tools/DecisionEngineRoi.jsx"; // ✅ NEW: ROI calculator
+import ManualUnderwritingCost from "./pages/tools/ManualUnderwritingCost.jsx";
+import BuildVsRentModels from "./pages/tools/BuildVsRentModels.jsx";
+
 
 // Solutions
 import Collections from "./pages/solutions/Collections.jsx";

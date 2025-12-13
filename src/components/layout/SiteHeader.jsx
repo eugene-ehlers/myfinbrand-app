@@ -1,6 +1,6 @@
 // src/components/layout/SiteHeader.jsx
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Linkedin } from "lucide-react";
 
 export default function SiteHeader() {
@@ -9,41 +9,34 @@ export default function SiteHeader() {
 
   const solutionsRef = useRef(null);
   const resourcesRef = useRef(null);
+  const location = useLocation();
 
-  // Close dropdowns on outside click / Escape
+  // Close dropdowns on route change
   useEffect(() => {
-    const onMouseDown = (e) => {
-      const inSolutions = solutionsRef.current?.contains(e.target);
-      const inResources = resourcesRef.current?.contains(e.target);
+    setSolutionsOpen(false);
+    setResourcesOpen(false);
+  }, [location.pathname]);
 
-      if (!inSolutions) setSolutionsOpen(false);
-      if (!inResources) setResourcesOpen(false);
-    };
-
-    const onKeyDown = (e) => {
-      if (e.key === "Escape") {
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const onClickOutside = (e) => {
+      if (
+        solutionsRef.current &&
+        !solutionsRef.current.contains(e.target)
+      ) {
         setSolutionsOpen(false);
+      }
+      if (
+        resourcesRef.current &&
+        !resourcesRef.current.contains(e.target)
+      ) {
         setResourcesOpen(false);
       }
     };
 
-    document.addEventListener("mousedown", onMouseDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", onMouseDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
-
-  const toggleSolutions = () => {
-    setSolutionsOpen((open) => !open);
-    setResourcesOpen(false);
-  };
-
-  const toggleResources = () => {
-    setResourcesOpen((open) => !open);
-    setSolutionsOpen(false);
-  };
 
   return (
     <header className="site-header">
@@ -70,7 +63,10 @@ export default function SiteHeader() {
           <div className="relative" ref={solutionsRef}>
             <button
               type="button"
-              onClick={toggleSolutions}
+              onClick={() => {
+                setSolutionsOpen((open) => !open);
+                setResourcesOpen(false);
+              }}
               className="header-cta flex items-center gap-1"
               aria-haspopup="menu"
               aria-expanded={solutionsOpen}
@@ -80,7 +76,10 @@ export default function SiteHeader() {
             </button>
 
             {solutionsOpen && (
-              <div className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg text-sm z-30">
+              <div
+                className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg text-sm z-30"
+                role="menu"
+              >
                 {/* Overview on the home page */}
                 <a
                   href="/#capabilities"
@@ -100,6 +99,7 @@ export default function SiteHeader() {
                   className="block px-4 py-2 hover:bg-slate-50"
                   style={{ color: "rgb(15 23 42)" }}
                   onClick={() => setSolutionsOpen(false)}
+                  role="menuitem"
                 >
                   Our Decision Engine
                 </Link>
@@ -112,6 +112,7 @@ export default function SiteHeader() {
                   className="block px-4 py-2 hover:bg-slate-50"
                   style={{ color: "rgb(15 23 42)" }}
                   onClick={() => setSolutionsOpen(false)}
+                  role="menuitem"
                 >
                   Collections optimisation
                 </Link>
@@ -120,6 +121,7 @@ export default function SiteHeader() {
                   className="block px-4 py-2 hover:bg-slate-50"
                   style={{ color: "rgb(15 23 42)" }}
                   onClick={() => setSolutionsOpen(false)}
+                  role="menuitem"
                 >
                   Originations &amp; onboarding
                 </Link>
@@ -132,6 +134,7 @@ export default function SiteHeader() {
                   className="block px-4 py-2 hover:bg-slate-50"
                   style={{ color: "rgb(15 23 42)" }}
                   onClick={() => setSolutionsOpen(false)}
+                  role="menuitem"
                 >
                   Fraud &amp; verification
                 </Link>
@@ -140,6 +143,7 @@ export default function SiteHeader() {
                   className="block px-4 py-2 hover:bg-slate-50"
                   style={{ color: "rgb(15 23 42)" }}
                   onClick={() => setSolutionsOpen(false)}
+                  role="menuitem"
                 >
                   KYC &amp; FICA orchestration
                 </Link>
@@ -152,6 +156,7 @@ export default function SiteHeader() {
                   className="block px-4 py-2 hover:bg-slate-50"
                   style={{ color: "rgb(15 23 42)" }}
                   onClick={() => setSolutionsOpen(false)}
+                  role="menuitem"
                 >
                   Pricing &amp; offer optimisation
                 </Link>
@@ -160,6 +165,7 @@ export default function SiteHeader() {
                   className="block px-4 py-2 hover:bg-slate-50 rounded-b-xl"
                   style={{ color: "rgb(15 23 42)" }}
                   onClick={() => setSolutionsOpen(false)}
+                  role="menuitem"
                 >
                   Customer management &amp; retention
                 </Link>
@@ -167,11 +173,14 @@ export default function SiteHeader() {
             )}
           </div>
 
-          {/* Resources dropdown (Insights + Tools) */}
+          {/* Resources dropdown (Library + Tools + Insights) */}
           <div className="relative" ref={resourcesRef}>
             <button
               type="button"
-              onClick={toggleResources}
+              onClick={() => {
+                setResourcesOpen((open) => !open);
+                setSolutionsOpen(false);
+              }}
               className="header-cta flex items-center gap-1"
               aria-haspopup="menu"
               aria-expanded={resourcesOpen}
@@ -181,22 +190,42 @@ export default function SiteHeader() {
             </button>
 
             {resourcesOpen && (
-              <div className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg text-sm z-30">
+              <div
+                className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg text-sm z-30"
+                role="menu"
+              >
+                <div className="px-4 pt-2 pb-1 text-[11px] uppercase tracking-wide text-slate-400">
+                  Browse
+                </div>
+
                 <Link
-                  to="/insights"
+                  to="/library"
                   className="block px-4 py-2 hover:bg-slate-50 rounded-t-xl"
                   style={{ color: "rgb(15 23 42)" }}
                   onClick={() => setResourcesOpen(false)}
+                  role="menuitem"
                 >
-                  Insights &amp; white papers
+                  Library (private advisory notes)
                 </Link>
+
                 <Link
                   to="/tools"
+                  className="block px-4 py-2 hover:bg-slate-50"
+                  style={{ color: "rgb(15 23 42)" }}
+                  onClick={() => setResourcesOpen(false)}
+                  role="menuitem"
+                >
+                  Tools &amp; calculators
+                </Link>
+
+                <Link
+                  to="/insights"
                   className="block px-4 py-2 hover:bg-slate-50 rounded-b-xl"
                   style={{ color: "rgb(15 23 42)" }}
                   onClick={() => setResourcesOpen(false)}
+                  role="menuitem"
                 >
-                  Tools &amp; calculators
+                  Insights &amp; white papers
                 </Link>
               </div>
             )}

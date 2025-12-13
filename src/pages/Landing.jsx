@@ -9,6 +9,8 @@ import {
   Bot,
   Gauge,
   Sparkles,
+  Calculator,
+  BookOpen,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -16,7 +18,6 @@ import SiteHeader from "../components/layout/SiteHeader.jsx";
 import SiteFooter from "../components/layout/SiteFooter.jsx";
 import decisionEngineOverviewPdf from "../assets/docs/Our-decision-engine-onepage.pdf";
 import decisionLoopImg from "../assets/docs/decision-loop.png";
-
 
 const Section = ({ id, className = "", children }) => (
   <section
@@ -61,6 +62,34 @@ const ListItem = ({ children }) => (
   </li>
 );
 
+const ToolCard = ({ icon: Icon, title, text, to }) => (
+  <Link
+    to={to}
+    className="group rounded-2xl border bg-white/90 backdrop-blur p-4 hover:shadow-sm transition-shadow"
+  >
+    <div className="flex items-start gap-3">
+      <div
+        className="p-2 rounded-xl"
+        style={{
+          background: "rgba(43,212,224,0.10)",
+          border: "1px solid rgba(43,212,224,0.18)",
+        }}
+      >
+        <Icon className="h-5 w-5" />
+      </div>
+      <div>
+        <div className="font-semibold leading-tight">{title}</div>
+        <div className="mt-1 text-sm text-slate-700 leading-relaxed">
+          {text}
+        </div>
+        <div className="mt-2 text-sm font-medium underline underline-offset-2 opacity-80 group-hover:opacity-100">
+          Open
+        </div>
+      </div>
+    </div>
+  </Link>
+);
+
 export default function Landing() {
   // ---- Formspree wiring ----
   const FORMSPREE_ID = "xwpakerq";
@@ -69,7 +98,7 @@ export default function Landing() {
   const formRef = useRef(null);
   const [status, setStatus] = useState({ state: "idle", msg: "" }); // idle | loading | success | error
 
-  // NEW: simple dropdown state for "Where we help"
+  // Dropdown state for "Where we help"
   const [solutionsOpen, setSolutionsOpen] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -89,7 +118,7 @@ export default function Landing() {
       if (formData.get("company_website")) {
         setStatus({
           state: "success",
-          msg: "Thanks! If you’re human, we got your note 😊",
+          msg: "Thanks! If you’re human, we got your note.",
         });
         formRef.current.reset();
         return;
@@ -176,9 +205,11 @@ export default function Landing() {
                   <Sparkles className="h-4 w-4" />
                   <span>Decision intelligence & models-as-a-service</span>
                 </div>
+
                 <h1 className="mt-5 text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight">
                   Empowering Businesses with Intelligent, Data-Driven Decisions
                 </h1>
+
                 <p className="mt-4 text-lg leading-relaxed max-w-2xl opacity-90">
                   We help organisations deploy governed, audit-ready decision
                   engines and predictive models—hosted in your environment or
@@ -186,9 +217,8 @@ export default function Landing() {
                   verifications, and scorecards.
                 </p>
 
-                {/* HERO CTAs */}
+                {/* HERO CTAs (keep clean: 2 actions only) */}
                 <div className="mt-8 flex flex-wrap items-center gap-3">
-                  {/* Primary CTA */}
                   <a
                     href="#capabilities"
                     className="inline-flex items-center gap-2 px-5 py-3 rounded-xl shadow text-sm font-medium"
@@ -197,22 +227,18 @@ export default function Landing() {
                       color: "rgb(var(--primary-fg))",
                     }}
                   >
-                    Explore how we help you grow{" "}
-                    <ArrowRight className="h-5 w-5" />
+                    Explore how we help you grow <ArrowRight className="h-5 w-5" />
                   </a>
 
-                  {/* Secondary: “Where we help” dropdown */}
+                  {/* “Where we help” stays, but does not add more nav items */}
                   <div className="relative">
                     <button
                       type="button"
                       onClick={() => setSolutionsOpen((open) => !open)}
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium bg-white/10 backdrop-blur"
-                      style={{
-                        borderColor: "rgba(148,163,184,0.7)",
-                      }}
+                      style={{ borderColor: "rgba(148,163,184,0.7)" }}
                     >
-                      Where we help
-                      <span className="text-xs">▾</span>
+                      Where we help <span className="text-xs">▾</span>
                     </button>
 
                     {solutionsOpen && (
@@ -231,15 +257,6 @@ export default function Landing() {
                         >
                           Originations & onboarding
                         </Link>
-                        {/* Later you can add more:
-                        <Link
-                          to="/solutions/leads"
-                          className="block px-4 py-2 hover:bg-slate-50"
-                          onClick={() => setSolutionsOpen(false)}
-                        >
-                          Leads & growth
-                        </Link>
-                        */}
                       </div>
                     )}
                   </div>
@@ -249,6 +266,28 @@ export default function Landing() {
                   <Stat value="2.5×–4×" label="Typical ROI uplift" />
                   <Stat value="3–4 min" label="Automated decision cycles" />
                   <Stat value="90+ days" label="Value in weeks, not years" />
+                </div>
+
+                {/* NEW: Minimal “Tools” entry point, low clutter, high utility */}
+                <div className="mt-10">
+                  <div className="text-xs uppercase tracking-wide opacity-80">
+                    Prefer a quick estimate?
+                  </div>
+
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <ToolCard
+                      icon={Calculator}
+                      title="Tools & Calculators"
+                      text="ROI, underwriting cost, scorecard profit impact and more — quick, practical estimates."
+                      to="/tools"
+                    />
+                    <ToolCard
+                      icon={BookOpen}
+                      title="Library"
+                      text="Plain-language explainers — designed to be read privately, without jargon."
+                      to="/library"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -266,6 +305,7 @@ export default function Landing() {
                           Forecast, segment, and price with confidence.
                         </p>
                       </div>
+
                       <div
                         className="p-4 rounded-2xl border"
                         style={{ background: "rgb(var(--surface))" }}
@@ -276,6 +316,7 @@ export default function Landing() {
                           Fast, governed, audit-ready decisions.
                         </p>
                       </div>
+
                       <div
                         className="p-4 rounded-2xl border"
                         style={{ background: "rgb(var(--surface))" }}
@@ -286,6 +327,7 @@ export default function Landing() {
                           Unify silos into a single source of truth.
                         </p>
                       </div>
+
                       <div
                         className="p-4 rounded-2xl border"
                         style={{ background: "rgb(var(--surface))" }}
@@ -296,6 +338,28 @@ export default function Landing() {
                           Policies, monitoring, and compliance baked-in.
                         </p>
                       </div>
+                    </div>
+
+                    {/* Small, tasteful link to decision engine PDF stays here (not cluttering hero CTAs) */}
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      <a
+                        href={decisionEngineOverviewPdf}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm rounded-xl border px-3 py-2 hover:bg-slate-50 transition-colors"
+                        style={{ color: "rgb(15,23,42)" }}
+                      >
+                        Download: Decision Engine Overview (PDF)
+                      </a>
+                      <a
+                        href="/docs/decision-engines-101.pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm rounded-xl border px-3 py-2 hover:bg-slate-50 transition-colors"
+                        style={{ color: "rgb(15,23,42)" }}
+                      >
+                        Decision Engines 101 (PDF)
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -361,8 +425,6 @@ export default function Landing() {
           />
         </div>
 
-
-        
         <div className="mt-10 grid md:grid-cols-2 lg:grid-cols-4 gap-5">
           <Pillar
             icon={Layers}
@@ -405,9 +467,7 @@ export default function Landing() {
           </div>
 
           <div className="p-6 rounded-2xl border bg-white">
-            <h3 className="text-lg font-semibold">
-              Champion & Challenger Built-In
-            </h3>
+            <h3 className="text-lg font-semibold">Champion & Challenger Built-In</h3>
             <p className="mt-2 text-slate-700 text-sm leading-relaxed">
               Every deployment includes a Champion and a Challenger. We review
               performance on an agreed cycle and promote the best model, then
@@ -441,398 +501,6 @@ export default function Landing() {
         </div>
       </Section>
 
-
-        {/* CREDIT MANAGEMENT */}
-      <Section id="credit-management" className="py-12 md:py-16 bg-slate-50">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
-            Credit Management & Strategy
-          </h2>
-          <p className="mt-3 text-slate-700">
-            We help you design, implement, and run end-to-end credit strategies:
-            from scorecards and rules to offers and pricing. Work with us on a
-            pure advisory basis, analytics-supported, or as a fully managed
-            credit management-as-a-service model.
-          </p>
-        </div>
-
-        <div className="mt-10 grid md:grid-cols-3 gap-5">
-          <div className="p-6 rounded-2xl border bg-white">
-            <h3 className="text-lg font-semibold">Strategy & Policy</h3>
-            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-              Define credit strategies, risk appetite, and segmentation across
-              your portfolio. We align origination, customer management, and
-              collections with your business goals and regulatory context.
-            </p>
-          </div>
-
-          <div className="p-6 rounded-2xl border bg-white">
-            <h3 className="text-lg font-semibold">Scorecards & Rules</h3>
-            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-              Design and calibrate scorecard strategies and actual scorecards,
-              then translate them into transparent, governed rules that work
-              across early, middle, and late-stage decisioning.
-            </p>
-          </div>
-
-          <div className="p-6 rounded-2xl border bg-white">
-            <h3 className="text-lg font-semibold">Offers & Pricing</h3>
-            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-              Build offer frameworks that define who gets what, over which term,
-              at which price. Balance approval rates, loss rates, and customer
-              value with targeted, segment-based offers.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-8 grid md:grid-cols-3 gap-5">
-          <div className="p-5 rounded-2xl border bg-white">
-            <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-600">
-              Option 1: Advisory
-            </h4>
-            <p className="mt-2 text-sm text-slate-700 leading-relaxed">
-              We define your strategies, scorecards, and rules, and hand over
-              documentation and designs for your team to implement.
-            </p>
-          </div>
-
-          <div className="p-5 rounded-2xl border bg-white">
-            <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-600">
-              Option 2: Advisory + Analytics
-            </h4>
-            <p className="mt-2 text-sm text-slate-700 leading-relaxed">
-              We support you with both strategy and the underlying analytics,
-              including building or refining scorecards and decision insights.
-            </p>
-          </div>
-
-          <div className="p-5 rounded-2xl border bg-white">
-            <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-600">
-              Option 3: Credit Management as a Service
-            </h4>
-            <p className="mt-2 text-sm text-slate-700 leading-relaxed">
-              We run the full credit management function for you: strategies,
-              scorecards, rules, offers, monitoring, and optimisation—delivered
-              as an ongoing managed service.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-8 text-center">
-          <a
-            href="#contact"
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl shadow text-sm font-medium"
-            style={{
-              background: "rgb(var(--primary))",
-              color: "rgb(var(--primary-fg))",
-            }}
-          >
-            Talk to us about credit management
-            <ArrowRight className="h-5 w-5" />
-          </a>
-        </div>
-      </Section>
-
-
-{/* DECISION ENGINE PLATFORM */}
-<Section id="decision-engine" className="py-12 md:py-16">
-  <div className="max-w-3xl mx-auto text-center">
-    <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
-      The TSDG Decision Engine Platform
-    </h2>
-    <p className="mt-3 text-slate-700">
-      A fully managed, production-ready decision engine designed for
-      credit, onboarding, fraud, pricing, KYC, and operational
-      decisioning. Deploy in your cloud, on-prem, or in our hosted
-      environment.
-    </p>
-  </div>
-
-  {/* Decision Loop graphic */}
-  <div className="mt-8 flex justify-center">
-    <img
-      src={decisionLoopImg}
-      alt="The Decision Loop – Get Data, Analyse, Execution with feedback"
-      className="max-w-xl w-full h-auto rounded-2xl border bg-white shadow-sm"
-    />
-  </div>
-
-  <div className="mt-10 grid md:grid-cols-3 gap-5">
-    <div className="p-6 rounded-2xl border bg-white">
-      <h3 className="text-lg font-semibold">Proven & Production-Ready</h3>
-      <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-        A configurable engine used across industries for credit,
-        affordability, onboarding, and verification flows—built for
-        reliability and auditability.
-      </p>
-    </div>
-
-    <div className="p-6 rounded-2xl border bg-white">
-      <h3 className="text-lg font-semibold">Deploy Anywhere</h3>
-      <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-        Host in your infrastructure, in our managed cloud environment, or
-        through our partnership with XDS for direct bureau data and
-        service integration.
-      </p>
-    </div>
-
-    <div className="p-6 rounded-2xl border bg-white">
-      <h3 className="text-lg font-semibold">Governed & Audit-Ready</h3>
-      <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-        Every decision is logged with reason codes, model versions, policy
-        versions, and a full audit trail—aligned with operational risk and
-        compliance needs.
-      </p>
-    </div>
-
-    <div className="p-6 rounded-2xl border bg-white md:col-span-3">
-      <h3 className="text-lg font-semibold">Agentic-Ready</h3>
-      <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-        AI is evolving fast — but even the most advanced agentic systems
-        need a governed, deterministic decision layer. Our decision engine
-        is built for this new era: API-driven, model-agnostic,
-        explainable, and fully compatible with agentic AI workflows.
-        Agents can orchestrate tasks, gather information, and recommend
-        actions — while our engine ensures every final decision is
-        consistent, compliant, auditable, and aligned with policy. In
-        short: we bring the intelligence of AI together with the
-        governance of enterprise-grade decisioning.
-      </p>
-    </div>
-  </div>
-
-  {/* Buttons row */}
-  <div className="mt-8 flex flex-wrap justify-center gap-3">
-    <a
-      href={decisionEngineOverviewPdf}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center gap-2 px-5 py-3 rounded-xl shadow text-sm font-medium"
-      style={{
-        background: "rgb(var(--primary))",
-        color: "rgb(var(--primary-fg))",
-      }}
-    >
-      Download: Decision Engine Overview (PDF)
-    </a>
-
-    <a
-      href="/docs/decision-engines-101.pdf"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border text-sm font-medium bg-white"
-      style={{
-        color: "rgb(15,23,42)",
-      }}
-    >
-      Read the white paper: Decision Engines 101
-    </a>
-  </div>
-</Section>
-
-
-
-      {/* XDS PARTNERSHIP */}
-      <Section id="xds" className="py-12 md:py-16">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
-            Powered by Partnership: Decisioning with XDS
-          </h2>
-          <p className="mt-3 text-slate-700">
-            We partner with XDS, one of South Africa’s major credit bureaus, to
-            offer hosted decision engines inside their secure environment—
-            leveraging their data, verifications, and analytics services.
-          </p>
-        </div>
-
-        <div className="mt-10 grid md:grid-cols-2 gap-5">
-          <div className="p-6 rounded-2xl border bg-white">
-            <h3 className="text-lg font-semibold">Hosted Inside XDS</h3>
-            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-              Deploy your decisioning workflows directly within XDS’s
-              infrastructure, reducing integration effort and enabling direct
-              access to bureau data.
-            </p>
-          </div>
-
-          <div className="p-6 rounded-2xl border bg-white">
-            <h3 className="text-lg font-semibold">
-              End-to-End Credit Decisioning
-            </h3>
-            <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-              Combine bureau data, your models, our decision engine, and
-              real-time rules to deliver instant, governed credit decisions with
-              full audit trails.
-            </p>
-          </div>
-        </div>
-      </Section>
-
-      {/* EXECUTIVE BRIEFINGS / WHITE PAPERS */}
-      <Section
-        id="executive-briefings"
-        className="py-12 md:py-16 bg-slate-50 rounded-t-3xl"
-      >
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
-            Executive Briefings & White Papers
-          </h2>
-          <p className="mt-3 text-slate-700">
-            Short, practical summaries for senior leaders who need to understand
-            the &quot;why&quot; and &quot;how&quot;—with full white papers
-            available for teams who want the technical detail.
-          </p>
-        </div>
-
-        <div className="mt-10 grid gap-5 md:grid-cols-3">
-          {/* Decision Engines 101 */}
-          <div className="p-6 rounded-2xl border bg-white flex flex-col">
-            <div className="text-xs uppercase tracking-wide text-slate-500">
-              White Paper
-            </div>
-            <h3 className="mt-2 text-lg font-semibold">
-              Decision Engines 101
-            </h3>
-            <p className="mt-2 text-sm text-slate-700 leading-relaxed flex-1">
-              A practical overview of what a decision engine is, how it differs
-              from rules engines and manual underwriting, and how to move from
-              PowerPoint to production in around 90 days.
-            </p>
-            <div className="mt-4 flex flex-col gap-2 text-sm">
-              <Link
-                to="/insights/decision-engines-101"
-                className="inline-flex items-center gap-1 text-slate-900 underline-offset-2 hover:underline"
-              >
-                Read the executive summary
-              </Link>
-              <a
-                href="/docs/decision-engines-101.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-slate-700 underline-offset-2 hover:underline"
-              >
-                Download the full white paper (PDF)
-              </a>
-            </div>
-          </div>
-
-          {/* AI-Driven Business Advantage */}
-          <div className="p-6 rounded-2xl border bg-white flex flex-col">
-            <div className="text-xs uppercase tracking-wide text-slate-500">
-              White Paper
-            </div>
-            <h3 className="mt-2 text-lg font-semibold">
-              From Buzzword to Bottom Line
-            </h3>
-            <p className="mt-2 text-sm text-slate-700 leading-relaxed flex-1">
-              A step-by-step framework for aligning AI investments with strategy,
-              governance, and measurable ROI—written for executives, boards, and
-              transformation leaders.
-            </p>
-            <div className="mt-4 flex flex-col gap-2 text-sm">
-              <Link
-                to="/insights/ai-driven-business-advantage"
-                className="inline-flex items-center gap-1 text-slate-900 underline-offset-2 hover:underline"
-              >
-                Read the executive summary
-              </Link>
-              <a
-                href="/docs/ai-driven-business-advantage.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-slate-700 underline-offset-2 hover:underline"
-              >
-                Download the full white paper (PDF)
-              </a>
-            </div>
-          </div>
-
-          {/* Building Predictive Models In-House */}
-          <div className="p-6 rounded-2xl border bg-white flex flex-col">
-            <div className="text-xs uppercase tracking-wide text-slate-500">
-              White Paper
-            </div>
-            <h3 className="mt-2 text-lg font-semibold">
-              Building Predictive Models In-House
-            </h3>
-            <p className="mt-2 text-sm text-slate-700 leading-relaxed flex-1">
-              What it really takes to build and host your own scorecards or ML
-              models—from skills, data, and infrastructure to alternatives such
-              as bureau models and models-as-a-service.
-            </p>
-            <div className="mt-4 flex flex-col gap-2 text-sm">
-              <a
-                href="/docs/building-predictive-models-in-house.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-slate-900 underline-offset-2 hover:underline"
-              >
-                Download the full white paper (PDF)
-              </a>
-            </div>
-          </div>
-
-          {/* Agentic vs Decision Engine */}
-          <div className="p-6 rounded-2xl border bg-white flex flex-col md:col-span-2 lg:col-span-1">
-            <div className="text-xs uppercase tracking-wide text-slate-500">
-              White Paper
-            </div>
-            <h3 className="mt-2 text-lg font-semibold">
-              Agentic AI vs Decision Engines
-            </h3>
-            <p className="mt-2 text-sm text-slate-700 leading-relaxed flex-1">
-              A clear view for executives on what agentic AI can and cannot do,
-              why it doesn&apos;t replace a governed decision engine, and how to
-              design &quot;agentic-ready&quot; architectures without increasing
-              risk.
-            </p>
-            <div className="mt-4 flex flex-col gap-2 text-sm">
-              <a
-                href="/docs/Agentic-vs-decisionengine-v1-Nov25.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-slate-900 underline-offset-2 hover:underline"
-              >
-                Download the full white paper (PDF)
-              </a>
-            </div>
-          </div>
-
-          {/* Why ML */}
-          <div className="p-6 rounded-2xl border bg-white flex flex-col md:col-span-2 lg:col-span-1">
-            <div className="text-xs uppercase tracking-wide text-slate-500">
-              Briefing
-            </div>
-            <h3 className="mt-2 text-lg font-semibold">Why Machine Learning?</h3>
-            <p className="mt-2 text-sm text-slate-700 leading-relaxed flex-1">
-              A concise explanation of how credit and risk modelling evolved
-              from manual rules to logistic regression and now ML—including when
-              simple models still win and how to decide what is right for your
-              portfolio.
-            </p>
-            <div className="mt-4 flex flex-col gap-2 text-sm">
-              <a
-                href="/docs/why_ml_v1_nov25.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-slate-900 underline-offset-2 hover:underline"
-              >
-                Download the briefing (PDF)
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-8 text-center text-sm">
-          <Link
-            to="/insights"
-            className="inline-flex items-center gap-1 underline underline-offset-2"
-          >
-            View all insights and white papers
-          </Link>
-        </div>
-      </Section>
-
       {/* OUTCOMES */}
       <Section className="py-12 md:py-16">
         <div className="grid md:grid-cols-12 gap-8 items-start">
@@ -859,15 +527,11 @@ export default function Landing() {
             </ul>
             <div className="mt-6 grid grid-cols-2 gap-4">
               <div className="p-5 rounded-2xl border bg-white">
-                <div className="text-sm text-slate-600">
-                  Typical monthly return
-                </div>
+                <div className="text-sm text-slate-600">Typical monthly return</div>
                 <div className="text-2xl font-semibold mt-1">2.5×–4×</div>
               </div>
               <div className="p-5 rounded-2xl border bg-white">
-                <div className="text-sm text-slate-600">
-                  Automated decision cycle
-                </div>
+                <div className="text-sm text-slate-600">Automated decision cycle</div>
                 <div className="text-2xl font-semibold mt-1">
                   3–4 minutes → seconds
                 </div>
@@ -888,35 +552,23 @@ export default function Landing() {
                   </thead>
                   <tbody className="align-top">
                     <tr className="border-t">
-                      <td className="py-3 pr-4">
-                        Manual reviews & siloed data
-                      </td>
-                      <td className="py-3 pr-4">
-                        Automated, model-driven decisions
-                      </td>
+                      <td className="py-3 pr-4">Manual reviews & siloed data</td>
+                      <td className="py-3 pr-4">Automated, model-driven decisions</td>
                       <td className="py-3">Speed & consistency</td>
                     </tr>
                     <tr className="border-t">
                       <td className="py-3 pr-4">Flat rules, limited insight</td>
-                      <td className="py-3 pr-4">
-                        Predictive & prescriptive analytics
-                      </td>
+                      <td className="py-3 pr-4">Predictive & prescriptive analytics</td>
                       <td className="py-3">Higher approvals / lower risk</td>
                     </tr>
                     <tr className="border-t">
                       <td className="py-3 pr-4">Ad-hoc governance</td>
-                      <td className="py-3 pr-4">
-                        Audit trails & model monitoring
-                      </td>
+                      <td className="py-3 pr-4">Audit trails & model monitoring</td>
                       <td className="py-3">Regulatory confidence</td>
                     </tr>
                     <tr className="border-t">
-                      <td className="py-3 pr-4">
-                        Unpredictable operating costs
-                      </td>
-                      <td className="py-3 pr-4">
-                        Managed platforms & SLAs
-                      </td>
+                      <td className="py-3 pr-4">Unpredictable operating costs</td>
+                      <td className="py-3 pr-4">Managed platforms & SLAs</td>
                       <td className="py-3">Lower TCO</td>
                     </tr>
                   </tbody>
@@ -926,53 +578,6 @@ export default function Landing() {
           </div>
         </div>
       </Section>
-
-      {/* DECISION SUPPORT TOOLS */}
-<Section className="py-10 md:py-12">
-  <div className="max-w-4xl mx-auto rounded-2xl border bg-white p-6 shadow-sm">
-    <div className="text-xs uppercase tracking-wide text-slate-500">
-      Decision support
-    </div>
-
-    <h3 className="mt-2 text-lg font-semibold">
-      Quantify impact before you commit
-    </h3>
-
-    <p className="mt-2 text-slate-700 text-sm leading-relaxed">
-      Short, practical tools to quantify ROI, operating cost, and scorecard
-      economics — the same frameworks we use in client business cases and
-      executive reviews.
-    </p>
-
-    <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
-      <Link
-        to="/tools/decision-engine-roi"
-        className="inline-flex items-center gap-1 underline underline-offset-2"
-      >
-        Decision Engine ROI Calculator
-      </Link>
-
-      <span className="text-slate-400">•</span>
-
-      <Link
-        to="/tools/scorecard-profit-impact"
-        className="inline-flex items-center gap-1 underline underline-offset-2"
-      >
-        Scorecard Profit Impact Calculator
-      </Link>
-
-      <span className="text-slate-400 hidden sm:inline">•</span>
-
-      <Link
-        to="/tools"
-        className="inline-flex items-center gap-1 text-slate-600 underline underline-offset-2 hidden sm:inline"
-      >
-        View all tools
-      </Link>
-    </div>
-  </div>
-</Section>
-
 
       {/* CONTACT / CTA */}
       <Section id="contact" className="py-14 md:py-20">
@@ -999,6 +604,7 @@ export default function Landing() {
               </a>
             </div>
           </div>
+
           <div className="md:col-span-5">
             <div className="rounded-3xl border bg-white p-6 shadow-sm">
               <div className="flex items-center gap-3">
@@ -1011,7 +617,6 @@ export default function Landing() {
                 </div>
               </div>
 
-              {/* Hidden honeypot */}
               <style>
                 {`.hp-field{position:absolute;left:-5000px;height:0;overflow:hidden}`}
               </style>

@@ -16,6 +16,7 @@ import DecisionEngineRoi from "./pages/tools/DecisionEngineRoi.jsx"; // ✅ NEW:
 import ManualUnderwritingCost from "./pages/tools/ManualUnderwritingCost.jsx";
 import BuildVsRentModels from "./pages/tools/BuildVsRentModels.jsx";
 import ScorecardProfitImpact from "./pages/tools/ScorecardProfitImpact.jsx";
+import ScorecardCompareProfit from "./pages/tools/ScorecardCompareProfit.jsx";
 
 
 // Solutions
@@ -61,7 +62,7 @@ export default function App() {
       <Route path="/tools/manual-underwriting-cost" element={<ManualUnderwritingCost />} />
       <Route path="/tools/build-vs-rent-models" element={<BuildVsRentModels />} />
       <Route path="/tools/scorecard-profit-impact" element={<ScorecardProfitImpact />}
-      />
+      <Route path="/tools/scorecard-compare-profit" element={<ScorecardCompareProfit />}/>
 
 
       {/* Solutions */}

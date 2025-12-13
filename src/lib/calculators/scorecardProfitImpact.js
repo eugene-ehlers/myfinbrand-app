@@ -12,6 +12,33 @@ const money = (n) =>
 const num = (n, d = 0) =>
   Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: d });
 
+const driverLabel = ({ lossFromBads, opportunityCost }) => {
+  const loss = Number(lossFromBads || 0);
+  const opp = Number(opportunityCost || 0);
+
+  if (loss <= 0 && opp <= 0) {
+    return {
+      heading: "No material costs detected",
+      text:
+        "Based on your inputs, the model is not attributing meaningful loss or opportunity cost. Check that your loss and opportunity cost assumptions are realistic.",
+    };
+  }
+
+  if (loss >= opp) {
+    return {
+      heading: "Losses are dominated by bad approvals (False Positives)",
+      text:
+        "Your largest economic drag is approving bad accounts. The biggest levers are reducing the false positive rate, tightening cut-offs, improving verifications, or pricing risk appropriately.",
+    };
+  }
+
+  return {
+    heading: "Costs are dominated by missed profitable customers (False Negatives)",
+    text:
+      "Your largest economic drag is declining good customers. The biggest levers are improving true positive rate, refining cut-offs, revisiting policy overlays, or improving segmentation and offer/pricing strategy.",
+  };
+};
+
 const Field = ({ label, hint, children }) => (
   <div className="grid gap-1">
     <div className="flex items-center justify-between gap-3">
@@ -30,7 +57,7 @@ const Input = (props) => (
 );
 
 export default function ScorecardProfitImpact() {
-  // NOTE: approvalRatePct removed (it is now derived from TPR/FPR + base rates)
+  // Approval rate removed: it is derived from TPR/FPR and base bad rate.
   const [inputs, setInputs] = useState({
     monthlyApplications: 20000,
     badRatePct: 18,
@@ -49,6 +76,7 @@ export default function ScorecardProfitImpact() {
     setInputs((p) => ({ ...p, [key]: Number(e.target.value) }));
 
   const { confusionMatrix, economics, derived } = results;
+  const insight = driverLabel(economics);
 
   return (
     <CalculatorShell
@@ -268,6 +296,26 @@ export default function ScorecardProfitImpact() {
             <div className="mt-2 text-sm">
               Implied approval rate:{" "}
               <strong>{num(derived.approvalRatePct, 1)}%</strong>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border bg-white p-4">
+            <div className="text-xs uppercase tracking-wide text-slate-500">
+              Interpretation
+            </div>
+            <div className="mt-2 font-semibold">{insight.heading}</div>
+            <p className="mt-2 text-sm text-slate-700 leading-relaxed">
+              {insight.text}
+            </p>
+            <div className="mt-3 text-sm text-slate-700 grid gap-1">
+              <div className="flex justify-between">
+                <span>Loss from approved bads</span>
+                <strong>ZAR {money(economics.lossFromBads)}</strong>
+              </div>
+              <div className="flex justify-between">
+                <span>Opportunity cost (rejected goods)</span>
+                <strong>ZAR {money(economics.opportunityCost)}</strong>
+              </div>
             </div>
           </div>
 

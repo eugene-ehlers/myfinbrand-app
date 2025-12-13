@@ -83,4 +83,23 @@ export const TOOLS = [
     ctaLabel: "Model profit impact",
     note: "Best for: connecting technical uplift to business profit outcomes.",
   },
+  {
+  slug: "scorecard-compare-profit",
+  title: "Scorecard Champion vs Challenger Profit Comparator",
+  summary:
+    "Compare a current scorecard vs a new scorecard (or cut-off) using both operational metrics and profit impact — approvals, bads booked, and net profit.",
+  path: "/tools/scorecard-compare-profit",
+  date: "2025-12-13",
+  read: "3–4 min",
+  tags: ["Scorecards", "Champion/Challenger", "Profitability", "Credit Strategy"],
+  category: "Credit & Risk",
+  type: "Calculator",
+  featured: true,
+  // Optional discovery helpers for your ResourcesHeader
+  accent: "teal",
+  ctaLabel: "Compare two scorecards →",
+  // Optional: if/when you wire these into the UI later
+  relatedInsights: ["decision-cohesion", "decision-engines-101"],
+}
+
 ];

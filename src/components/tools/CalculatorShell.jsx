@@ -10,6 +10,10 @@ export default function CalculatorShell({
   meta, // e.g., "Calculator • 2–3 min"
   childrenLeft,
   childrenRight,
+
+  // NEW: optional section shown after inputs (before user focuses results)
+  afterInputs,
+
   assumptions,
   ctas,
 }) {
@@ -40,13 +44,23 @@ export default function CalculatorShell({
 
       <main className="page-container mx-auto max-w-5xl px-4 pb-16">
         <div className="grid gap-5 lg:grid-cols-12 items-start">
-          <section className="lg:col-span-7 rounded-2xl border p-5">
+          {/* Inputs */}
+          <section className="lg:col-span-7 rounded-2xl border p-5 bg-white">
             <div className="text-xs uppercase tracking-wide text-slate-500">
               Inputs
             </div>
+
             <div className="mt-3">{childrenLeft}</div>
+
+            {/* NEW: Between Inputs and Results (placed after inputs, before user reads results) */}
+            {afterInputs ? (
+              <div className="mt-6">
+                {afterInputs}
+              </div>
+            ) : null}
           </section>
 
+          {/* Results */}
           <aside className="lg:col-span-5 rounded-2xl border p-5 bg-slate-50">
             <div className="text-xs uppercase tracking-wide text-slate-500">
               Results
@@ -56,7 +70,7 @@ export default function CalculatorShell({
         </div>
 
         {assumptions ? (
-          <section className="mt-6 rounded-2xl border p-5">
+          <section className="mt-6 rounded-2xl border p-5 bg-white">
             <div className="text-xs uppercase tracking-wide text-slate-500">
               Assumptions & Notes
             </div>
@@ -67,7 +81,7 @@ export default function CalculatorShell({
         ) : null}
 
         {ctas?.bottom ? (
-          <section className="mt-6 rounded-2xl border p-5">
+          <section className="mt-6 rounded-2xl border p-5 bg-white">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="text-sm text-slate-700">
                 Want a tailored business case based on your portfolio and

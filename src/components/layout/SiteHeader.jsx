@@ -1,10 +1,49 @@
 // src/components/layout/SiteHeader.jsx
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Linkedin } from "lucide-react";
 
 export default function SiteHeader() {
   const [solutionsOpen, setSolutionsOpen] = useState(false);
+  const [resourcesOpen, setResourcesOpen] = useState(false);
+
+  const solutionsRef = useRef(null);
+  const resourcesRef = useRef(null);
+
+  // Close dropdowns on outside click / Escape
+  useEffect(() => {
+    const onMouseDown = (e) => {
+      const inSolutions = solutionsRef.current?.contains(e.target);
+      const inResources = resourcesRef.current?.contains(e.target);
+
+      if (!inSolutions) setSolutionsOpen(false);
+      if (!inResources) setResourcesOpen(false);
+    };
+
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setSolutionsOpen(false);
+        setResourcesOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onMouseDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onMouseDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, []);
+
+  const toggleSolutions = () => {
+    setSolutionsOpen((open) => !open);
+    setResourcesOpen(false);
+  };
+
+  const toggleResources = () => {
+    setResourcesOpen((open) => !open);
+    setSolutionsOpen(false);
+  };
 
   return (
     <header className="site-header">
@@ -28,11 +67,13 @@ export default function SiteHeader() {
           </Link>
 
           {/* How we help dropdown */}
-          <div className="relative">
+          <div className="relative" ref={solutionsRef}>
             <button
               type="button"
-              onClick={() => setSolutionsOpen((open) => !open)}
+              onClick={toggleSolutions}
               className="header-cta flex items-center gap-1"
+              aria-haspopup="menu"
+              aria-expanded={solutionsOpen}
             >
               How we help
               <span className="text-[10px]">▾</span>
@@ -126,9 +167,40 @@ export default function SiteHeader() {
             )}
           </div>
 
-          <Link to="/insights" className="header-cta">
-            Insights
-          </Link>
+          {/* Resources dropdown (Insights + Tools) */}
+          <div className="relative" ref={resourcesRef}>
+            <button
+              type="button"
+              onClick={toggleResources}
+              className="header-cta flex items-center gap-1"
+              aria-haspopup="menu"
+              aria-expanded={resourcesOpen}
+            >
+              Resources
+              <span className="text-[10px]">▾</span>
+            </button>
+
+            {resourcesOpen && (
+              <div className="absolute right-0 mt-2 w-64 rounded-xl border bg-white shadow-lg text-sm z-30">
+                <Link
+                  to="/insights"
+                  className="block px-4 py-2 hover:bg-slate-50 rounded-t-xl"
+                  style={{ color: "rgb(15 23 42)" }}
+                  onClick={() => setResourcesOpen(false)}
+                >
+                  Insights &amp; white papers
+                </Link>
+                <Link
+                  to="/tools"
+                  className="block px-4 py-2 hover:bg-slate-50 rounded-b-xl"
+                  style={{ color: "rgb(15 23 42)" }}
+                  onClick={() => setResourcesOpen(false)}
+                >
+                  Tools &amp; calculators
+                </Link>
+              </div>
+            )}
+          </div>
 
           <Link to="/founder" className="header-cta">
             Founder

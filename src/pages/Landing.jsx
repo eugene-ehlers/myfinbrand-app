@@ -927,6 +927,53 @@ export default function Landing() {
         </div>
       </Section>
 
+      {/* DECISION SUPPORT TOOLS */}
+<Section className="py-10 md:py-12">
+  <div className="max-w-4xl mx-auto rounded-2xl border bg-white p-6 shadow-sm">
+    <div className="text-xs uppercase tracking-wide text-slate-500">
+      Decision support
+    </div>
+
+    <h3 className="mt-2 text-lg font-semibold">
+      Quantify impact before you commit
+    </h3>
+
+    <p className="mt-2 text-slate-700 text-sm leading-relaxed">
+      Short, practical tools to quantify ROI, operating cost, and scorecard
+      economics — the same frameworks we use in client business cases and
+      executive reviews.
+    </p>
+
+    <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
+      <Link
+        to="/tools/decision-engine-roi"
+        className="inline-flex items-center gap-1 underline underline-offset-2"
+      >
+        Decision Engine ROI Calculator
+      </Link>
+
+      <span className="text-slate-400">•</span>
+
+      <Link
+        to="/tools/scorecard-profit-impact"
+        className="inline-flex items-center gap-1 underline underline-offset-2"
+      >
+        Scorecard Profit Impact Calculator
+      </Link>
+
+      <span className="text-slate-400 hidden sm:inline">•</span>
+
+      <Link
+        to="/tools"
+        className="inline-flex items-center gap-1 text-slate-600 underline underline-offset-2 hidden sm:inline"
+      >
+        View all tools
+      </Link>
+    </div>
+  </div>
+</Section>
+
+
       {/* CONTACT / CTA */}
       <Section id="contact" className="py-14 md:py-20">
         <div className="grid md:grid-cols-12 gap-10 items-center">

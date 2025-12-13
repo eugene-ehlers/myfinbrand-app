@@ -42,6 +42,11 @@ import ScorecardProfitImpact from "./pages/tools/ScorecardProfitImpact.jsx";
 // If/when you add Champion vs Challenger compare page, wire it here:
 import ScorecardCompareProfit from "./pages/tools/ScorecardCompareProfit.jsx";
 
+// Library
+import Library from "./pages/Library.jsx";
+import LibraryItem from "./pages/library/LibraryItem.jsx";
+
+
 export default function App() {
   return (
     <>
@@ -127,6 +132,12 @@ export default function App() {
           element={<ScorecardCompareProfit />}
         />
         */}
+
+        {/* Library */}
+        <Route path="/library" element={<Library />} />
+        <Route path="/library/:kind/:slug" element={<LibraryItem />} 
+        />
+
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

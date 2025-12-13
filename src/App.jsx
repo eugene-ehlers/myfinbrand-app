@@ -35,12 +35,12 @@ import Founder from "./pages/Founder.jsx";
 import Results from "./pages/Results.jsx";
 
 // Tools (calculator pages)
-import DecisionEngineROI from "./pages/tools/DecisionEngineROI.jsx";
+import DecisionEngineROI from "./pages/tools/DecisionEngineRoi.jsx";
 import ManualUnderwritingCost from "./pages/tools/ManualUnderwritingCost.jsx";
 import BuildVsRentModels from "./pages/tools/BuildVsRentModels.jsx";
 import ScorecardProfitImpact from "./pages/tools/ScorecardProfitImpact.jsx";
 // If/when you add Champion vs Challenger compare page, wire it here:
-// import ScorecardCompareProfit from "./pages/tools/ScorecardCompareProfit.jsx";
+import ScorecardCompareProfit from "./pages/tools/ScorecardCompareProfit.jsx";
 
 export default function App() {
   return (

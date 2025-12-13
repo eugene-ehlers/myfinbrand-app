@@ -1,5 +1,4 @@
 // src/lib/calculators/scorecardProfitImpact.js
-
 const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 
 export function computeScorecardProfitImpact(inputs) {
@@ -7,9 +6,8 @@ export function computeScorecardProfitImpact(inputs) {
     monthlyApplications,
     badRatePct,
 
-    approvalRatePct,
-    truePositiveRatePct, // sensitivity
-    falsePositiveRatePct,
+    truePositiveRatePct, // sensitivity (goods correctly approved)
+    falsePositiveRatePct, // bads incorrectly approved
 
     profitPerGood,
     lossPerBad,
@@ -20,7 +18,6 @@ export function computeScorecardProfitImpact(inputs) {
   const badRate = clamp(Number(badRatePct) || 0, 0, 100) / 100;
   const goodRate = 1 - badRate;
 
-  const approvalRate = clamp(Number(approvalRatePct) || 0, 0, 100) / 100;
   const tpr = clamp(Number(truePositiveRatePct) || 0, 0, 100) / 100;
   const fpr = clamp(Number(falsePositiveRatePct) || 0, 0, 100) / 100;
 
@@ -32,7 +29,7 @@ export function computeScorecardProfitImpact(inputs) {
   const totalGoods = apps * goodRate;
   const totalBads = apps * badRate;
 
-  // Confusion matrix
+  // Confusion matrix (counts)
   const tp = totalGoods * tpr;
   const fn = totalGoods * (1 - tpr);
   const fp = totalBads * fpr;
@@ -43,10 +40,10 @@ export function computeScorecardProfitImpact(inputs) {
   const lossFromBads = fp * lossBad;
   const opportunityCost = fn * oppCost;
 
-  const grossValue = profitFromGoods;
-  const grossCost = lossFromBads + opportunityCost;
+  const netProfit = profitFromGoods - (lossFromBads + opportunityCost);
 
-  const netProfit = grossValue - grossCost;
+  const approvals = tp + fp;
+  const rejections = fn + tn;
 
   return {
     confusionMatrix: { tp, fp, fn, tn },
@@ -57,9 +54,10 @@ export function computeScorecardProfitImpact(inputs) {
       netProfit,
     },
     derived: {
-      approvals: tp + fp,
-      rejections: fn + tn,
-      profitPerThousandApps: (netProfit / apps) * 1000,
+      approvals,
+      rejections,
+      approvalRatePct: apps > 0 ? (approvals / apps) * 100 : 0,
+      profitPerThousandApps: apps > 0 ? (netProfit / apps) * 1000 : 0,
     },
   };
 }

@@ -63,7 +63,7 @@ export default function App() {
       <Route path="/tools/build-vs-rent-models" element={<BuildVsRentModels />} />
       <Route path="/tools/scorecard-profit-impact" element={<ScorecardProfitImpact />}
       <Route path="/tools/scorecard-compare-profit" element={<ScorecardCompareProfit />}/>
-
+      />
 
       {/* Solutions */}
       <Route path="/solutions/collections" element={<Collections />} />

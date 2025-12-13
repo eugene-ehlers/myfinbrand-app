@@ -1,357 +1,93 @@
-// src/pages/tools/ScorecardProfitImpact.jsx
-import React, { useMemo, useState } from "react";
-import Seo from "../../components/Seo.jsx";
-import { Link } from "react-router-dom";
-import CalculatorShell from "../../components/tools/CalculatorShell.jsx";
-import HowThisWorks from "../../components/tools/HowThisWorks.jsx";
-import { computeScorecardProfitImpact } from "../../lib/calculators/scorecardProfitImpact.js";
+// src/lib/calculators/scorecardProfitImpact.js
 
-const money = (n) =>
-  Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+/**
+ * Clamp numeric values to safe ranges
+ */
+const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 
-const num = (n, d = 0) =>
-  Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: d });
+/**
+ * Compute profit impact of a credit scorecard using
+ * a confusion-matrix-based economic model.
+ *
+ * IMPORTANT:
+ * - This evaluates a scorecard at a GIVEN cut-off
+ * - It does NOT optimise technical metrics (AUC, Gini, KS)
+ * - Focus is purely on business profitability
+ */
+export function computeScorecardProfitImpact(inputs) {
+  const {
+    monthlyApplications,
+    badRatePct,
 
-const driverLabel = ({ lossFromBads, opportunityCost }) => {
-  const loss = Number(lossFromBads || 0);
-  const opp = Number(opportunityCost || 0);
+    truePositiveRatePct,  // % of goods correctly approved
+    falsePositiveRatePct, // % of bads incorrectly approved
 
-  if (loss <= 0 && opp <= 0) {
-    return {
-      heading: "No material costs detected",
-      text:
-        "Based on your inputs, the model is not attributing meaningful loss or opportunity cost. Check that your loss and opportunity cost assumptions are realistic.",
-    };
-  }
+    profitPerGood,
+    lossPerBad,
+    opportunityCostPerGoodRejected,
+  } = inputs;
 
-  if (loss >= opp) {
-    return {
-      heading: "Losses are dominated by bad approvals (False Positives)",
-      text:
-        "Your largest economic drag is approving bad accounts. The biggest levers are reducing the false positive rate, tightening cut-offs, improving verifications, or pricing risk appropriately.",
-    };
-  }
+  // ---- Base volumes ----
+  const apps = clamp(Number(monthlyApplications) || 0, 0, 1e12);
+
+  const badRate = clamp(Number(badRatePct) || 0, 0, 100) / 100;
+  const goodRate = 1 - badRate;
+
+  const totalGoods = apps * goodRate;
+  const totalBads = apps * badRate;
+
+  // ---- Scorecard performance ----
+  const tpr = clamp(Number(truePositiveRatePct) || 0, 0, 100) / 100;
+  const fpr = clamp(Number(falsePositiveRatePct) || 0, 0, 100) / 100;
+
+  // ---- Confusion matrix (counts) ----
+  const truePositives = totalGoods * tpr;
+  const falseNegatives = totalGoods * (1 - tpr);
+
+  const falsePositives = totalBads * fpr;
+  const trueNegatives = totalBads * (1 - fpr);
+
+  // ---- Economics ----
+  const profitGood = Number(profitPerGood) || 0;
+  const lossBad = Number(lossPerBad) || 0;
+  const oppCost = Number(opportunityCostPerGoodRejected) || 0;
+
+  const profitFromGoods = truePositives * profitGood;
+  const lossFromBads = falsePositives * lossBad;
+  const opportunityCost = falseNegatives * oppCost;
+
+  const netProfit =
+    profitFromGoods - (lossFromBads + opportunityCost);
+
+  const approvals = truePositives + falsePositives;
+  const rejections = falseNegatives + trueNegatives;
+
+  // ---- Derived business metrics ----
+  const approvalRatePct =
+    apps > 0 ? (approvals / apps) * 100 : 0;
+
+  const profitPerThousandApps =
+    apps > 0 ? (netProfit / apps) * 1000 : 0;
 
   return {
-    heading: "Costs are dominated by missed profitable customers (False Negatives)",
-    text:
-      "Your largest economic drag is declining good customers. The biggest levers are improving true positive rate, refining cut-offs, revisiting policy overlays, or improving segmentation and offer/pricing strategy.",
+    confusionMatrix: {
+      tp: truePositives,
+      fp: falsePositives,
+      fn: falseNegatives,
+      tn: trueNegatives,
+    },
+    economics: {
+      profitFromGoods,
+      lossFromBads,
+      opportunityCost,
+      netProfit,
+    },
+    derived: {
+      approvals,
+      rejections,
+      approvalRatePct,
+      profitPerThousandApps,
+    },
   };
-};
-
-const Field = ({ label, hint, children }) => (
-  <div className="grid gap-1">
-    <div className="flex items-center justify-between gap-3">
-      <label className="text-sm font-medium">{label}</label>
-      {hint ? <div className="text-xs text-slate-500">{hint}</div> : null}
-    </div>
-    {children}
-  </div>
-);
-
-const Input = (props) => (
-  <input
-    {...props}
-    className="w-full px-3 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-slate-300"
-  />
-);
-
-export default function ScorecardProfitImpact() {
-  // Approval rate removed: it is derived from TPR/FPR and base bad rate.
-  const [inputs, setInputs] = useState({
-    monthlyApplications: 20000,
-    badRatePct: 18,
-
-    truePositiveRatePct: 82,
-    falsePositiveRatePct: 28,
-
-    profitPerGood: 320,
-    lossPerBad: 2800,
-    opportunityCostPerGoodRejected: 180,
-  });
-
-  const results = useMemo(() => computeScorecardProfitImpact(inputs), [inputs]);
-
-  const update = (key) => (e) =>
-    setInputs((p) => ({ ...p, [key]: Number(e.target.value) }));
-
-  const { confusionMatrix, economics, derived } = results;
-  const insight = driverLabel(economics);
-
-  return (
-    <CalculatorShell
-      seo={
-        <Seo
-          title="Scorecard Profit Impact Calculator | The Smart Decision Group"
-          description="Translate scorecard performance into real profit and loss using a confusion-matrix-based economic model."
-          canonical="https://www.tsdg.co.za/tools/scorecard-profit-impact"
-          ogType="website"
-        />
-      }
-      meta="Calculator • ~3 min"
-      title="Scorecard Profit Impact Calculator"
-      subtitle="Understand how scorecard decisions translate into profit, loss, and opportunity cost — not just technical metrics."
-      ctas={{
-        topRight: (
-          <>
-            <Link to="/tools" className="text-sm rounded-xl border px-3 py-2">
-              All Tools
-            </Link>
-            <a
-              href="mailto:contact@tsdg.co.za?subject=Scorecard%20profit%20impact%20review"
-              className="text-sm rounded-xl px-3 py-2"
-              style={{
-                background: "rgb(var(--primary))",
-                color: "rgb(var(--primary-fg))",
-              }}
-            >
-              Review my scorecard
-            </a>
-          </>
-        ),
-      }}
-      childrenLeft={
-        <div className="grid gap-6">
-          <Field label="Monthly applications">
-            <Input
-              type="number"
-              value={inputs.monthlyApplications}
-              onChange={update("monthlyApplications")}
-            />
-          </Field>
-
-          <Field label="Base bad rate (%)">
-            <Input
-              type="number"
-              value={inputs.badRatePct}
-              onChange={update("badRatePct")}
-            />
-          </Field>
-
-          <Field label="True positive rate (%)" hint="Goods correctly approved">
-            <Input
-              type="number"
-              value={inputs.truePositiveRatePct}
-              onChange={update("truePositiveRatePct")}
-            />
-          </Field>
-
-          <Field label="False positive rate (%)" hint="Bads incorrectly approved">
-            <Input
-              type="number"
-              value={inputs.falsePositiveRatePct}
-              onChange={update("falsePositiveRatePct")}
-            />
-          </Field>
-
-          <Field label="Profit per good account">
-            <Input
-              type="number"
-              value={inputs.profitPerGood}
-              onChange={update("profitPerGood")}
-            />
-          </Field>
-
-          <Field label="Loss per bad account">
-            <Input
-              type="number"
-              value={inputs.lossPerBad}
-              onChange={update("lossPerBad")}
-            />
-          </Field>
-
-          <Field label="Opportunity cost per rejected good">
-            <Input
-              type="number"
-              value={inputs.opportunityCostPerGoodRejected}
-              onChange={update("opportunityCostPerGoodRejected")}
-            />
-          </Field>
-        </div>
-      }
-      afterInputs={
-        <HowThisWorks
-          title="How this calculator works"
-          teaser={
-            <>
-              Technical scorecard performance does not always translate into higher
-              profit. This calculator applies economic values to the confusion matrix
-              to show real business impact.
-            </>
-          }
-        >
-          <h3>Why better scorecards don’t always mean better business outcomes</h3>
-          <p>
-            Most organisations evaluate credit scorecards using technical metrics such
-            as Gini, KS, AUC, or bad rate at a fixed cut-off. These measures are useful
-            — but they do not tell you whether the scorecard makes more money.
-          </p>
-          <p>
-            This calculator bridges that gap by translating traditional scorecard
-            outcomes into financial impact using a confusion-matrix-based economic
-            model.
-          </p>
-
-          <h3>The core idea</h3>
-          <p>Every scorecard decision falls into one of four outcomes:</p>
-          <ul>
-            <li>
-              <strong>True Positive:</strong> a good customer approved
-            </li>
-            <li>
-              <strong>False Positive:</strong> a bad customer approved (loss)
-            </li>
-            <li>
-              <strong>True Negative:</strong> a bad customer declined
-            </li>
-            <li>
-              <strong>False Negative:</strong> a good customer declined (missed profit)
-            </li>
-          </ul>
-          <p>
-            Traditional optimisation often focuses on reducing false positives (bad
-            approvals), while false negatives (missed profitable customers) are
-            underweighted. This model assigns an economic value or cost to each outcome
-            to calculate net profit.
-          </p>
-
-          <h3>What this calculator shows</h3>
-          <ul>
-            <li>Expected approvals/declines and the confusion matrix distribution</li>
-            <li>
-              Profit from approved good customers vs losses from approved bad customers
-            </li>
-            <li>Opportunity cost of declined good customers</li>
-            <li>Net profit per decision and portfolio-level impact (monthly/annual)</li>
-            <li>Sensitivity to cut-offs and performance changes</li>
-          </ul>
-
-          <h3>How to use it responsibly</h3>
-          <ul>
-            <li>
-              Use it for <strong>scenario comparison</strong>, not exact forecasting.
-            </li>
-            <li>
-              Compare multiple cut-offs, or compare two scorecards under the same
-              assumptions.
-            </li>
-            <li>
-              Use realistic unit economics (profit per good, loss per bad, acquisition
-              costs).
-            </li>
-            <li>
-              Review outputs jointly across <strong>risk, finance, and commercial</strong>.
-            </li>
-          </ul>
-
-          <h3>What it does not do</h3>
-          <ul>
-            <li>It does not replace formal model validation or governance approval.</li>
-            <li>
-              It does not calculate Gini/KS/AUC — it uses your provided rates/outcomes.
-            </li>
-            <li>
-              It does not model second-order effects (collections recovery, pricing
-              optimisation, churn).
-            </li>
-          </ul>
-
-          <p>
-            The intent is decision insight: ensuring what you automate is not only
-            statistically sound, but economically rational.
-          </p>
-        </HowThisWorks>
-      }
-      assumptions={
-        <ul className="list-disc pl-5 space-y-2">
-          <li>
-            This calculator evaluates <strong>a scorecard at a given cut-off</strong>.
-            It does not optimise technical metrics such as Gini or AUC.
-          </li>
-          <li>
-            Approval rate is <strong>derived</strong> from the true/false positive rates
-            and the base bad rate (rather than entered separately).
-          </li>
-          <li>
-            Opportunity cost represents foregone contribution margin from rejecting
-            otherwise profitable customers.
-          </li>
-          <li>
-            Loss per bad account should reflect expected lifetime loss, not just
-            first-cycle delinquency.
-          </li>
-        </ul>
-      }
-      childrenRight={
-        <div className="grid gap-4">
-          <div className="rounded-2xl border bg-white p-4">
-            <div className="text-xs text-slate-500">Monthly net profit impact</div>
-            <div className="mt-1 text-2xl font-semibold">
-              ZAR {money(economics.netProfit)}
-            </div>
-            <div className="mt-2 text-sm">
-              Profit per 1,000 apps:{" "}
-              <strong>ZAR {money(derived.profitPerThousandApps)}</strong>
-            </div>
-            <div className="mt-2 text-sm">
-              Implied approval rate:{" "}
-              <strong>{num(derived.approvalRatePct, 1)}%</strong>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border bg-white p-4">
-            <div className="text-xs uppercase tracking-wide text-slate-500">
-              Interpretation
-            </div>
-            <div className="mt-2 font-semibold">{insight.heading}</div>
-            <p className="mt-2 text-sm text-slate-700 leading-relaxed">
-              {insight.text}
-            </p>
-            <div className="mt-3 text-sm text-slate-700 grid gap-1">
-              <div className="flex justify-between">
-                <span>Loss from approved bads</span>
-                <strong>ZAR {money(economics.lossFromBads)}</strong>
-              </div>
-              <div className="flex justify-between">
-                <span>Opportunity cost (rejected goods)</span>
-                <strong>ZAR {money(economics.opportunityCost)}</strong>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border bg-white p-4">
-            <div className="text-xs uppercase tracking-wide text-slate-500">
-              Economic breakdown
-            </div>
-            <div className="mt-3 text-sm grid gap-2">
-              <div className="flex justify-between">
-                <span>Profit from approved goods</span>
-                <strong>ZAR {money(economics.profitFromGoods)}</strong>
-              </div>
-              <div className="flex justify-between">
-                <span>Loss from approved bads</span>
-                <strong>− ZAR {money(economics.lossFromBads)}</strong>
-              </div>
-              <div className="flex justify-between">
-                <span>Opportunity cost (rejected goods)</span>
-                <strong>− ZAR {money(economics.opportunityCost)}</strong>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border bg-white p-4">
-            <div className="text-xs uppercase tracking-wide text-slate-500">
-              Confusion matrix (monthly)
-            </div>
-            <div className="mt-3 text-sm grid gap-1">
-              <div>True positives: {num(confusionMatrix.tp)}</div>
-              <div>False positives: {num(confusionMatrix.fp)}</div>
-              <div>False negatives: {num(confusionMatrix.fn)}</div>
-              <div>True negatives: {num(confusionMatrix.tn)}</div>
-            </div>
-          </div>
-        </div>
-      }
-    />
-  );
 }
+

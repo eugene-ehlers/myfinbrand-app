@@ -6,6 +6,14 @@ import CalculatorShell from "../../components/tools/CalculatorShell.jsx";
 import HowThisWorks from "../../components/tools/HowThisWorks.jsx";
 import { computeScorecardProfitImpact } from "../../lib/calculators/scorecardProfitImpact.js";
 
+<Link
+  to="/tools/scorecard-compare-profit"
+  className="text-sm rounded-xl border px-3 py-2"
+>
+  Compare two scorecards
+</Link>
+
+
 const money = (n) =>
   Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
 

@@ -53,4 +53,18 @@ export const TOOLS = [
     featured: true,
     relatedInsights: ["building-predictive-models-in-house"],
   },
+  {
+  slug: "scorecard-profit-impact",
+  title: "Scorecard Profit Impact Calculator",
+  summary:
+    "Translate scorecard performance into real profit and loss using a confusion-matrix-based economic model.",
+  path: "/tools/scorecard-profit-impact",
+  date: "2025-12-13",
+  read: "3 min",
+  tags: ["Scorecards", "Profitability", "Credit Strategy"],
+  category: "Credit & Risk",
+  type: "Calculator",
+  featured: true,
+  }
+
 ];

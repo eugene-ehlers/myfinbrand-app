@@ -47,22 +47,33 @@ import Library from "./pages/Library.jsx";
 import LibraryItem from "./pages/library/LibraryItem.jsx";
 
 // Legal
+import CookieNotice from "./components/CookieNotice.jsx";
 import Disclaimer from "./pages/Disclaimer.jsx";
 import Privacy from "./pages/Privacy.jsx";
 import Terms from "./pages/Terms.jsx";
-import CookieNotice from "./components/CookieNotice.jsx";
+import Library from "./pages/Library.jsx";
+
 
 export default function App() {
   return (
     <>
       <CookieNotice />
       <Routes>
-        {/* existing routes */}
+        {/* Keep ALL your existing routes exactly as-is */}
+
+        {/* Legal */}
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/disclaimer" element={<Disclaimer />} />
+
+        {/* Resources */}
+        <Route path="/library" element={<Library />} />
+
+        {/* Keep your fallback */}
       </Routes>
     </>
   );
 }
-
 
 
 export default function App() {

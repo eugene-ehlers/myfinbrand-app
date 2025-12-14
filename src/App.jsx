@@ -1,19 +1,18 @@
+// src/App.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
 
-// Analytics (GA4 SPA tracking)
-import PageViewTracker from "./components/analytics/PageViewTracker.jsx";
-
+// Existing pages (keep yours)
 import Landing from "./pages/Landing.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Admin from "./pages/Admin.jsx";
 import Collections_Upload from "./pages/CollectionsUpload.jsx";
 import Collections_Results from "./pages/CollectionsResults.jsx";
 import Collections_Strategy from "./pages/CollectionsStrategy.jsx";
-
 import Insights from "./pages/Insights.jsx";
-import Tools from "./pages/Tools.jsx";
+import Founder from "./pages/Founder.jsx";
+import Results from "./pages/Results.jsx";
 
-// Solutions
+// Solutions (keep yours)
 import Collections from "./pages/solutions/Collections.jsx";
 import Originations from "./pages/solutions/Originations.jsx";
 import Fraud from "./pages/solutions/Fraud.jsx";
@@ -22,64 +21,31 @@ import PricingOptimisation from "./pages/solutions/PricingOptimisation.jsx";
 import CustomerManagement from "./pages/solutions/CustomerManagement.jsx";
 import OurDecisionEngine from "./pages/solutions/OurDecisionEngine.jsx";
 
-// Article pages
+// Articles (keep yours)
 import DecisionEngines101 from "./pages/articles/DecisionEngines101.jsx";
 import AIDrivenBusinessAdvantage from "./pages/articles/AIDrivenBusinessAdvantage.jsx";
 import BuildingPredictiveModelsInHouse from "./pages/articles/BuildingPredictiveModelsInHouse.jsx";
 import WhyML from "./pages/articles/WhyML.jsx";
 import AgenticVsDecisionEngine from "./pages/articles/AgenticVsDecisionEngine.jsx";
 
-import Founder from "./pages/Founder.jsx";
-
-// Results page
-import Results from "./pages/Results.jsx";
-
-// Tools (calculator pages)
-import DecisionEngineROI from "./pages/tools/DecisionEngineRoi.jsx";
-import ManualUnderwritingCost from "./pages/tools/ManualUnderwritingCost.jsx";
-import BuildVsRentModels from "./pages/tools/BuildVsRentModels.jsx";
+// Tools hub + calculators (adjust to your actual paths)
+import Tools from "./pages/Tools.jsx";
 import ScorecardProfitImpact from "./pages/tools/ScorecardProfitImpact.jsx";
-// If/when you add Champion vs Challenger compare page, wire it here:
-import ScorecardCompareProfit from "./pages/tools/ScorecardCompareProfit.jsx";
+// If you have compare page:
+// import ScorecardCompareProfit from "./pages/tools/ScorecardCompareProfit.jsx";
 
-// Library
-import Library from "./pages/Library.jsx";
-import LibraryItem from "./pages/library/LibraryItem.jsx";
-
-// Legal
+// NEW: legal + library + cookie
 import CookieNotice from "./components/CookieNotice.jsx";
 import Disclaimer from "./pages/Disclaimer.jsx";
 import Privacy from "./pages/Privacy.jsx";
 import Terms from "./pages/Terms.jsx";
 import Library from "./pages/Library.jsx";
 
-
 export default function App() {
   return (
     <>
+      {/* Cookie banner shows site-wide */}
       <CookieNotice />
-      <Routes>
-        {/* Keep ALL your existing routes exactly as-is */}
-
-        {/* Legal */}
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/disclaimer" element={<Disclaimer />} />
-
-        {/* Resources */}
-        <Route path="/library" element={<Library />} />
-
-        {/* Keep your fallback */}
-      </Routes>
-    </>
-  );
-}
-
-
-export default function App() {
-  return (
-    <>
-      <PageViewTracker />
 
       <Routes>
         {/* Landing */}
@@ -88,12 +54,14 @@ export default function App() {
         {/* Founder page */}
         <Route path="/founder" element={<Founder />} />
 
-        {/* Existing app routes */}
+        {/* Existing routes */}
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/admin" element={<Admin />} />
+
+        {/* Results */}
         <Route path="/results" element={<Results />} />
 
-        {/* Collections workflow */}
+        {/* Collections demo routes */}
         <Route path="/collections-upload" element={<Collections_Upload />} />
         <Route path="/collections-results" element={<Collections_Results />} />
         <Route path="/collections-strategy" element={<Collections_Strategy />} />
@@ -136,42 +104,20 @@ export default function App() {
           element={<AgenticVsDecisionEngine />}
         />
 
-        {/* Tools hub */}
+        {/* Tools */}
         <Route path="/tools" element={<Tools />} />
-
-        {/* Tool detail pages (calculators) */}
-        <Route path="/tools/decision-engine-roi" element={<DecisionEngineROI />} />
-        <Route
-          path="/tools/manual-underwriting-cost"
-          element={<ManualUnderwritingCost />}
-        />
-        <Route
-          path="/tools/build-vs-rent-models"
-          element={<BuildVsRentModels />}
-        />
-        <Route
-          path="/tools/scorecard-profit-impact"
-          element={<ScorecardProfitImpact />}
-        />
-
-        {/* Champion vs Challenger compare page (enable when file exists) */}
-        {/*
-        <Route
-          path="/tools/scorecard-compare-profit"
-          element={<ScorecardCompareProfit />}
-        />
+        <Route path="/tools/scorecard-profit-impact" element={<ScorecardProfitImpact />} />
+        {/* If you have compare page:
+        <Route path="/tools/scorecard-compare-profit" element={<ScorecardCompareProfit />} />
         */}
 
         {/* Library */}
         <Route path="/library" element={<Library />} />
-        <Route path="/library/:kind/:slug" element={<LibraryItem />} 
-        />
 
         {/* Legal */}
-        <Route path="/disclaimer" element={<Disclaimer />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
-
+        <Route path="/disclaimer" element={<Disclaimer />} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -5,12 +5,21 @@ export default function CookieNotice() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const seen = localStorage.getItem("tsdg_cookie_notice");
-    if (!seen) setVisible(true);
+    try {
+      const seen = localStorage.getItem("tsdg_cookie_notice");
+      if (!seen) setVisible(true);
+    } catch {
+      // If storage is blocked, still show once per page load.
+      setVisible(true);
+    }
   }, []);
 
   const dismiss = () => {
-    localStorage.setItem("tsdg_cookie_notice", "acknowledged");
+    try {
+      localStorage.setItem("tsdg_cookie_notice", "acknowledged");
+    } catch {
+      // ignore
+    }
     setVisible(false);
   };
 
@@ -22,16 +31,14 @@ export default function CookieNotice() {
         <div className="text-slate-700">
           This site uses cookies and anonymised analytics to understand usage and
           improve content.{" "}
-          <Link
-            to="/privacy"
-            className="underline underline-offset-2"
-          >
+          <Link to="/privacy" className="underline underline-offset-2">
             Privacy notice
           </Link>
           .
         </div>
 
         <button
+          type="button"
           onClick={dismiss}
           className="rounded-lg px-4 py-2 text-sm font-medium"
           style={{

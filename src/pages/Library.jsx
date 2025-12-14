@@ -1,5 +1,6 @@
 // src/pages/Library.jsx
 
+// src/pages/Library.jsx
 import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Seo from "../components/Seo.jsx";
@@ -7,7 +8,11 @@ import SiteHeader from "../components/layout/SiteHeader.jsx";
 import SiteFooter from "../components/layout/SiteFooter.jsx";
 import ResourcesHeader from "../components/resources/ResourcesHeader.jsx";
 
-import { LIBRARY, LIBRARY_CATEGORIES, LIBRARY_TYPES } from "../data/libraryContent";
+import {
+  LIBRARY,
+  LIBRARY_CATEGORIES,
+  LIBRARY_TYPES,
+} from "../data/libraryContent";
 
 export default function Library() {
   const [category, setCategory] = useState("All");
@@ -30,6 +35,7 @@ export default function Library() {
     return matchCategory && matchType;
   });
 
+  // 🔑 FEATURED ITEMS MUST HAVE A PATH
   const featured = useMemo(() => {
     return sorted
       .filter((i) => i.featured)
@@ -37,16 +43,20 @@ export default function Library() {
         const ar = Number.isFinite(a.featuredRank) ? a.featuredRank : 9999;
         const br = Number.isFinite(b.featuredRank) ? b.featuredRank : 9999;
         return ar - br || (b.date || "").localeCompare(a.date || "");
-      });
+      })
+      .map((item) => ({
+        ...item,
+        path: `/library/${item.kind}/${item.slug}`,
+      }));
   }, [sorted]);
 
-  // If later you add PDFs to library, this keeps behaviour consistent
   const isDocument = (item) =>
     typeof item.path === "string" &&
     (item.path.endsWith(".pdf") || item.path.startsWith("/docs/"));
 
   const Filters = (
     <div className="flex flex-wrap gap-4 items-center">
+      {/* Category */}
       <div className="flex flex-wrap gap-2 items-center">
         <span className="text-xs uppercase tracking-wide text-slate-500">
           Category
@@ -78,6 +88,7 @@ export default function Library() {
         ))}
       </div>
 
+      {/* Type */}
       <div className="flex flex-wrap gap-2 items-center">
         <span className="text-xs uppercase tracking-wide text-slate-500">
           Type
@@ -99,7 +110,9 @@ export default function Library() {
             key={t}
             onClick={() => setType(t)}
             className={`text-xs px-3 py-1 rounded-full border ${
-              type === t ? "bg-slate-900 text-white" : "bg-white text-slate-700"
+              type === t
+                ? "bg-slate-900 text-white"
+                : "bg-white text-slate-700"
             }`}
           >
             {t}
@@ -110,7 +123,10 @@ export default function Library() {
   );
 
   return (
-    <div className="min-h-screen text-slate-900" style={{ background: "rgb(var(--surface))" }}>
+    <div
+      className="min-h-screen text-slate-900"
+      style={{ background: "rgb(var(--surface))" }}
+    >
       <Seo
         title="Library | The Smart Decision Group"
         description="A quiet advisory library: practical decisioning guidance for operators modernising credit, onboarding, and risk responsibly."
@@ -122,7 +138,7 @@ export default function Library() {
 
       <ResourcesHeader
         title="Library"
-        description="This is a quiet, practical space for operators. No “training”. No judgement. Just clear decisioning guidance, written for people who run real businesses and want to modernise responsibly."
+        description="This is a quiet, practical space for operators. No training. No judgement. Just clear decisioning guidance for people who run real businesses."
         helper={
           <>
             Prefer calculators?{" "}
@@ -138,7 +154,7 @@ export default function Library() {
       />
 
       <main className="page-container mx-auto max-w-5xl px-4 pb-16 pt-8">
-        {/* Your intro content (kept) */}
+        {/* Intro */}
         <section className="rounded-2xl border bg-white p-6">
           <div className="grid gap-6 md:grid-cols-2">
             <div>
@@ -146,10 +162,10 @@ export default function Library() {
                 What this is
               </h2>
               <ul className="mt-3 space-y-2 text-slate-700">
-                <li>Confidential-style advisory notes (no client identifiers)</li>
-                <li>Simple explanations using “business language”</li>
-                <li>Decision engine thinking without vendor buzzwords</li>
-                <li>Practical lessons from real delivery</li>
+                <li>Confidential-style advisory notes</li>
+                <li>Plain business language</li>
+                <li>No vendor buzzwords</li>
+                <li>Lessons from real delivery</li>
               </ul>
             </div>
 
@@ -159,9 +175,9 @@ export default function Library() {
               </h2>
               <ul className="mt-3 space-y-2 text-slate-700">
                 <li>Not a course</li>
-                <li>Not public benchmarking</li>
-                <li>Not a place to “look smart”</li>
-                <li>Not financial or regulatory advice</li>
+                <li>Not benchmarking</li>
+                <li>Not a place to look smart</li>
+                <li>Not regulatory advice</li>
               </ul>
             </div>
           </div>
@@ -170,17 +186,19 @@ export default function Library() {
             <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
               Confidentiality note
             </h3>
-            <p className="mt-2 text-sm text-slate-700 leading-relaxed">
-              Notes here avoid client-identifying details and are provided to support thinking and discussion.
-              They are not a substitute for portfolio-level analysis.
+            <p className="mt-2 text-sm text-slate-700">
+              Notes avoid client-identifying details and support thinking and
+              discussion. They are not a substitute for portfolio-level analysis.
             </p>
           </div>
         </section>
 
-        {/* The missing content list */}
+        {/* Library grid */}
         <section className="mt-6">
           {filtered.length === 0 ? (
-            <p className="text-sm text-slate-500">No library notes match these filters yet.</p>
+            <p className="text-sm text-slate-500">
+              No library notes match these filters yet.
+            </p>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2">
               {filtered.map((a) => (
@@ -194,31 +212,14 @@ export default function Library() {
                       {a.date} {a.read ? `• ${a.read}` : null}
                     </span>
                     <div className="flex items-center gap-1">
-                      {a.category && (
-                        <span className="hidden sm:inline text-[10px] rounded-full border px-2 py-0.5">
-                          {Array.isArray(a.category) ? a.category[0] : a.category}
-                        </span>
-                      )}
-                      {a.type && (
-                        <span className="text-[10px] rounded-full border px-2 py-0.5">
-                          {a.type}
-                        </span>
-                      )}
+                      <span className="text-[10px] rounded-full border px-2 py-0.5">
+                        {a.type}
+                      </span>
                     </div>
                   </div>
 
                   <h2 className="mt-2 text-xl font-semibold">{a.title}</h2>
                   <p className="mt-2 text-slate-700">{a.summary}</p>
-
-                  {a.tags?.length ? (
-                    <div className="mt-3 flex gap-2 flex-wrap">
-                      {a.tags.map((t) => (
-                        <span key={t} className="text-xs rounded-full border px-2 py-0.5">
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
                 </Link>
               ))}
             </div>

@@ -40,6 +40,7 @@ import Disclaimer from "./pages/Disclaimer.jsx";
 import Privacy from "./pages/Privacy.jsx";
 import Terms from "./pages/Terms.jsx";
 import Library from "./pages/Library.jsx";
+import LibraryArticle from "./pages/LibraryArticle.jsx";
 
 export default function App() {
   return (
@@ -113,6 +114,8 @@ export default function App() {
 
         {/* Library */}
         <Route path="/library" element={<Library />} />
+        <Route path="/library/:kind/:slug" element={<LibraryArticle />} />
+
 
         {/* Legal */}
         <Route path="/privacy" element={<Privacy />} />

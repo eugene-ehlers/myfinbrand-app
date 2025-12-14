@@ -46,6 +46,11 @@ import ScorecardCompareProfit from "./pages/tools/ScorecardCompareProfit.jsx";
 import Library from "./pages/Library.jsx";
 import LibraryItem from "./pages/library/LibraryItem.jsx";
 
+// Legal
+import Disclaimer from "./pages/Disclaimer.jsx";
+import Privacy from "./pages/Privacy.jsx";
+import Terms from "./pages/Terms.jsx";
+
 
 export default function App() {
   return (
@@ -137,6 +142,11 @@ export default function App() {
         <Route path="/library" element={<Library />} />
         <Route path="/library/:kind/:slug" element={<LibraryItem />} 
         />
+
+        {/* Legal */}
+        <Route path="/disclaimer" element={<Disclaimer />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
 
 
         {/* Fallback */}

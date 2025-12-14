@@ -30,7 +30,7 @@ export const LIBRARY = [
         {
           heading: "The real problem is not technology",
           paragraphs: [
-            "Most small lenders do not lack software; they lack clarity. Decisions sit inside a loan management system (LMS) as a mix of hidden rules, staff habits, and exceptions. That works—until volumes rise, staff change, fraud increases, or the regulator asks “why”.",
+            "Most small lenders do not lack software; they lack clarity. Decisions sit inside a loan management system (LMS) or somewhere "else", as a mix of hidden rules, staff habits, and exceptions. That works—until volumes rise, staff change, fraud increases, or the regulator asks “why”.",
             "A decision engine is not a ‘bank thing’. It is a way of making your rules and trade-offs explicit, testable, auditable, and improvable—without forcing you to become a data science shop.",
           ],
         },

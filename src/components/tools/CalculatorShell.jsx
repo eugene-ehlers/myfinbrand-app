@@ -2,6 +2,8 @@
 import React from "react";
 import SiteHeader from "../layout/SiteHeader.jsx";
 import SiteFooter from "../layout/SiteFooter.jsx";
+import { Link } from "react-router-dom";
+
 
 export default function CalculatorShell({
   seo,
@@ -93,6 +95,15 @@ export default function CalculatorShell({
             </div>
           </section>
         ) : null}
+
+        <div className="mt-4 text-xs text-slate-500">
+        Results are indicative only and do not constitute financial, credit, or regulatory advice.{" "}
+        <Link to="/disclaimer" className="underline underline-offset-2">
+          Read disclaimer
+        </Link>
+        .
+      </div>
+
       </main>
 
       <SiteFooter />

@@ -1,3 +1,5 @@
+//src/pages/Privacy.jsx
+
 import React from "react";
 import Seo from "../components/Seo.jsx";
 import SiteHeader from "../components/layout/SiteHeader.jsx";

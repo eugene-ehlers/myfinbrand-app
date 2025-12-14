@@ -1,6 +1,6 @@
 // src/components/layout/SiteHeader.jsx
 import React, { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Linkedin } from "lucide-react";
 
 export default function SiteHeader() {
@@ -9,7 +9,9 @@ export default function SiteHeader() {
 
   const solutionsRef = useRef(null);
   const resourcesRef = useRef(null);
+
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Close dropdowns on route change
   useEffect(() => {
@@ -20,16 +22,10 @@ export default function SiteHeader() {
   // Close dropdowns on outside click
   useEffect(() => {
     const onClickOutside = (e) => {
-      if (
-        solutionsRef.current &&
-        !solutionsRef.current.contains(e.target)
-      ) {
+      if (solutionsRef.current && !solutionsRef.current.contains(e.target)) {
         setSolutionsOpen(false);
       }
-      if (
-        resourcesRef.current &&
-        !resourcesRef.current.contains(e.target)
-      ) {
+      if (resourcesRef.current && !resourcesRef.current.contains(e.target)) {
         setResourcesOpen(false);
       }
     };
@@ -37,6 +33,38 @@ export default function SiteHeader() {
     document.addEventListener("mousedown", onClickOutside);
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
+
+  // Close dropdowns on Escape key
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setSolutionsOpen(false);
+        setResourcesOpen(false);
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  /**
+   * Ensure hash navigation works from any route.
+   * - If already on "/", just set window.location.hash.
+   * - If not on "/", navigate to "/#hash".
+   */
+  const goToHomeAnchor = (hash) => {
+    setSolutionsOpen(false);
+    setResourcesOpen(false);
+
+    const clean = String(hash || "").replace(/^#/, "");
+    if (!clean) return;
+
+    if (location.pathname === "/") {
+      window.location.hash = `#${clean}`;
+      return;
+    }
+
+    navigate(`/#${clean}`);
+  };
 
   return (
     <header className="site-header">
@@ -81,14 +109,15 @@ export default function SiteHeader() {
                 role="menu"
               >
                 {/* Overview on the home page */}
-                <a
-                  href="/#capabilities"
-                  className="block px-4 py-2 hover:bg-slate-50 rounded-t-xl"
+                <button
+                  type="button"
+                  className="block w-full text-left px-4 py-2 hover:bg-slate-50 rounded-t-xl"
                   style={{ color: "rgb(15 23 42)" }}
-                  onClick={() => setSolutionsOpen(false)}
+                  onClick={() => goToHomeAnchor("capabilities")}
+                  role="menuitem"
                 >
                   Overview: What we do
-                </a>
+                </button>
 
                 {/* Core platform */}
                 <div className="px-4 pt-2 pb-1 text-[11px] uppercase tracking-wide text-slate-400">
@@ -235,9 +264,14 @@ export default function SiteHeader() {
             Founder
           </Link>
 
-          <a href="/#contact" className="header-cta">
+          {/* Contact anchor (works from any route) */}
+          <button
+            type="button"
+            onClick={() => goToHomeAnchor("contact")}
+            className="header-cta"
+          >
             Contact
-          </a>
+          </button>
 
           {/* LinkedIn (open in new tab) */}
           <a

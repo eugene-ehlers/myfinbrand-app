@@ -50,6 +50,19 @@ import LibraryItem from "./pages/library/LibraryItem.jsx";
 import Disclaimer from "./pages/Disclaimer.jsx";
 import Privacy from "./pages/Privacy.jsx";
 import Terms from "./pages/Terms.jsx";
+import CookieNotice from "./components/CookieNotice.jsx";
+
+export default function App() {
+  return (
+    <>
+      <CookieNotice />
+      <Routes>
+        {/* existing routes */}
+      </Routes>
+    </>
+  );
+}
+
 
 
 export default function App() {

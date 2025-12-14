@@ -1,63 +1,113 @@
 // src/pages/Library.jsx
 
-import React from "react";
+import React, { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import Seo from "../components/Seo.jsx";
 import SiteHeader from "../components/layout/SiteHeader.jsx";
 import SiteFooter from "../components/layout/SiteFooter.jsx";
+import ResourcesHeader from "../components/resources/ResourcesHeader.jsx";
+
+import { LIBRARY, LIBRARY_CATEGORIES, LIBRARY_TYPES } from "../data/libraryContent";
 
 export default function Library() {
-  return (
-    <div className="min-h-screen text-slate-900" style={{ background: "rgb(var(--surface))" }}>
-      <Seo
-        title="Library | The Smart Decision Group"
-        description="Confidential advisory notes and practical thinking for leaders who want clarity without the training-room feel."
-        canonical="https://www.tsdg.co.za/library"
-        ogType="website"
-      />
+  const [category, setCategory] = useState("All");
+  const [type, setType] = useState("All");
 
-      <SiteHeader />
+  const sorted = useMemo(() => {
+    return [...(LIBRARY || [])].sort((a, b) => {
+      if (!a.date || !b.date) return 0;
+      return b.date.localeCompare(a.date);
+    });
+  }, []);
 
-      <main className="page-container mx-auto max-w-4xl px-4 pt-12 pb-16">
-        <h1 className="text-3xl font-semibold tracking-tight">Library</h1>
+  const filtered = sorted.filter((item) => {
+    const matchCategory =
+      category === "All" ||
+      item.category === category ||
+      (Array.isArray(item.category) && item.category.includes(category));
 
-        <p className="mt-4 text-slate-700 leading-relaxed max-w-3xl">
-          This is a quiet, practical space for operators. No “training”. No judgement.
-          Just clear decisioning guidance, written for people who run real businesses and
-          want to modernise responsibly.
-        </p>
+    const matchType = type === "All" || item.type === type;
+    return matchCategory && matchType;
+  });
 
-        <section className="mt-10 grid gap-5 md:grid-cols-2">
-          <div className="rounded-2xl border bg-white p-6">
-            <h2 className="text-lg font-semibold">What this is</h2>
-            <ul className="mt-3 list-disc pl-5 text-sm text-slate-700 space-y-2">
-              <li>Confidential-style advisory notes (no client identifiers)</li>
-              <li>Simple explanations using “business language”</li>
-              <li>Decision engine thinking without vendor buzzwords</li>
-              <li>Practical lessons from real delivery</li>
-            </ul>
-          </div>
+  const featured = useMemo(() => {
+    return sorted
+      .filter((i) => i.featured)
+      .sort((a, b) => {
+        const ar = Number.isFinite(a.featuredRank) ? a.featuredRank : 9999;
+        const br = Number.isFinite(b.featuredRank) ? b.featuredRank : 9999;
+        return ar - br || (b.date || "").localeCompare(a.date || "");
+      });
+  }, [sorted]);
 
-          <div className="rounded-2xl border bg-white p-6">
-            <h2 className="text-lg font-semibold">What this is not</h2>
-            <ul className="mt-3 list-disc pl-5 text-sm text-slate-700 space-y-2">
-              <li>Not a course</li>
-              <li>Not public benchmarking</li>
-              <li>Not a place to “look smart”</li>
-              <li>Not financial or regulatory advice</li>
-            </ul>
-          </div>
-        </section>
+  // If later you add PDFs to library, this keeps behaviour consistent
+  const isDocument = (item) =>
+    typeof item.path === "string" &&
+    (item.path.endsWith(".pdf") || item.path.startsWith("/docs/"));
 
-        <section className="mt-6 rounded-2xl border bg-white p-6">
-          <h2 className="text-lg font-semibold">Confidentiality note</h2>
-          <p className="mt-2 text-sm text-slate-700 leading-relaxed">
-            Notes here avoid client-identifying details and are provided to support
-            thinking and discussion. They are not a substitute for portfolio-level analysis.
-          </p>
-        </section>
-      </main>
+  const Filters = (
+    <div className="flex flex-wrap gap-4 items-center">
+      <div className="flex flex-wrap gap-2 items-center">
+        <span className="text-xs uppercase tracking-wide text-slate-500">
+          Category
+        </span>
+        <button
+          type="button"
+          onClick={() => setCategory("All")}
+          className={`text-xs px-3 py-1 rounded-full border ${
+            category === "All"
+              ? "bg-slate-900 text-white"
+              : "bg-white text-slate-700"
+          }`}
+        >
+          All
+        </button>
+        {LIBRARY_CATEGORIES.map((c) => (
+          <button
+            type="button"
+            key={c}
+            onClick={() => setCategory(c)}
+            className={`text-xs px-3 py-1 rounded-full border ${
+              category === c
+                ? "bg-slate-900 text-white"
+                : "bg-white text-slate-700"
+            }`}
+          >
+            {c}
+          </button>
+        ))}
+      </div>
 
-      <SiteFooter />
+      <div className="flex flex-wrap gap-2 items-center">
+        <span className="text-xs uppercase tracking-wide text-slate-500">
+          Type
+        </span>
+        <button
+          type="button"
+          onClick={() => setType("All")}
+          className={`text-xs px-3 py-1 rounded-full border ${
+            type === "All"
+              ? "bg-slate-900 text-white"
+              : "bg-white text-slate-700"
+          }`}
+        >
+          All
+        </button>
+        {LIBRARY_TYPES.map((t) => (
+          <button
+            type="button"
+            key={t}
+            onClick={() => setType(t)}
+            className={`text-xs px-3 py-1 rounded-full border ${
+              type === t ? "bg-slate-900 text-white" : "bg-white text-slate-700"
+            }`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
     </div>
   );
-}
+
+  return (
+    <div className="min-h-screen text-slate-900" style={{ background: "rgb(var(--surface))

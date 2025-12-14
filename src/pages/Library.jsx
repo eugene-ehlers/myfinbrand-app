@@ -110,4 +110,123 @@ export default function Library() {
   );
 
   return (
-    <div className="min-h-screen text-slate-900" style={{ background: "rgb(var(--surface))
+    <div className="min-h-screen text-slate-900" style={{ background: "rgb(var(--surface))" }}>
+      <Seo
+        title="Library | The Smart Decision Group"
+        description="A quiet advisory library: practical decisioning guidance for operators modernising credit, onboarding, and risk responsibly."
+        canonical="https://www.tsdg.co.za/library"
+        ogType="website"
+      />
+
+      <SiteHeader />
+
+      <ResourcesHeader
+        title="Library"
+        description="This is a quiet, practical space for operators. No “training”. No judgement. Just clear decisioning guidance, written for people who run real businesses and want to modernise responsibly."
+        helper={
+          <>
+            Prefer calculators?{" "}
+            <Link to="/tools" className="underline underline-offset-2">
+              Explore Tools &amp; calculators
+            </Link>
+            .
+          </>
+        }
+        featured={featured}
+        isDocument={isDocument}
+        filters={Filters}
+      />
+
+      <main className="page-container mx-auto max-w-5xl px-4 pb-16 pt-8">
+        {/* Your intro content (kept) */}
+        <section className="rounded-2xl border bg-white p-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <div>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                What this is
+              </h2>
+              <ul className="mt-3 space-y-2 text-slate-700">
+                <li>Confidential-style advisory notes (no client identifiers)</li>
+                <li>Simple explanations using “business language”</li>
+                <li>Decision engine thinking without vendor buzzwords</li>
+                <li>Practical lessons from real delivery</li>
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                What this is not
+              </h2>
+              <ul className="mt-3 space-y-2 text-slate-700">
+                <li>Not a course</li>
+                <li>Not public benchmarking</li>
+                <li>Not a place to “look smart”</li>
+                <li>Not financial or regulatory advice</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-2xl border bg-slate-50 p-5">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+              Confidentiality note
+            </h3>
+            <p className="mt-2 text-sm text-slate-700 leading-relaxed">
+              Notes here avoid client-identifying details and are provided to support thinking and discussion.
+              They are not a substitute for portfolio-level analysis.
+            </p>
+          </div>
+        </section>
+
+        {/* The missing content list */}
+        <section className="mt-6">
+          {filtered.length === 0 ? (
+            <p className="text-sm text-slate-500">No library notes match these filters yet.</p>
+          ) : (
+            <div className="grid gap-5 sm:grid-cols-2">
+              {filtered.map((a) => (
+                <Link
+                  key={a.slug}
+                  to={`/library/${a.kind}/${a.slug}`}
+                  className="rounded-2xl border bg-white p-5 hover:shadow transition-shadow"
+                >
+                  <div className="flex items-center justify-between text-xs text-slate-500">
+                    <span>
+                      {a.date} {a.read ? `• ${a.read}` : null}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {a.category && (
+                        <span className="hidden sm:inline text-[10px] rounded-full border px-2 py-0.5">
+                          {Array.isArray(a.category) ? a.category[0] : a.category}
+                        </span>
+                      )}
+                      {a.type && (
+                        <span className="text-[10px] rounded-full border px-2 py-0.5">
+                          {a.type}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <h2 className="mt-2 text-xl font-semibold">{a.title}</h2>
+                  <p className="mt-2 text-slate-700">{a.summary}</p>
+
+                  {a.tags?.length ? (
+                    <div className="mt-3 flex gap-2 flex-wrap">
+                      {a.tags.map((t) => (
+                        <span key={t} className="text-xs rounded-full border px-2 py-0.5">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
+      </main>
+
+      <SiteFooter />
+    </div>
+  );
+}

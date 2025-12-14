@@ -4,7 +4,6 @@ import SiteHeader from "../layout/SiteHeader.jsx";
 import SiteFooter from "../layout/SiteFooter.jsx";
 import { Link } from "react-router-dom";
 
-
 export default function CalculatorShell({
   seo,
   title,

@@ -10,11 +10,13 @@ export const LIBRARY_CATEGORIES = [
 
 export const LIBRARY_TYPES = ["Situation", "Question", "Field Note", "Briefing"];
 
+// Main list used by Library.jsx
 export const LIBRARY = [
   {
     slug: "start-here-micro-lender-to-modern-decisions",
     kind: "briefings",
-    title: "Start Here: From Excel & Rules to Modern Decisioning (Without Losing Control)",
+    title:
+      "Start Here: From Excel & Rules to Modern Decisioning (Without Losing Control)",
     summary:
       "A respectful, practical pathway for small lenders and retailers moving from manual decisioning into repeatable, governed decisions—without big-bank complexity.",
     date: "2025-12-13",
@@ -30,7 +32,7 @@ export const LIBRARY = [
         {
           heading: "The real problem is not technology",
           paragraphs: [
-            "Most small lenders do not lack software; they lack clarity. Decisions sit inside a loan management system (LMS) or somewhere "else", as a mix of hidden rules, staff habits, and exceptions. That works—until volumes rise, staff change, fraud increases, or the regulator asks “why”.",
+            `Most small lenders do not lack software; they lack clarity. Decisions sit inside a loan management system (LMS) or somewhere “else”, as a mix of hidden rules, staff habits, and exceptions. That works—until volumes rise, staff change, fraud increases, or the regulator asks “why”.`,
             "A decision engine is not a ‘bank thing’. It is a way of making your rules and trade-offs explicit, testable, auditable, and improvable—without forcing you to become a data science shop.",
           ],
         },
@@ -56,7 +58,8 @@ export const LIBRARY = [
   {
     slug: "situation-lms-does-everything",
     kind: "situations",
-    title: "Situation: “Our LMS already does originations — why do we need anything else?”",
+    title:
+      "Situation: “Our LMS already does originations — why do we need anything else?”",
     summary:
       "How to explain the difference between an LMS workflow and a governed decision layer—using language operators recognise.",
     date: "2025-12-13",
@@ -141,7 +144,8 @@ export const LIBRARY = [
   {
     slug: "field-note-why-5-bad-rate-can-still-hide-risk",
     kind: "notes",
-    title: "Field Note: “We have a 5% bad rate — we’re fine” (Sometimes you aren’t)",
+    title:
+      "Field Note: “We have a 5% bad rate — we’re fine” (Sometimes you aren’t)",
     summary:
       "Why a low headline bad rate can still hide leakage, fraud exposure, and poor growth economics—especially in 1-month products.",
     date: "2025-12-13",
@@ -176,7 +180,8 @@ export const LIBRARY = [
   {
     slug: "briefing-trust-someone-to-do-it-for-me",
     kind: "briefings",
-    title: "Briefing: “Just do everything for me” — A Managed Decisioning Model That Still Keeps You Safe",
+    title:
+      "Briefing: “Just do everything for me” — A Managed Decisioning Model That Still Keeps You Safe",
     summary:
       "How a ‘trust someone I trust’ persona can adopt decisioning without building internal capability first—while retaining governance and control.",
     date: "2025-12-13",

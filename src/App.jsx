@@ -32,6 +32,8 @@ import AgenticVsDecisionEngine from "./pages/articles/AgenticVsDecisionEngine.js
 // Tools hub + calculators (adjust to your actual paths)
 import Tools from "./pages/Tools.jsx";
 import ScorecardProfitImpact from "./pages/tools/ScorecardProfitImpact.jsx";
+import DecisioningFitReadiness from "./pages/tools/DecisioningFitReadiness";
+
 // If you have compare page:
 // import ScorecardCompareProfit from "./pages/tools/ScorecardCompareProfit.jsx";
 

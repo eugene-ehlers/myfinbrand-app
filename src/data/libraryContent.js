@@ -766,30 +766,113 @@ export const LIBRARY = [
     },
   },
 
-  {
-    slug: "briefing-what-good-enough-decisioning-looks-like",
-    kind: "briefings",
-    title: "Briefing: What ‘Good Enough’ Decisioning Actually Looks Like",
-    summary:
-      "Why staying manual can be the right choice — when done consciously.",
-    date: "2025-01-20",
-    read: "4–5 min",
-    tags: ["Manual excellence", "Fit for purpose"],
-    category: "Briefings",
-    type: "Briefing",
-    featured: false,
-    accent: "slate",
-    body: {
-      sections: [
-        {
-          paragraphs: [
-            "Good decisioning is about fit, not sophistication.",
-            "For many organisations, manual processes remain appropriate and effective.",
-          ],
-        },
-      ],
-    },
+{
+  slug: "briefing-what-good-enough-decisioning-looks-like",
+  kind: "briefings",
+  title: "Briefing: What ‘Good Enough’ Decisioning Actually Looks Like",
+  summary:
+    "Why staying manual can be the right choice — and how to recognise when it no longer fits.",
+  date: "2025-01-24",
+  read: "8–9 min",
+  tags: [
+    "Fit for purpose",
+    "Manual excellence",
+    "Decision maturity",
+    "Cost control",
+    "Business ambition",
+  ],
+  category: "Briefings",
+  type: "Briefing",
+  featured: false,
+  accent: "slate",
+  body: {
+    sections: [
+      {
+        heading: "Good decisioning is about fit, not sophistication",
+        paragraphs: [
+          "There is a persistent myth that better decisioning always means more technology, more automation, or more complexity.",
+          "In reality, good decisioning is about fit.",
+          "A system is good enough when it reliably supports the business you are trying to run — not the one described in textbooks or vendor decks.",
+        ],
+      },
+      {
+        heading: "Many businesses are already good enough",
+        paragraphs: [
+          "Many well-run organisations make decisions manually and do so successfully.",
+          "People understand the context, customers are known, exceptions are handled thoughtfully, and outcomes are acceptable.",
+          "This is not a temporary state or a failure to mature. In many cases, it is an intentional and effective operating model.",
+        ],
+      },
+      {
+        heading: "The bicycle versus the Formula 1 car",
+        paragraphs: [
+          "A bicycle can be the perfect solution for daily transport.",
+          "It is cheap, flexible, easy to maintain, and perfectly suited to short, familiar journeys.",
+          "A Formula 1 car is extraordinary — but only in a very specific context, with enormous supporting infrastructure.",
+          "Problems arise when businesses feel pressured to upgrade simply because something more advanced exists.",
+        ],
+      },
+      {
+        heading: "When staying manual is the right choice",
+        paragraphs: [
+          "Staying manual often makes sense when volumes are manageable, decisions rely heavily on context, and experienced people are close to the work.",
+          "It also makes sense when the cost of mistakes is low, and when the effort required to maintain clarity is acceptable.",
+          "In these cases, adding sophistication can increase cost and friction without improving outcomes.",
+        ],
+      },
+      {
+        heading: "Where ‘good enough’ quietly stops being good enough",
+        paragraphs: [
+          "The shift usually does not happen suddenly.",
+          "It appears when effort increases faster than results, when outcomes become harder to explain, or when consistency starts to matter more — to customers, staff, or regulators.",
+          "At that point, the bicycle still works, but the journey has changed.",
+        ],
+      },
+      {
+        heading: "Effort as an early warning sign",
+        paragraphs: [
+          "One of the clearest signals that fit is drifting is rising effort.",
+          "More reviews. More senior involvement. More exceptions. More explanations.",
+          "The business may still perform acceptably, but it is becoming fragile — dependent on people working harder to maintain the same outcomes.",
+        ],
+      },
+      {
+        heading: "Progress does not require a full upgrade",
+        paragraphs: [
+          "Recognising that something no longer fits does not mean jumping to the most advanced solution available.",
+          "Many organisations improve decisioning incrementally: clarifying rules, documenting judgement, separating policy from process, or stabilising how changes are tested.",
+          "These steps improve control without committing to large-scale change.",
+        ],
+      },
+      {
+        heading: "Aligning decisioning with your dream",
+        paragraphs: [
+          "The most important alignment is not with best practice, but with ambition.",
+          "If the goal is stability, control, and a manageable operation, good enough may remain manual for a long time.",
+          "If the goal is growth, scale, or resilience under pressure, the definition of good enough will change.",
+        ],
+      },
+      {
+        heading: "Neither choice is better — or worse",
+        paragraphs: [
+          "Progress is not inherently better. Staying manual is not inherently inferior.",
+          "What matters is whether the way decisions are made supports the business you want to protect or build.",
+          "Problems arise only when the operating model and the ambition drift apart without being acknowledged.",
+        ],
+      },
+      {
+        heading: "A grounding question",
+        paragraphs: [
+          "If the business doubled in size, would decisioning still feel calm?",
+          "If a key person left, would outcomes remain explainable?",
+          "If the answer is yes, you may already be good enough.",
+          "If not, the issue is not urgency — it is awareness.",
+        ],
+      },
+    ],
   },
+},
+
 
   {
     slug: "briefing-does-progress-mean-losing-control",

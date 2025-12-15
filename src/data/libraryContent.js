@@ -257,6 +257,71 @@ export const LIBRARY = [
 ];
 
 /* ============================
+  Everyone we trust
+   ============================ */
+
+{
+  slug: "situation-everyone-we-trust-says-its-fine",
+  kind: "situations",
+  title: "Situation: “Everyone we trust says it’s fine — so why does it feel wrong?”",
+  summary:
+    "A common moment where systems, standards, and advisors all agree — yet unease remains. Why this feeling matters, and why it often appears before any metric changes.",
+  date: "2025-01-16",
+  read: "3–4 min",
+  tags: [
+    "Delegated trust",
+    "Decision ownership",
+    "Early warning signs",
+    "Governance",
+  ],
+  category: "Situations",
+  type: "Situation",
+  featured: false,
+  accent: "slate",
+  body: {
+    sections: [
+      {
+        heading: "The situation",
+        paragraphs: [
+          "You’ve asked the questions. You’ve checked the reports. You’ve spoken to the people you trust.",
+          "The answers are consistent. The system is working. The benchmarks look acceptable. The regulator hasn’t raised concerns. Peers are doing something similar.",
+          "And yet, you’re not fully comfortable.",
+        ],
+      },
+      {
+        heading: "Why this moment is easy to ignore",
+        paragraphs: [
+          "There is no obvious trigger. No spike in losses. No operational failure. No external pressure forcing a change.",
+          "Raising concerns feels awkward when everything appears defensible. It can sound like overthinking, or worse, a lack of confidence in people and systems that have worked so far.",
+        ],
+      },
+      {
+        heading: "What is usually happening underneath",
+        paragraphs: [
+          "In many businesses, responsibility for decisions has quietly moved outward — into systems, standards, advisors, or accepted practice.",
+          "This is not negligence. It is often a sign of maturity and trust. But over time, it can blur a simple question:",
+        ],
+      },
+      {
+        heading: "A quiet test",
+        paragraphs: [
+          "If something started to drift tomorrow — slowly, subtly — who would notice first?",
+          "Not who would be blamed later. Who would recognise the change early enough to respond calmly?",
+        ],
+      },
+      {
+        heading: "Why this matters now",
+        paragraphs: [
+          "This feeling tends to appear before numbers move, before regulators ask questions, and before options narrow.",
+          "It is not a signal to act immediately. It is a signal to look more closely, while there is still time to do so without urgency.",
+        ],
+      },
+    ],
+  },
+}
+
+
+/* ============================
    Helpers
    ============================ */
 

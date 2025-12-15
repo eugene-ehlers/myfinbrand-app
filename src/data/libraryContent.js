@@ -1,5 +1,3 @@
-// src/data/libraryContent.js
-
 /* ============================
    Taxonomy (UI-facing)
    ============================ */
@@ -349,6 +347,54 @@ export const LIBRARY = [
       ],
     },
   },
+
+  {
+    slug: "briefing-does-progress-mean-losing-control",
+    kind: "briefings",
+    title: "Briefing: Does Progress Mean Losing Control?",
+    summary:
+      "Why the fear of black boxes is understandable — and how control can be retained.",
+    date: "2025-01-21",
+    read: "7–8 min",
+    tags: ["Control", "Black box", "Scorecards", "Governance"],
+    category: "Briefings",
+    type: "Briefing",
+    featured: true,
+    featuredRank: 4,
+    accent: "slate",
+    body: {
+      sections: [
+        {
+          heading: "This fear is rational",
+          paragraphs: [
+            "For many operators, the idea of progressing decisioning raises a deep concern: that authority will shift away from the business.",
+            "This is not resistance to improvement. It is a fear of losing control over outcomes, explanations, and accountability.",
+          ],
+        },
+        {
+          heading: "Where black boxes fit — and where they don’t",
+          paragraphs: [
+            "Scorecards are often experienced as black boxes. What matters is not seeing every calculation, but deciding where opacity is acceptable.",
+            "Allowing a black box by choice — with clear boundaries — is very different from being ruled by one.",
+          ],
+        },
+        {
+          heading: "Control through explanation and visibility",
+          paragraphs: [
+            "Control is exercised through understandable decisions, consistent documentation, and meaningful reporting.",
+            "When staff and customers can understand outcomes, authority remains with the business — even if some components are opaque.",
+          ],
+        },
+        {
+          heading: "Delegating execution vs delegating authority",
+          paragraphs: [
+            "Delegating execution is often necessary. Delegating authority is optional.",
+            "Progress becomes risky only when these two are confused.",
+          ],
+        },
+      ],
+    },
+  },
 ];
 
 /* ============================
@@ -368,4 +414,3 @@ export function getFeaturedLibrary() {
       return ar - br || (b.date || "").localeCompare(a.date || "");
     });
 }
-

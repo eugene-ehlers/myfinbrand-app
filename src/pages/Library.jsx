@@ -138,7 +138,7 @@ export default function Library() {
 
       <ResourcesHeader
         title="Library"
-        description="This is a quiet, practical space for operators. No training. No judgement. Just clear decisioning guidance for people who run real businesses."
+        description="A quiet space for operators thinking about how decisions are really made. No training. No urgency. No required next step."
         helper={
           <>
             Prefer calculators?{" "}

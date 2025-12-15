@@ -1,5 +1,9 @@
 // src/data/libraryContent.js
 
+/* ============================
+   Taxonomy (UI-facing)
+   ============================ */
+
 export const LIBRARY_CATEGORIES = [
   "Start here",
   "Situations",
@@ -8,10 +12,22 @@ export const LIBRARY_CATEGORIES = [
   "Briefings",
 ];
 
-export const LIBRARY_TYPES = ["Situation", "Question", "Field Note", "Briefing"];
+export const LIBRARY_TYPES = [
+  "Situation",
+  "Question",
+  "Field Note",
+  "Briefing",
+];
 
-// Main list used by Library.jsx
+/* ============================
+   Library Content Registry
+   ============================ */
+
 export const LIBRARY = [
+  /* ======================================================
+     START HERE
+     ====================================================== */
+
   {
     slug: "start-here-micro-lender-to-modern-decisions",
     kind: "briefings",
@@ -21,7 +37,7 @@ export const LIBRARY = [
       "A respectful, practical pathway for small lenders and retailers moving from manual decisioning into repeatable, governed decisions—without big-bank complexity.",
     date: "2025-12-13",
     read: "4–5 min",
-    tags: ["Micro lenders", "Retailers", "Rules", "Decisioning"],
+    tags: ["Manual decisions", "Rules", "Governance", "Decision ownership"],
     category: "Start here",
     type: "Briefing",
     featured: true,
@@ -32,28 +48,26 @@ export const LIBRARY = [
         {
           heading: "The real problem is not technology",
           paragraphs: [
-            `Most small lenders do not lack software; they lack clarity. Decisions sit inside a loan management system (LMS) or somewhere “else”, as a mix of hidden rules, staff habits, and exceptions. That works—until volumes rise, staff change, fraud increases, or the regulator asks “why”.`,
-            "A decision engine is not a ‘bank thing’. It is a way of making your rules and trade-offs explicit, testable, auditable, and improvable—without forcing you to become a data science shop.",
+            "Most small lenders do not lack software; they lack clarity. Decisions sit inside systems, people’s heads, spreadsheets, or inherited practices. That works—until volumes rise, staff change, fraud increases, or accountability is questioned.",
+            "Decisioning maturity is not about becoming a bank. It is about making trade-offs explicit, testable, and explainable—at a pace that fits the business.",
           ],
         },
         {
-          heading: "The minimum viable modernisation (what to do first)",
+          heading: "A minimum viable starting point",
           bullets: [
-            "Write down your top 10 rules in plain business language (not system fields).",
-            "Separate ‘policy’ from ‘process’ (who decides vs how the work flows).",
-            "Measure 3 numbers: time-to-decision, approval rate, and bad rate by segment.",
-            "Move decisioning out of ‘people memory’ into a governed rules layer.",
-          ],
-        },
-        {
-          heading: "Where scorecards fit (and why distrust is common)",
-          paragraphs: [
-            "If you’ve had a bad experience with bureau scores, you’re not alone. The mistake is treating a bureau score as ‘the decision’. It’s only one input. A practical path is to start with transparent rules, add verification steps, then introduce simple scorecarding as a controlled challenger—measured by profit, not only Gini.",
+            "Write down your top rules in plain business language.",
+            "Separate policy decisions from operational workflow.",
+            "Measure approval rate, time-to-decision, and outcomes by segment.",
+            "Move decisions out of memory and habit into something visible.",
           ],
         },
       ],
     },
   },
+
+  /* ======================================================
+     SITUATIONS
+     ====================================================== */
 
   {
     slug: "situation-lms-does-everything",
@@ -61,10 +75,10 @@ export const LIBRARY = [
     title:
       "Situation: “Our LMS already does originations — why do we need anything else?”",
     summary:
-      "How to explain the difference between an LMS workflow and a governed decision layer—using language operators recognise.",
+      "How to explain the difference between workflow systems and decision ownership—using language operators recognise.",
     date: "2025-12-13",
     read: "3–4 min",
-    tags: ["LMS", "Originations", "Rules", "Governance"],
+    tags: ["Systems", "Workflow", "Governance"],
     category: "Situations",
     type: "Situation",
     featured: true,
@@ -73,37 +87,41 @@ export const LIBRARY = [
     body: {
       sections: [
         {
-          heading: "What an LMS is great at",
+          heading: "What systems are excellent at",
           bullets: [
-            "Capturing applications and documents",
-            "Managing accounts and repayments",
-            "Producing statements and operational reporting",
+            "Capturing data and documents",
+            "Managing accounts and transactions",
+            "Producing operational reports",
           ],
         },
         {
-          heading: "What an LMS is usually bad at",
+          heading: "Where responsibility often disappears",
           bullets: [
-            "Transparent, testable decision logic (rules are hidden, scattered, or hard-coded)",
-            "Consistent exception handling and audit trails",
-            "Champion/Challenger testing and safe improvement cycles",
+            "Decision logic scattered across rules, configs, and habits",
+            "Exceptions handled differently by different people",
+            "No clear owner when outcomes drift",
           ],
         },
         {
-          heading: "The simplest explanation",
+          heading: "A simple way to explain the gap",
           paragraphs: [
-            "Think of the LMS as the ‘factory floor’. The decision layer is the ‘quality system’ that tells the factory what rules apply today, what changed, and why.",
+            "Systems run the process. Someone still needs to own the decisions the process executes.",
           ],
         },
       ],
     },
   },
 
+  /* ======================================================
+     QUESTIONS
+     ====================================================== */
+
   {
     slug: "question-what-is-a-scorecard",
     kind: "questions",
     title: "Question: “What is a scorecard, in plain terms?”",
     summary:
-      "A short, jargon-free explanation of scorecards, why they fail in practice, and how to use them safely.",
+      "A short, jargon-free explanation of scorecards, why they get distrusted, and how to use them safely.",
     date: "2025-12-13",
     read: "3 min",
     tags: ["Scorecards", "Risk", "Plain language"],
@@ -115,31 +133,27 @@ export const LIBRARY = [
     body: {
       sections: [
         {
-          heading: "Plain definition",
+          heading: "A plain definition",
           paragraphs: [
-            "A scorecard is a consistent way to combine multiple signals (e.g., income, stability, repayment history, identity checks) into one risk indicator—so your decisions are not dependent on who is working the application that day.",
+            "A scorecard is a consistent way of combining signals so decisions are not dependent on who happens to be working that day.",
           ],
         },
         {
-          heading: "Why scorecards get distrusted",
+          heading: "Why they often fail in practice",
           bullets: [
-            "They are implemented as a black box (no explainability).",
-            "They are applied without policy overlays or verification checks.",
-            "Teams optimise technical metrics and ignore profit economics.",
-            "No monitoring—performance drifts quietly over time.",
-          ],
-        },
-        {
-          heading: "How to use them safely",
-          bullets: [
-            "Start with rules you trust, then introduce the score as one input.",
-            "Pilot with a challenger strategy, not a big-bang replacement.",
-            "Measure profit impact, not only Gini/KS/AUC.",
+            "They are treated as the decision, not an input.",
+            "They are opaque to business owners.",
+            "They optimise statistics instead of economics.",
+            "They are not monitored once live.",
           ],
         },
       ],
     },
   },
+
+  /* ======================================================
+     FIELD NOTES
+     ====================================================== */
 
   {
     slug: "field-note-why-5-bad-rate-can-still-hide-risk",
@@ -147,10 +161,10 @@ export const LIBRARY = [
     title:
       "Field Note: “We have a 5% bad rate — we’re fine” (Sometimes you aren’t)",
     summary:
-      "Why a low headline bad rate can still hide leakage, fraud exposure, and poor growth economics—especially in 1-month products.",
+      "Why acceptable headline numbers can still hide risk, leakage, and missed growth.",
     date: "2025-12-13",
     read: "4 min",
-    tags: ["Bad rate", "Short-term loans", "Leakage", "Fraud"],
+    tags: ["Bad rate", "Blind spots", "Risk visibility"],
     category: "Field notes",
     type: "Field Note",
     featured: false,
@@ -158,19 +172,11 @@ export const LIBRARY = [
     body: {
       sections: [
         {
-          heading: "Common blind spots",
+          heading: "Where problems hide",
           bullets: [
-            "Bad rate is averaged across segments—high-risk segments may be growing quietly.",
-            "Fraud and identity issues often show up as ‘good’ until they don’t.",
-            "Short-term products can mask affordability stress that appears on repeat borrowing.",
-          ],
-        },
-        {
-          heading: "A better set of questions",
-          bullets: [
-            "What is bad rate by acquisition channel and branch/agent?",
-            "What is repeat borrowing behaviour by segment?",
-            "What is time-to-decision and dropout before completion?",
+            "Risk averaged across segments",
+            "Fraud showing up late",
+            "Repeat behaviour masking stress",
           ],
         },
       ],
@@ -178,15 +184,52 @@ export const LIBRARY = [
   },
 
   {
+    slug: "field-note-when-everything-you-trust-says-its-fine",
+    kind: "notes",
+    title: "When Everything You Trust Says “It’s Fine” — and It Isn’t",
+    summary:
+      "Why trusted systems, standards, and assurances can still mask problems—and why early signals are usually human.",
+    date: "2025-01-15",
+    read: "3–4 min",
+    tags: [
+      "Delegated trust",
+      "Decision ownership",
+      "Early warning signals",
+    ],
+    category: "Field notes",
+    type: "Field Note",
+    featured: true,
+    featuredRank: 4,
+    accent: "slate",
+    body: {
+      sections: [
+        {
+          paragraphs: [
+            "There is a particular kind of discomfort experienced operators recognise. Nothing is visibly broken. Reports look acceptable. Trusted systems and standards all say things are fine.",
+            "And yet, something feels off.",
+            "The most expensive problems rarely announce themselves early. They hide in missed growth, quiet margin erosion, habitual exceptions, and customers you never see.",
+            "Trust is not the problem. The problem is when trust replaces ownership.",
+            "If the business started today, with what you know now, would it be set up the same way?",
+          ],
+        },
+      ],
+    },
+  },
+
+  /* ======================================================
+     BRIEFINGS
+     ====================================================== */
+
+  {
     slug: "briefing-trust-someone-to-do-it-for-me",
     kind: "briefings",
     title:
       "Briefing: “Just do everything for me” — A Managed Decisioning Model That Still Keeps You Safe",
     summary:
-      "How a ‘trust someone I trust’ persona can adopt decisioning without building internal capability first—while retaining governance and control.",
+      "How outsourcing decisions can work—if ownership and governance are preserved.",
     date: "2025-12-13",
     read: "4 min",
-    tags: ["Managed service", "Governance", "Outsourcing"],
+    tags: ["Outsourcing", "Governance", "Ownership"],
     category: "Briefings",
     type: "Briefing",
     featured: false,
@@ -194,24 +237,28 @@ export const LIBRARY = [
     body: {
       sections: [
         {
-          heading: "The risk with outsourcing decisioning",
+          heading: "The real risk with delegation",
           paragraphs: [
-            "Outsourcing can speed up delivery, but it can also create dependency and hidden logic. The answer is not ‘don’t outsource’—it is to structure outsourcing around governance artefacts.",
+            "Delegating execution is sensible. Delegating responsibility is not. Problems arise when no one inside the business can explain why decisions are made.",
           ],
         },
         {
-          heading: "What you should insist on (non-negotiables)",
+          heading: "Non-negotiables",
           bullets: [
-            "Your policy rules documented in business language",
-            "Versioning of decision rules and models",
-            "Reason codes for approvals/declines",
-            "Monthly monitoring pack (quality + profit metrics)",
+            "Documented policy in business language",
+            "Versioned rules and models",
+            "Clear reason codes",
+            "Regular outcome reviews",
           ],
         },
       ],
     },
   },
 ];
+
+/* ============================
+   Helpers
+   ============================ */
 
 export function getLibraryItem(kind, slug) {
   return LIBRARY.find((x) => x.kind === kind && x.slug === slug);

@@ -8,6 +8,8 @@ export const TOOL_CATEGORIES = [
   "Profitability",
   "Calculator",
   "Assessment",
+  "Strategy",
+  "Operations',
 ];
 
 export const TOOL_TYPES = ["Calculator", "Assessment", "Explorer"];
@@ -125,6 +127,30 @@ export const TOOLS = [
   accent: "slate",
   ctaLabel: "Start assessment",
 },
+
+{
+  slug: "decision-tradeoff-prioritiser",
+  path: "/tools/decision-tradeoff-prioritiser",
+  title: "Decision Trade-off Prioritiser",
+  summary:
+    "Clarify what your business is really optimising for when decisions involve trade-offs between profit, risk, speed, effort, and fairness.",
+  date: "2025-01-30",
+  read: "3–4 min",
+  category: ["Strategy", "Operations"],
+  type: "Assessment",
+  tags: [
+    "Trade-offs",
+    "Optimisation",
+    "Profit",
+    "Cost-to-serve",
+    "Decision clarity",
+  ],
+  featured: true,
+  featuredRank: 2,
+  accent: "slate",
+  ctaLabel: "Prioritise trade-offs",
+}
+
 
 
 ];

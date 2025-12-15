@@ -34,6 +34,8 @@ import Tools from "./pages/Tools.jsx";
 import ScorecardProfitImpact from "./pages/tools/ScorecardProfitImpact.jsx";
 import DecisioningFitReadiness from "./pages/tools/DecisioningFitReadiness";
 import DecisionTradeoffPrioritiser from "./pages/tools/DecisionTradeoffPrioritiser";
+import RepeatVsNewEconomics from "./pages/tools/RepeatVsNewEconomics";
+
 
 // If you have compare page:
 import ScorecardCompareProfit from "./pages/tools/ScorecardCompareProfit.jsx";
@@ -115,6 +117,8 @@ export default function App() {
         <Route path="/tools/decisioning-fit-readiness" element={<DecisioningFitReadiness />} />
         <Route path="/tools/decision-tradeoff-prioritiser" element={<DecisionTradeoffPrioritiser /> } /> 
         <Route path="/tools/scorecard-compare-profit" element={<ScorecardCompareProfit />} />
+        <Route path="/tools/repeat-vs-new-customer-economics" element={<RepeatVsNewEconomics />} />
+
 
 
         {/* Library */}

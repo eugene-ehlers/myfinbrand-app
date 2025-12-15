@@ -25,102 +25,7 @@ export const LIBRARY = [
   /* ======================================================
      START HERE
      ====================================================== */
-{
-  slug: "briefing-does-progress-mean-losing-control",
-  kind: "briefings",
-  title: "Briefing: Does Progress Mean Losing Control?",
-  summary:
-    "Why the fear of black boxes is understandable — and how real control is retained even as decisions evolve.",
-  date: "2025-01-21",
-  read: "8–9 min",
-  tags: [
-    "Control",
-    "Black box",
-    "Scorecards",
-    "Governance",
-    "Decision ownership",
-  ],
-  category: "Briefings",
-  type: "Briefing",
-  featured: true,
-  featuredRank: 4,
-  accent: "slate",
-  body: {
-    sections: [
-      {
-        heading: "This fear is rational",
-        paragraphs: [
-          "For many operators, the idea of progressing decisioning raises a deep and personal concern: that authority will slowly shift away from the business.",
-          "This fear is often expressed as resistance to black boxes, systems, models, or outside expertise. But underneath it is something more fundamental.",
-          "It is not fear of improvement. It is fear of losing the ability to explain, defend, and ultimately own decisions.",
-        ],
-      },
-      {
-        heading: "Why “black box” has become shorthand for loss of control",
-        paragraphs: [
-          "In many organisations, this fear is rooted in real experience.",
-          "Control has previously been lost when decisions were embedded deep inside systems, when rules were implemented without explanation, or when changes were made by people who did not carry responsibility for outcomes.",
-          "Over time, progress became associated with opacity, rigidity, and diminished agency. In that context, resisting change can feel like the responsible choice.",
-        ],
-      },
-      {
-        heading: "The uncomfortable truth: control is often lost while staying manual",
-        paragraphs: [
-          "What is rarely acknowledged is that loss of control often begins long before any formal progression takes place.",
-          "It shows up quietly when decisions depend on a few individuals, when no one can fully explain why outcomes differ, when rules are adjusted reactively, or when profit holds steady only through increased effort.",
-          "At that point, control has not disappeared — it has migrated informally into habits, exceptions, and unspoken rules that no one explicitly owns.",
-        ],
-      },
-      {
-        heading: "Delegating execution is not the same as delegating authority",
-        paragraphs: [
-          "A critical distinction is often blurred: the difference between execution and authority.",
-          "Execution is about who carries out decisions. Authority is about who defines, owns, and can deliberately change them.",
-          "Progress becomes dangerous only when these two are confused. Delegating execution can be sensible. Delegating authority without intent is where control is lost.",
-        ],
-      },
-      {
-        heading: "Where black boxes can exist — without losing control",
-        paragraphs: [
-          "Scorecards are often the clearest example of a feared black box.",
-          "What matters is not whether every calculation is visible, but whether the business decides where opacity is acceptable, what role the score plays, and under what conditions it can be challenged or overridden.",
-          "Allowing a black box to exist by choice is very different from being ruled by one. In this sense, a scorecard becomes one delegated input within boundaries the business defines.",
-        ],
-      },
-      {
-        heading: "Why clarity of output matters more than visibility of logic",
-        paragraphs: [
-          "Another way control is often lost is not through the decision itself, but through how it is explained and observed.",
-          "Control is exercised when staff can understand why an outcome occurred, customers receive consistent explanations, documents feel coherent, and reporting makes patterns visible.",
-          "This does not require exposing internal mechanics. It requires that decisions can be explained in plain language and reviewed meaningfully over time.",
-        ],
-      },
-      {
-        heading: "Progress does not have to be total or irreversible",
-        paragraphs: [
-          "One of the biggest sources of fear is the assumption that progress is all-or-nothing or permanent.",
-          "In reality, progression can be partial, reversible, and scoped to specific decisions. Some organisations formalise repeat decisions but keep new cases manual. Others clarify logic without automating it.",
-          "This is not hesitation. It is intentional design.",
-        ],
-      },
-      {
-        heading: "The real question to ask",
-        paragraphs: [
-          "Instead of asking whether progress will cause a loss of control, a more useful question is where control already feels unclear — and whether that is acceptable.",
-          "If you are comfortable, staying where you are is a valid choice. If not, the solution is not necessarily technology, but making ownership explicit again.",
-        ],
-      },
-      {
-        heading: "Where this leaves you",
-        paragraphs: [
-          "Progress does not mean losing control. Careless progress can. Unexamined complexity often does.",
-          "Whether you stay manual or move forward, the principle remains the same: the business must be able to explain, defend, and deliberately change its decisions on its own terms.",
-          "Everything else is secondary.",
-        ],
-      },
-    ],
-  },
-},
+
 
 
   /* ======================================================
@@ -195,30 +100,111 @@ export const LIBRARY = [
     },
   },
 
-  {
-    slug: "situation-decisions-mostly-work-except-when-they-dont",
-    kind: "situations",
-    title: "Situation: “Our decisions mostly work — except when they don’t”",
-    summary:
-      "When outcomes are acceptable on average, but inconsistent in edge cases.",
-    date: "2025-01-13",
-    read: "3 min",
-    tags: ["Inconsistency", "Exceptions"],
-    category: "Situations",
-    type: "Situation",
-    featured: false,
-    accent: "slate",
-    body: {
-      sections: [
-        {
-          paragraphs: [
-            "Most cases are straightforward. Problems appear in the margins — exceptions, overrides, edge cases.",
-            "These moments reveal how decisions are actually made.",
-          ],
-        },
-      ],
-    },
+{
+  slug: "situation-decisions-mostly-work-except-when-they-dont",
+  kind: "situations",
+  title: "Situation: “Our decisions mostly work — except when they don’t”",
+  summary:
+    "When most cases flow smoothly, but edge cases, repeats, and people signals start to worry you.",
+  date: "2025-01-26",
+  read: "7–8 min",
+  tags: [
+    "Edge cases",
+    "Repeat customers",
+    "Staff signals",
+    "Decision foundations",
+    "Hidden risk",
+  ],
+  category: "Situations",
+  type: "Situation",
+  featured: false,
+  accent: "slate",
+  body: {
+    sections: [
+      {
+        heading: "Most of the time, things work",
+        paragraphs: [
+          "For the majority of cases, decisions feel straightforward.",
+          "Applications move through. Customers are served. Staff know what to do.",
+          "If you only look at averages, the system appears healthy.",
+        ],
+      },
+      {
+        heading: "Where discomfort starts to appear",
+        paragraphs: [
+          "Problems tend to show up at the edges.",
+          "Exceptions take longer. Certain customers trigger repeated debate. Decisions that look similar lead to different outcomes.",
+          "These cases consume disproportionate attention and emotional energy.",
+        ],
+      },
+      {
+        heading: "Repeat customers are an early signal",
+        paragraphs: [
+          "In many businesses — especially short-term or relationship-driven ones — repeat customers form the majority of volume.",
+          "When repeat customers begin to disappear, behave unpredictably, or complain about inconsistency, it is rarely random.",
+          "Repeat behaviour often exposes weaknesses in decision logic earlier than new business does.",
+        ],
+      },
+      {
+        heading: "Staff signals matter just as much",
+        paragraphs: [
+          "Another early sign appears in people rather than metrics.",
+          "Experienced staff start leaving. New staff struggle longer than expected. Informal workarounds become common.",
+          "These are not HR issues first — they are decision clarity issues.",
+        ],
+      },
+      {
+        heading: "Why edge cases reveal the truth",
+        paragraphs: [
+          "Edge cases force the organisation to confront questions it usually avoids.",
+          "What really matters here? Who gets to decide? Which rules are flexible, and which are not?",
+          "When answers differ depending on who is asked, inconsistency becomes visible.",
+        ],
+      },
+      {
+        heading: "The common temptation: add complexity",
+        paragraphs: [
+          "A natural response is to add more.",
+          "More rules. More checks. More products. More markets. More risk.",
+          "This can create the feeling of progress, but it often increases complexity before the foundation is clear.",
+        ],
+      },
+      {
+        heading: "Why adding more often makes things worse",
+        paragraphs: [
+          "Additional complexity magnifies existing inconsistencies.",
+          "If the core decision logic is unclear, expanding volume, channels, or products simply spreads that uncertainty.",
+          "Costs rise. Learning slows. Control feels harder, not easier.",
+        ],
+      },
+      {
+        heading: "What this situation does not mean",
+        paragraphs: [
+          "It does not mean your decisions are bad.",
+          "It does not mean automation or new systems are required.",
+          "It means the foundation that works for most cases is being stretched by situations it was never designed to handle explicitly.",
+        ],
+      },
+      {
+        heading: "A more useful response",
+        paragraphs: [
+          "Instead of asking how to eliminate edge cases, it can be more productive to ask what they are teaching you.",
+          "Which decisions repeat? Which ones feel unfair? Which ones consume the most effort?",
+          "Answers here often point to where clarity — not complexity — is needed next.",
+        ],
+      },
+      {
+        heading: "Where this leaves you",
+        paragraphs: [
+          "Most organisations encounter this situation as they grow or change.",
+          "You can choose to stay where you are and accept the effort, or you can clarify foundations before expanding further.",
+          "Neither choice is better or worse. What matters is that it is deliberate and aligned with what you are trying to build.",
+        ],
+      },
+    ],
   },
+},
+
 
    {
   slug: "situation-we-change-rules-but-results-dont-improve",
@@ -872,55 +858,103 @@ export const LIBRARY = [
     ],
   },
 },
-
-
-  {
-    slug: "briefing-does-progress-mean-losing-control",
-    kind: "briefings",
-    title: "Briefing: Does Progress Mean Losing Control?",
-    summary:
-      "Why the fear of black boxes is understandable — and how control can be retained.",
-    date: "2025-01-21",
-    read: "7–8 min",
-    tags: ["Control", "Black box", "Scorecards", "Governance"],
-    category: "Briefings",
-    type: "Briefing",
-    featured: true,
-    featuredRank: 4,
-    accent: "slate",
-    body: {
-      sections: [
-        {
-          heading: "This fear is rational",
-          paragraphs: [
-            "For many operators, the idea of progressing decisioning raises a deep concern: that authority will shift away from the business.",
-            "This is not resistance to improvement. It is a fear of losing control over outcomes, explanations, and accountability.",
-          ],
-        },
-        {
-          heading: "Where black boxes fit — and where they don’t",
-          paragraphs: [
-            "Scorecards are often experienced as black boxes. What matters is not seeing every calculation, but deciding where opacity is acceptable.",
-            "Allowing a black box by choice — with clear boundaries — is very different from being ruled by one.",
-          ],
-        },
-        {
-          heading: "Control through explanation and visibility",
-          paragraphs: [
-            "Control is exercised through understandable decisions, consistent documentation, and meaningful reporting.",
-            "When staff and customers can understand outcomes, authority remains with the business — even if some components are opaque.",
-          ],
-        },
-        {
-          heading: "Delegating execution vs delegating authority",
-          paragraphs: [
-            "Delegating execution is often necessary. Delegating authority is optional.",
-            "Progress becomes risky only when these two are confused.",
-          ],
-        },
-      ],
-    },
+{
+  slug: "briefing-does-progress-mean-losing-control",
+  kind: "briefings",
+  title: "Briefing: Does Progress Mean Losing Control?",
+  summary:
+    "Why the fear of black boxes is understandable — and how real control is retained even as decisions evolve.",
+  date: "2025-01-21",
+  read: "8–9 min",
+  tags: [
+    "Control",
+    "Black box",
+    "Scorecards",
+    "Governance",
+    "Decision ownership",
+  ],
+  category: "Briefings",
+  type: "Briefing",
+  featured: true,
+  featuredRank: 4,
+  accent: "slate",
+  body: {
+    sections: [
+      {
+        heading: "This fear is rational",
+        paragraphs: [
+          "For many operators, the idea of progressing decisioning raises a deep and personal concern: that authority will slowly shift away from the business.",
+          "This fear is often expressed as resistance to black boxes, systems, models, or outside expertise. But underneath it is something more fundamental.",
+          "It is not fear of improvement. It is fear of losing the ability to explain, defend, and ultimately own decisions.",
+        ],
+      },
+      {
+        heading: "Why “black box” has become shorthand for loss of control",
+        paragraphs: [
+          "In many organisations, this fear is rooted in real experience.",
+          "Control has previously been lost when decisions were embedded deep inside systems, when rules were implemented without explanation, or when changes were made by people who did not carry responsibility for outcomes.",
+          "Over time, progress became associated with opacity, rigidity, and diminished agency. In that context, resisting change can feel like the responsible choice.",
+        ],
+      },
+      {
+        heading: "The uncomfortable truth: control is often lost while staying manual",
+        paragraphs: [
+          "What is rarely acknowledged is that loss of control often begins long before any formal progression takes place.",
+          "It shows up quietly when decisions depend on a few individuals, when no one can fully explain why outcomes differ, when rules are adjusted reactively, or when profit holds steady only through increased effort.",
+          "At that point, control has not disappeared — it has migrated informally into habits, exceptions, and unspoken rules that no one explicitly owns.",
+        ],
+      },
+      {
+        heading: "Delegating execution is not the same as delegating authority",
+        paragraphs: [
+          "A critical distinction is often blurred: the difference between execution and authority.",
+          "Execution is about who carries out decisions. Authority is about who defines, owns, and can deliberately change them.",
+          "Progress becomes dangerous only when these two are confused. Delegating execution can be sensible. Delegating authority without intent is where control is lost.",
+        ],
+      },
+      {
+        heading: "Where black boxes can exist — without losing control",
+        paragraphs: [
+          "Scorecards are often the clearest example of a feared black box.",
+          "What matters is not whether every calculation is visible, but whether the business decides where opacity is acceptable, what role the score plays, and under what conditions it can be challenged or overridden.",
+          "Allowing a black box to exist by choice is very different from being ruled by one. In this sense, a scorecard becomes one delegated input within boundaries the business defines.",
+        ],
+      },
+      {
+        heading: "Why clarity of output matters more than visibility of logic",
+        paragraphs: [
+          "Another way control is often lost is not through the decision itself, but through how it is explained and observed.",
+          "Control is exercised when staff can understand why an outcome occurred, customers receive consistent explanations, documents feel coherent, and reporting makes patterns visible.",
+          "This does not require exposing internal mechanics. It requires that decisions can be explained in plain language and reviewed meaningfully over time.",
+        ],
+      },
+      {
+        heading: "Progress does not have to be total or irreversible",
+        paragraphs: [
+          "One of the biggest sources of fear is the assumption that progress is all-or-nothing or permanent.",
+          "In reality, progression can be partial, reversible, and scoped to specific decisions. Some organisations formalise repeat decisions but keep new cases manual. Others clarify logic without automating it.",
+          "This is not hesitation. It is intentional design.",
+        ],
+      },
+      {
+        heading: "The real question to ask",
+        paragraphs: [
+          "Instead of asking whether progress will cause a loss of control, a more useful question is where control already feels unclear — and whether that is acceptable.",
+          "If you are comfortable, staying where you are is a valid choice. If not, the solution is not necessarily technology, but making ownership explicit again.",
+        ],
+      },
+      {
+        heading: "Where this leaves you",
+        paragraphs: [
+          "Progress does not mean losing control. Careless progress can. Unexamined complexity often does.",
+          "Whether you stay manual or move forward, the principle remains the same: the business must be able to explain, defend, and deliberately change its decisions on its own terms.",
+          "Everything else is secondary.",
+        ],
+      },
+    ],
   },
+},
+
 ];
 
 /* ============================

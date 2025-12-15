@@ -6,6 +6,8 @@ export const TOOL_CATEGORIES = [
   "Credit & Risk",
   "Governance",
   "Profitability",
+  "Calculator",
+  "Assessment",
 ];
 
 export const TOOL_TYPES = ["Calculator", "Assessment", "Explorer"];

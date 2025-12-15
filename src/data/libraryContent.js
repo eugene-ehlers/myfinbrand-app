@@ -29,36 +29,33 @@ export const LIBRARY = [
      ====================================================== */
 
   {
-    slug: "start-here-micro-lender-to-modern-decisions",
+    slug: "start-here-running-decisions-without-losing-control",
     kind: "briefings",
-    title:
-      "Start Here: From Excel & Rules to Modern Decisioning (Without Losing Control)",
+    title: "Start Here: Running Decisions Without Losing Control",
     summary:
-      "A respectful, practical pathway for small lenders and retailers moving from manual decisioning into repeatable, governed decisions—without big-bank complexity.",
-    date: "2025-12-13",
+      "A calm orientation for operators who run people- and Excel-based decisions and want to stay in control without rushing into change.",
+    date: "2025-01-10",
     read: "4–5 min",
-    tags: ["Manual decisions", "Rules", "Governance", "Decision ownership"],
+    tags: ["Manual decisions", "Control", "Ownership"],
     category: "Start here",
     type: "Briefing",
     featured: true,
     featuredRank: 1,
-    accent: "teal",
+    accent: "slate",
     body: {
       sections: [
         {
-          heading: "The real problem is not technology",
+          heading: "You are not behind",
           paragraphs: [
-            "Most small lenders do not lack software; they lack clarity. Decisions sit inside systems, people’s heads, spreadsheets, or inherited practices. That works—until volumes rise, staff change, fraud increases, or accountability is questioned.",
-            "Decisioning maturity is not about becoming a bank. It is about making trade-offs explicit, testable, and explainable—at a pace that fits the business.",
+            "Many well-run businesses still rely on people, judgement, and spreadsheets. This is not a flaw. It is often a sign of experience and proximity to the work.",
+            "Problems usually arise not because decisions are manual, but because no one can clearly explain how they are made when conditions change.",
           ],
         },
         {
-          heading: "A minimum viable starting point",
-          bullets: [
-            "Write down your top rules in plain business language.",
-            "Separate policy decisions from operational workflow.",
-            "Measure approval rate, time-to-decision, and outcomes by segment.",
-            "Move decisions out of memory and habit into something visible.",
+          heading: "What this library is for",
+          paragraphs: [
+            "This library exists to help you think clearly about decisions before anything feels urgent.",
+            "There is no required endpoint. Some organisations remain manual by choice — and do so well.",
           ],
         },
       ],
@@ -70,42 +67,92 @@ export const LIBRARY = [
      ====================================================== */
 
   {
-    slug: "situation-lms-does-everything",
+    slug: "situation-im-ok-should-i-worry",
     kind: "situations",
-    title:
-      "Situation: “Our LMS already does originations — why do we need anything else?”",
+    title: "Situation: “I’m ok — should I worry?”",
     summary:
-      "How to explain the difference between workflow systems and decision ownership—using language operators recognise.",
-    date: "2025-12-13",
+      "When nothing is broken, results are acceptable, but the world around you is changing.",
+    date: "2025-01-11",
     read: "3–4 min",
-    tags: ["Systems", "Workflow", "Governance"],
+    tags: ["Change", "Timing", "Stability"],
     category: "Situations",
     type: "Situation",
     featured: true,
     featuredRank: 2,
-    accent: "navy",
+    accent: "slate",
     body: {
       sections: [
         {
-          heading: "What systems are excellent at",
-          bullets: [
-            "Capturing data and documents",
-            "Managing accounts and transactions",
-            "Producing operational reports",
-          ],
-        },
-        {
-          heading: "Where responsibility often disappears",
-          bullets: [
-            "Decision logic scattered across rules, configs, and habits",
-            "Exceptions handled differently by different people",
-            "No clear owner when outcomes drift",
-          ],
-        },
-        {
-          heading: "A simple way to explain the gap",
+          heading: "The situation",
           paragraphs: [
-            "Systems run the process. Someone still needs to own the decisions the process executes.",
+            "Your business is running. Customers are paying. Staff know what to do.",
+            "At the same time, regulations, competitors, customer behaviour, and expectations seem to be shifting.",
+          ],
+        },
+        {
+          heading: "Why this is uncomfortable",
+          paragraphs: [
+            "There is no clear reason to act, but also no clear reason to ignore what is changing.",
+            "This is not panic territory. It is timing territory.",
+          ],
+        },
+      ],
+    },
+  },
+
+  {
+    slug: "situation-everyone-we-trust-says-its-fine",
+    kind: "situations",
+    title:
+      "Situation: “Everyone we trust says it’s fine — so why does it feel wrong?”",
+    summary:
+      "When systems, standards, and advisors all agree — yet unease remains.",
+    date: "2025-01-12",
+    read: "3–4 min",
+    tags: ["Delegated trust", "Early signals"],
+    category: "Situations",
+    type: "Situation",
+    featured: false,
+    accent: "slate",
+    body: {
+      sections: [
+        {
+          heading: "The quiet contradiction",
+          paragraphs: [
+            "Reports look acceptable. Trusted people confirm nothing is wrong.",
+            "And yet, something does not fully sit right.",
+          ],
+        },
+        {
+          heading: "Why this matters",
+          paragraphs: [
+            "This feeling usually appears before metrics move.",
+            "It is not a call to action — it is a prompt to look more closely.",
+          ],
+        },
+      ],
+    },
+  },
+
+  {
+    slug: "situation-decisions-mostly-work-except-when-they-dont",
+    kind: "situations",
+    title: "Situation: “Our decisions mostly work — except when they don’t”",
+    summary:
+      "When outcomes are acceptable on average, but inconsistent in edge cases.",
+    date: "2025-01-13",
+    read: "3 min",
+    tags: ["Inconsistency", "Exceptions"],
+    category: "Situations",
+    type: "Situation",
+    featured: false,
+    accent: "slate",
+    body: {
+      sections: [
+        {
+          paragraphs: [
+            "Most cases are straightforward. Problems appear in the margins — exceptions, overrides, edge cases.",
+            "These moments reveal how decisions are actually made.",
           ],
         },
       ],
@@ -117,34 +164,50 @@ export const LIBRARY = [
      ====================================================== */
 
   {
-    slug: "question-what-is-a-scorecard",
+    slug: "question-how-do-we-actually-decide-today",
     kind: "questions",
-    title: "Question: “What is a scorecard, in plain terms?”",
+    title: "Question: “How do we actually decide today?”",
     summary:
-      "A short, jargon-free explanation of scorecards, why they get distrusted, and how to use them safely.",
-    date: "2025-12-13",
-    read: "3 min",
-    tags: ["Scorecards", "Risk", "Plain language"],
+      "A deceptively simple question that often reveals hidden rules and habits.",
+    date: "2025-01-14",
+    read: "2–3 min",
+    tags: ["Visibility", "Decision logic"],
     category: "Questions",
     type: "Question",
-    featured: true,
-    featuredRank: 3,
+    featured: false,
     accent: "slate",
     body: {
       sections: [
         {
-          heading: "A plain definition",
           paragraphs: [
-            "A scorecard is a consistent way of combining signals so decisions are not dependent on who happens to be working that day.",
+            "Not how decisions are supposed to be made — how they really are made.",
+            "If the answer differs by person, location, or day, that difference matters.",
           ],
         },
+      ],
+    },
+  },
+
+  {
+    slug: "question-do-two-people-decide-the-same",
+    kind: "questions",
+    title:
+      "Question: “If two people see the same case, do they decide the same way?”",
+    summary:
+      "Consistency as a signal of control, not automation.",
+    date: "2025-01-15",
+    read: "2–3 min",
+    tags: ["Consistency", "Judgement"],
+    category: "Questions",
+    type: "Question",
+    featured: false,
+    accent: "slate",
+    body: {
+      sections: [
         {
-          heading: "Why they often fail in practice",
-          bullets: [
-            "They are treated as the decision, not an input.",
-            "They are opaque to business owners.",
-            "They optimise statistics instead of economics.",
-            "They are not monitored once live.",
+          paragraphs: [
+            "Differences are natural. Unexplained differences are risky.",
+            "This question is about understanding variance, not removing judgement.",
           ],
         },
       ],
@@ -156,15 +219,15 @@ export const LIBRARY = [
      ====================================================== */
 
   {
-    slug: "field-note-why-5-bad-rate-can-still-hide-risk",
+    slug: "field-note-5-percent-bad-rate",
     kind: "notes",
     title:
       "Field Note: “We have a 5% bad rate — we’re fine” (Sometimes you aren’t)",
     summary:
-      "Why acceptable headline numbers can still hide risk, leakage, and missed growth.",
-    date: "2025-12-13",
+      "Why acceptable headline numbers can still hide risk and missed opportunity.",
+    date: "2025-01-16",
     read: "4 min",
-    tags: ["Bad rate", "Blind spots", "Risk visibility"],
+    tags: ["Metrics", "Blind spots"],
     category: "Field notes",
     type: "Field Note",
     featured: false,
@@ -172,10 +235,9 @@ export const LIBRARY = [
     body: {
       sections: [
         {
-          heading: "Where problems hide",
           bullets: [
             "Risk averaged across segments",
-            "Fraud showing up late",
+            "Late-appearing fraud",
             "Repeat behaviour masking stress",
           ],
         },
@@ -184,32 +246,50 @@ export const LIBRARY = [
   },
 
   {
-    slug: "field-note-when-everything-you-trust-says-its-fine",
+    slug: "field-note-when-everything-feels-fine",
     kind: "notes",
     title: "When Everything You Trust Says “It’s Fine” — and It Isn’t",
     summary:
-      "Why trusted systems, standards, and assurances can still mask problems—and why early signals are usually human.",
-    date: "2025-01-15",
+      "Why early signals are usually human, not numerical.",
+    date: "2025-01-17",
     read: "3–4 min",
-    tags: [
-      "Delegated trust",
-      "Decision ownership",
-      "Early warning signals",
-    ],
+    tags: ["Human signals", "Ownership"],
     category: "Field notes",
     type: "Field Note",
     featured: true,
-    featuredRank: 4,
+    featuredRank: 3,
     accent: "slate",
     body: {
       sections: [
         {
           paragraphs: [
-            "There is a particular kind of discomfort experienced operators recognise. Nothing is visibly broken. Reports look acceptable. Trusted systems and standards all say things are fine.",
-            "And yet, something feels off.",
-            "The most expensive problems rarely announce themselves early. They hide in missed growth, quiet margin erosion, habitual exceptions, and customers you never see.",
-            "Trust is not the problem. The problem is when trust replaces ownership.",
-            "If the business started today, with what you know now, would it be set up the same way?",
+            "The most expensive problems rarely announce themselves early.",
+            "They surface first as unease, not failure.",
+          ],
+        },
+      ],
+    },
+  },
+
+  {
+    slug: "field-note-where-responsibility-disappears",
+    kind: "notes",
+    title: "Where Responsibility Quietly Disappears in People-Based Decisions",
+    summary:
+      "How habits, precedent, and trust can blur ownership over time.",
+    date: "2025-01-18",
+    read: "3 min",
+    tags: ["Responsibility", "Delegation"],
+    category: "Field notes",
+    type: "Field Note",
+    featured: false,
+    accent: "slate",
+    body: {
+      sections: [
+        {
+          paragraphs: [
+            "Responsibility rarely disappears suddenly.",
+            "It fades gradually into habit, assumption, and precedent.",
           ],
         },
       ],
@@ -221,105 +301,55 @@ export const LIBRARY = [
      ====================================================== */
 
   {
-    slug: "briefing-trust-someone-to-do-it-for-me",
+    slug: "briefing-delegating-without-realising-it",
     kind: "briefings",
-    title:
-      "Briefing: “Just do everything for me” — A Managed Decisioning Model That Still Keeps You Safe",
+    title: "Briefing: Delegating Decisions Without Realising It",
     summary:
-      "How outsourcing decisions can work—if ownership and governance are preserved.",
-    date: "2025-12-13",
+      "How responsibility shifts quietly even in well-intentioned teams.",
+    date: "2025-01-19",
     read: "4 min",
-    tags: ["Outsourcing", "Governance", "Ownership"],
+    tags: ["Delegation", "Governance"],
     category: "Briefings",
     type: "Briefing",
     featured: false,
-    accent: "teal",
+    accent: "slate",
     body: {
       sections: [
         {
-          heading: "The real risk with delegation",
           paragraphs: [
-            "Delegating execution is sensible. Delegating responsibility is not. Problems arise when no one inside the business can explain why decisions are made.",
+            "Delegation is often implicit, not deliberate.",
+            "Over time, no one is quite sure who owns the outcome.",
           ],
         },
+      ],
+    },
+  },
+
+  {
+    slug: "briefing-what-good-enough-decisioning-looks-like",
+    kind: "briefings",
+    title: "Briefing: What ‘Good Enough’ Decisioning Actually Looks Like",
+    summary:
+      "Why staying manual can be the right choice — when done consciously.",
+    date: "2025-01-20",
+    read: "4–5 min",
+    tags: ["Manual excellence", "Fit for purpose"],
+    category: "Briefings",
+    type: "Briefing",
+    featured: false,
+    accent: "slate",
+    body: {
+      sections: [
         {
-          heading: "Non-negotiables",
-          bullets: [
-            "Documented policy in business language",
-            "Versioned rules and models",
-            "Clear reason codes",
-            "Regular outcome reviews",
+          paragraphs: [
+            "Good decisioning is about fit, not sophistication.",
+            "For many organisations, manual processes remain appropriate and effective.",
           ],
         },
       ],
     },
   },
 ];
-
-/* ============================
-  Everyone we trust
-   ============================ */
-
-{
-  slug: "situation-everyone-we-trust-says-its-fine",
-  kind: "situations",
-  title: "Situation: “Everyone we trust says it’s fine — so why does it feel wrong?”",
-  summary:
-    "A common moment where systems, standards, and advisors all agree — yet unease remains. Why this feeling matters, and why it often appears before any metric changes.",
-  date: "2025-01-16",
-  read: "3–4 min",
-  tags: [
-    "Delegated trust",
-    "Decision ownership",
-    "Early warning signs",
-    "Governance",
-  ],
-  category: "Situations",
-  type: "Situation",
-  featured: false,
-  accent: "slate",
-  body: {
-    sections: [
-      {
-        heading: "The situation",
-        paragraphs: [
-          "You’ve asked the questions. You’ve checked the reports. You’ve spoken to the people you trust.",
-          "The answers are consistent. The system is working. The benchmarks look acceptable. The regulator hasn’t raised concerns. Peers are doing something similar.",
-          "And yet, you’re not fully comfortable.",
-        ],
-      },
-      {
-        heading: "Why this moment is easy to ignore",
-        paragraphs: [
-          "There is no obvious trigger. No spike in losses. No operational failure. No external pressure forcing a change.",
-          "Raising concerns feels awkward when everything appears defensible. It can sound like overthinking, or worse, a lack of confidence in people and systems that have worked so far.",
-        ],
-      },
-      {
-        heading: "What is usually happening underneath",
-        paragraphs: [
-          "In many businesses, responsibility for decisions has quietly moved outward — into systems, standards, advisors, or accepted practice.",
-          "This is not negligence. It is often a sign of maturity and trust. But over time, it can blur a simple question:",
-        ],
-      },
-      {
-        heading: "A quiet test",
-        paragraphs: [
-          "If something started to drift tomorrow — slowly, subtly — who would notice first?",
-          "Not who would be blamed later. Who would recognise the change early enough to respond calmly?",
-        ],
-      },
-      {
-        heading: "Why this matters now",
-        paragraphs: [
-          "This feeling tends to appear before numbers move, before regulators ask questions, and before options narrow.",
-          "It is not a signal to act immediately. It is a signal to look more closely, while there is still time to do so without urgency.",
-        ],
-      },
-    ],
-  },
-}
-
 
 /* ============================
    Helpers
@@ -338,3 +368,4 @@ export function getFeaturedLibrary() {
       return ar - br || (b.date || "").localeCompare(a.date || "");
     });
 }
+

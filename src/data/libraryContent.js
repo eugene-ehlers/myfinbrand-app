@@ -549,6 +549,111 @@ export const LIBRARY = [
   },
 },
 
+   {
+  slug: "question-what-are-we-actually-optimising-for",
+  kind: "questions",
+  title: "Question: “What are we actually optimising for?”",
+  summary:
+    "Why many decision problems persist because the goal is unclear — not because the rules are wrong.",
+  date: "2025-01-23",
+  read: "8–9 min",
+  tags: [
+    "Profit",
+    "Cost-to-serve",
+    "Growth",
+    "Fairness",
+    "Decision trade-offs",
+  ],
+  category: "Questions",
+  type: "Question",
+  featured: false,
+  accent: "slate",
+  body: {
+    sections: [
+      {
+        heading: "This question sits underneath almost every other one",
+        paragraphs: [
+          "When decisions feel hard to improve, inconsistent, or endlessly debated, the problem is often not the rules themselves.",
+          "It is that different people are optimising for different things — sometimes without realising it.",
+          "Until this is made explicit, no change will ever feel decisive.",
+        ],
+      },
+      {
+        heading: "Most organisations optimise for several things at once",
+        paragraphs: [
+          "In practice, decisions are rarely optimised for a single goal.",
+          "One person may be focused on approval rate. Another on losses. Another on speed. Another on fairness. Another on staff effort or customer experience.",
+          "All of these are reasonable. The tension arises when trade-offs are not acknowledged.",
+        ],
+      },
+      {
+        heading: "Why rules feel unstable",
+        paragraphs: [
+          "When optimisation goals are unclear, rules change frequently.",
+          "A decline threshold is adjusted to improve conversion. Then tightened to reduce risk. Then relaxed again to hit volume targets.",
+          "Each change makes sense in isolation. Together, they create the feeling that the business does not quite know what it wants.",
+        ],
+      },
+      {
+        heading: "Profit is not the same as volume or loss rate",
+        paragraphs: [
+          "Many organisations discover late that they have been optimising the wrong proxy.",
+          "A low bad rate can coexist with missed growth. High approval rates can hide thin margins. Fast decisions can drive up rework and downstream cost.",
+          "Profit emerges from the balance between volume, loss, and cost — not from any single metric.",
+        ],
+      },
+      {
+        heading: "Effort is always part of the equation",
+        paragraphs: [
+          "One of the least discussed optimisation variables is effort.",
+          "Some outcomes are achieved not because decisions are strong, but because people work harder to compensate.",
+          "Over time, this creates hidden costs, burnout, and fragility — even when headline numbers look stable.",
+        ],
+      },
+      {
+        heading: "Fairness and consistency matter more than they appear",
+        paragraphs: [
+          "Fairness is often treated as a soft consideration. In reality, it has economic consequences.",
+          "When staff perceive rules as unfair or arbitrary, resistance grows. When customers experience inconsistency, trust erodes — especially for repeat relationships.",
+          "These effects are slow, but they are real.",
+        ],
+      },
+      {
+        heading: "Optimising for the dream, not the textbook",
+        paragraphs: [
+          "What matters most is alignment with what the business is trying to achieve.",
+          "A small, stable operation may legitimately optimise for simplicity and control. A growing one may prioritise scalability or cost efficiency.",
+          "Neither choice is better or worse. Problems arise only when the optimisation goal is assumed rather than chosen.",
+        ],
+      },
+      {
+        heading: "A practical way to surface the real objective",
+        paragraphs: [
+          "Ask a simple question: if we could only improve one thing this year, what would it be?",
+          "Then ask what you would be willing to give up to achieve it.",
+          "If the answer is unclear or contested, that uncertainty is likely driving many of the frustrations you feel today.",
+        ],
+      },
+      {
+        heading: "Why this question should be revisited over time",
+        paragraphs: [
+          "Optimisation goals are not permanent.",
+          "As markets, regulation, competition, and ambition change, what made sense before may no longer fit.",
+          "Revisiting this question periodically is not indecision — it is governance.",
+        ],
+      },
+      {
+        heading: "Where this leaves you",
+        paragraphs: [
+          "You do not need perfect metrics or sophisticated tools to answer this question.",
+          "You need honesty about trade-offs, effort, and intent.",
+          "Once optimisation goals are clear, many decision debates resolve themselves — and progress, if chosen, becomes far less threatening.",
+        ],
+      },
+    ],
+  },
+},
+
 
   /* ======================================================
      FIELD NOTES

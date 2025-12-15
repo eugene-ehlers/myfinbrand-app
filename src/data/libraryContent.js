@@ -25,40 +25,103 @@ export const LIBRARY = [
   /* ======================================================
      START HERE
      ====================================================== */
-
-  {
-    slug: "start-here-running-decisions-without-losing-control",
-    kind: "briefings",
-    title: "Start Here: Running Decisions Without Losing Control",
-    summary:
-      "A calm orientation for operators who run people- and Excel-based decisions and want to stay in control without rushing into change.",
-    date: "2025-01-10",
-    read: "4–5 min",
-    tags: ["Manual decisions", "Control", "Ownership"],
-    category: "Start here",
-    type: "Briefing",
-    featured: true,
-    featuredRank: 1,
-    accent: "slate",
-    body: {
-      sections: [
-        {
-          heading: "You are not behind",
-          paragraphs: [
-            "Many well-run businesses still rely on people, judgement, and spreadsheets. This is not a flaw. It is often a sign of experience and proximity to the work.",
-            "Problems usually arise not because decisions are manual, but because no one can clearly explain how they are made when conditions change.",
-          ],
-        },
-        {
-          heading: "What this library is for",
-          paragraphs: [
-            "This library exists to help you think clearly about decisions before anything feels urgent.",
-            "There is no required endpoint. Some organisations remain manual by choice — and do so well.",
-          ],
-        },
-      ],
-    },
+{
+  slug: "briefing-does-progress-mean-losing-control",
+  kind: "briefings",
+  title: "Briefing: Does Progress Mean Losing Control?",
+  summary:
+    "Why the fear of black boxes is understandable — and how real control is retained even as decisions evolve.",
+  date: "2025-01-21",
+  read: "8–9 min",
+  tags: [
+    "Control",
+    "Black box",
+    "Scorecards",
+    "Governance",
+    "Decision ownership",
+  ],
+  category: "Briefings",
+  type: "Briefing",
+  featured: true,
+  featuredRank: 4,
+  accent: "slate",
+  body: {
+    sections: [
+      {
+        heading: "This fear is rational",
+        paragraphs: [
+          "For many operators, the idea of progressing decisioning raises a deep and personal concern: that authority will slowly shift away from the business.",
+          "This fear is often expressed as resistance to black boxes, systems, models, or outside expertise. But underneath it is something more fundamental.",
+          "It is not fear of improvement. It is fear of losing the ability to explain, defend, and ultimately own decisions.",
+        ],
+      },
+      {
+        heading: "Why “black box” has become shorthand for loss of control",
+        paragraphs: [
+          "In many organisations, this fear is rooted in real experience.",
+          "Control has previously been lost when decisions were embedded deep inside systems, when rules were implemented without explanation, or when changes were made by people who did not carry responsibility for outcomes.",
+          "Over time, progress became associated with opacity, rigidity, and diminished agency. In that context, resisting change can feel like the responsible choice.",
+        ],
+      },
+      {
+        heading: "The uncomfortable truth: control is often lost while staying manual",
+        paragraphs: [
+          "What is rarely acknowledged is that loss of control often begins long before any formal progression takes place.",
+          "It shows up quietly when decisions depend on a few individuals, when no one can fully explain why outcomes differ, when rules are adjusted reactively, or when profit holds steady only through increased effort.",
+          "At that point, control has not disappeared — it has migrated informally into habits, exceptions, and unspoken rules that no one explicitly owns.",
+        ],
+      },
+      {
+        heading: "Delegating execution is not the same as delegating authority",
+        paragraphs: [
+          "A critical distinction is often blurred: the difference between execution and authority.",
+          "Execution is about who carries out decisions. Authority is about who defines, owns, and can deliberately change them.",
+          "Progress becomes dangerous only when these two are confused. Delegating execution can be sensible. Delegating authority without intent is where control is lost.",
+        ],
+      },
+      {
+        heading: "Where black boxes can exist — without losing control",
+        paragraphs: [
+          "Scorecards are often the clearest example of a feared black box.",
+          "What matters is not whether every calculation is visible, but whether the business decides where opacity is acceptable, what role the score plays, and under what conditions it can be challenged or overridden.",
+          "Allowing a black box to exist by choice is very different from being ruled by one. In this sense, a scorecard becomes one delegated input within boundaries the business defines.",
+        ],
+      },
+      {
+        heading: "Why clarity of output matters more than visibility of logic",
+        paragraphs: [
+          "Another way control is often lost is not through the decision itself, but through how it is explained and observed.",
+          "Control is exercised when staff can understand why an outcome occurred, customers receive consistent explanations, documents feel coherent, and reporting makes patterns visible.",
+          "This does not require exposing internal mechanics. It requires that decisions can be explained in plain language and reviewed meaningfully over time.",
+        ],
+      },
+      {
+        heading: "Progress does not have to be total or irreversible",
+        paragraphs: [
+          "One of the biggest sources of fear is the assumption that progress is all-or-nothing or permanent.",
+          "In reality, progression can be partial, reversible, and scoped to specific decisions. Some organisations formalise repeat decisions but keep new cases manual. Others clarify logic without automating it.",
+          "This is not hesitation. It is intentional design.",
+        ],
+      },
+      {
+        heading: "The real question to ask",
+        paragraphs: [
+          "Instead of asking whether progress will cause a loss of control, a more useful question is where control already feels unclear — and whether that is acceptable.",
+          "If you are comfortable, staying where you are is a valid choice. If not, the solution is not necessarily technology, but making ownership explicit again.",
+        ],
+      },
+      {
+        heading: "Where this leaves you",
+        paragraphs: [
+          "Progress does not mean losing control. Careless progress can. Unexamined complexity often does.",
+          "Whether you stay manual or move forward, the principle remains the same: the business must be able to explain, defend, and deliberately change its decisions on its own terms.",
+          "Everything else is secondary.",
+        ],
+      },
+    ],
   },
+},
+
 
   /* ======================================================
      SITUATIONS
@@ -157,34 +220,225 @@ export const LIBRARY = [
     },
   },
 
+   {
+  slug: "situation-we-change-rules-but-results-dont-improve",
+  kind: "situations",
+  title: "Situation: “We change rules, but results don’t improve”",
+  summary:
+    "When effort is high, changes are frequent, but outcomes remain stubbornly familiar.",
+  date: "2025-01-22",
+  read: "7–8 min",
+  tags: [
+    "Rules",
+    "Learning",
+    "Static results",
+    "Cost pressure",
+    "Decision noise",
+  ],
+  category: "Situations",
+  type: "Situation",
+  featured: false,
+  accent: "slate",
+  body: {
+    sections: [
+      {
+        heading: "This situation feels active, not broken",
+        paragraphs: [
+          "On the surface, there is no sense of neglect.",
+          "Rules are reviewed. Thresholds are adjusted. New checks are introduced. Old ones are relaxed.",
+          "People are paying attention. Effort is visible. Discussions are frequent.",
+          "And yet, results feel stubbornly familiar.",
+        ],
+      },
+      {
+        heading: "What typically stays the same",
+        paragraphs: [
+          "Approval rates move slightly, then settle.",
+          "Losses fluctuate, but do not meaningfully improve.",
+          "Profit holds steady — often through effort rather than clarity.",
+          "There is activity, but little confidence that changes are truly helping.",
+        ],
+      },
+      {
+        heading: "Why this is different from doing nothing",
+        paragraphs: [
+          "This situation is not about inaction.",
+          "It is about change without clear learning.",
+          "Rules are adjusted in response to pressure, instinct, or isolated events, but it becomes difficult to answer a simple question:",
+          "Which change actually worked — and why?",
+        ],
+      },
+      {
+        heading: "How noisy learning creeps in",
+        paragraphs: [
+          "Noisy learning usually appears when multiple changes are made close together, often by different people, for different reasons.",
+          "Results are assessed in aggregate rather than by segment, and short-term fluctuations are mistaken for trends.",
+          "Over time, confidence in signals erodes. Everything feels tentative.",
+        ],
+      },
+      {
+        heading: "Why this often turns into a cost problem",
+        paragraphs: [
+          "When learning is unclear, businesses compensate with effort.",
+          "More reviews. More senior involvement. More manual checks. More staff to be safe.",
+          "This can keep outcomes stable — but it raises cost-to-serve.",
+          "Profit stabilises not because decisions improved, but because more work was done to achieve the same result.",
+        ],
+      },
+      {
+        heading: "Where rules and scorecards are often blamed",
+        paragraphs: [
+          "At this stage, frustration often focuses on the tools.",
+          "Either the rules are seen as ineffective, or scorecards are viewed as black boxes that do not deliver.",
+          "In reality, the problem is often simpler: the role of each decision input is unclear, and changes are not isolated long enough to learn from.",
+        ],
+      },
+      {
+        heading: "Why this does not automatically mean progress is required",
+        paragraphs: [
+          "This situation does not mean you need more sophistication, automation, or new systems.",
+          "It means the organisation is struggling to learn cleanly from its own decisions.",
+          "That struggle can exist in fully manual environments and highly automated ones alike.",
+        ],
+      },
+      {
+        heading: "A useful pause",
+        paragraphs: [
+          "Instead of asking what to change next, it can be helpful to ask what you are actually trying to learn.",
+          "Are rules changing because something specific is being tested, or because outcomes feel uncomfortable?",
+          "Are you willing to leave something unchanged long enough to see its real effect?",
+        ],
+      },
+      {
+        heading: "Where this leaves you",
+        paragraphs: [
+          "This is not a failure point.",
+          "It is often the moment where organisations decide — deliberately or not — whether to continue compensating with effort, or to improve clarity about how decisions are changed and evaluated.",
+          "Neither choice is better or worse. What matters is that it aligns with the business’s goals, appetite, and economics.",
+        ],
+      },
+      {
+        heading: "The question that follows",
+        paragraphs: [
+          "If results are static despite frequent change, the next useful question is not what rule to adjust.",
+          "It is: what are we actually optimising for?",
+        ],
+      },
+    ],
+  },
+},
+
+
   /* ======================================================
      QUESTIONS
      ====================================================== */
 
-  {
-    slug: "question-how-do-we-actually-decide-today",
-    kind: "questions",
-    title: "Question: “How do we actually decide today?”",
-    summary:
-      "A deceptively simple question that often reveals hidden rules and habits.",
-    date: "2025-01-14",
-    read: "2–3 min",
-    tags: ["Visibility", "Decision logic"],
-    category: "Questions",
-    type: "Question",
-    featured: false,
-    accent: "slate",
-    body: {
-      sections: [
-        {
-          paragraphs: [
-            "Not how decisions are supposed to be made — how they really are made.",
-            "If the answer differs by person, location, or day, that difference matters.",
-          ],
-        },
-      ],
-    },
+{
+  slug: "question-how-do-we-actually-decide-today",
+  kind: "questions",
+  title: "Question: “How do we actually decide today?”",
+  summary:
+    "A practical way to surface how decisions are really made — beyond policy, rules, and intention.",
+  date: "2025-01-14",
+  read: "7–8 min",
+  tags: [
+    "Decision logic",
+    "Judgement",
+    "Visibility",
+    "Ownership",
+    "Learning",
+  ],
+  category: "Questions",
+  type: "Question",
+  featured: false,
+  accent: "slate",
+  body: {
+    sections: [
+      {
+        heading: "This question is harder than it sounds",
+        paragraphs: [
+          "Most operators answer this question too quickly.",
+          "They describe a policy document, a checklist, a set of rules in a system, or how decisions are supposed to be made.",
+          "That answer is rarely wrong — but it is often incomplete.",
+          "The more useful version of the question is quieter: how do decisions really get made when things are not straightforward?",
+        ],
+      },
+      {
+        heading: "Where decisions actually come from",
+        paragraphs: [
+          "In practice, decisions rarely come from a single place.",
+          "They emerge from a mix of written rules, unwritten judgement, experience, precedent, incentives, time pressure, and who happens to be available.",
+          "Individually, each of these makes sense. Together, they form a system that is difficult to see clearly.",
+        ],
+      },
+      {
+        heading: "Why different people describe the process differently",
+        paragraphs: [
+          "It is common for two experienced people in the same organisation to describe the decision process differently — and for both to be correct.",
+          "Each person sees only the part of the process they interact with most.",
+          "This is not confusion or incompetence. It is how human systems adapt when formal structure is light.",
+        ],
+      },
+      {
+        heading: "Why this matters as the business changes",
+        paragraphs: [
+          "As long as volumes are low and the same people are involved, this ambiguity is manageable.",
+          "Problems start when new staff join, volume increases, repeat customers behave differently, or costs need to be understood more precisely.",
+          "At that point, the business depends on something it cannot easily explain.",
+        ],
+      },
+      {
+        heading: "A practical way to explore the question",
+        paragraphs: [
+          "Instead of asking how decisions should work, describe the last five difficult decisions that were actually made.",
+          "For each one, ask who was involved, which rules were applied, where judgement stepped in, what information mattered most, and what was unclear or debated.",
+          "Patterns usually appear quickly. Those patterns are more informative than any policy document.",
+        ],
+      },
+      {
+        heading: "What organisations usually discover",
+        paragraphs: [
+          "When businesses do this honestly, they often find that some rules are rarely used, some judgement calls repeat again and again, and certain people quietly act as safeguards.",
+          "They may also discover that exceptions cluster in specific situations, and that repeat customers are treated differently — sometimes intentionally, sometimes not.",
+          "None of this is a failure. It is simply how people make systems work.",
+        ],
+      },
+      {
+        heading: "Why changing rules often doesn’t help",
+        paragraphs: [
+          "Many organisations respond to uncertainty by adjusting rules: tightening thresholds, adding conditions, or creating new exceptions.",
+          "Sometimes this helps briefly. Often it does not.",
+          "That is usually because the underlying question has not been answered: what decision are we actually trying to make here?",
+          "Without clarity on that, rule changes create noise rather than learning.",
+        ],
+      },
+      {
+        heading: "A useful self-check",
+        paragraphs: [
+          "You do not need to document anything formally to reflect on this.",
+          "Could you explain your decision logic to a new senior hire? Would two experienced people describe it the same way? Do you know which decisions drive most of your cost and risk?",
+          "Uncertainty here does not demand action. It simply tells you where clarity is missing.",
+        ],
+      },
+      {
+        heading: "What this question is not asking",
+        paragraphs: [
+          "This question is not asking you to formalise everything, remove judgement, introduce systems, or standardise prematurely.",
+          "It is asking something simpler and harder: do we understand ourselves well enough to choose what to change — or what not to?",
+        ],
+      },
+      {
+        heading: "Where this leaves you",
+        paragraphs: [
+          "If you can describe how decisions are actually made — including where judgement steps in — you are in a strong position, even if everything remains manual.",
+          "If that description feels fuzzy or person-dependent, it explains why fixes don’t stick and effort increases without clarity.",
+          "Understanding how you decide today is often the first step toward deciding how much progress, if any, makes sense tomorrow.",
+        ],
+      },
+    ],
   },
+},
+
 
 {
   slug: "question-do-two-people-decide-the-same",

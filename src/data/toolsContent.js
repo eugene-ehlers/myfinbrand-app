@@ -100,6 +100,29 @@ export const TOOLS = [
   ctaLabel: "Compare two scorecards →",
   // Optional: if/when you wire these into the UI later
   relatedInsights: ["decision-cohesion", "decision-engines-101"],
-}
+},
+
+  {
+  slug: "decisioning-fit-readiness",
+  path: "/tools/decisioning-fit-readiness",
+  title: "Decisioning Fit & Readiness Self-Assessment",
+  summary:
+    "A calm self-assessment to help operators understand whether their current way of making decisions still fits their business.",
+  date: "2025-01-29",
+  read: "4–5 min",
+  category: ["Strategy", "Operations"],
+  type: "Assessment",
+  tags: [
+    "Readiness",
+    "Decision ownership",
+    "Manual decisions",
+    "Control",
+  ],
+  featured: true,
+  featuredRank: 1,
+  accent: "slate",
+  ctaLabel: "Start assessment",
+},
+
 
 ];

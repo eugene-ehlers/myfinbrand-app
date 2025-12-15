@@ -186,31 +186,115 @@ export const LIBRARY = [
     },
   },
 
-  {
-    slug: "question-do-two-people-decide-the-same",
-    kind: "questions",
-    title:
-      "Question: “If two people see the same case, do they decide the same way?”",
-    summary:
-      "Consistency as a signal of control, not automation.",
-    date: "2025-01-15",
-    read: "2–3 min",
-    tags: ["Consistency", "Judgement"],
-    category: "Questions",
-    type: "Question",
-    featured: false,
-    accent: "slate",
-    body: {
-      sections: [
-        {
-          paragraphs: [
-            "Differences are natural. Unexplained differences are risky.",
-            "This question is about understanding variance, not removing judgement.",
-          ],
-        },
-      ],
-    },
+{
+  slug: "question-do-two-people-decide-the-same",
+  kind: "questions",
+  title:
+    "Question: “If two people see the same case, do they decide the same way?”",
+  summary:
+    "Understanding when variation is healthy — and when it quietly becomes costly.",
+  date: "2025-01-15",
+  read: "7–8 min",
+  tags: [
+    "Consistency",
+    "Judgement",
+    "Fairness",
+    "Control",
+    "Decision ownership",
+  ],
+  category: "Questions",
+  type: "Question",
+  featured: false,
+  accent: "slate",
+  body: {
+    sections: [
+      {
+        heading: "This question is not about sameness",
+        paragraphs: [
+          "In real businesses, perfect consistency is neither realistic nor desirable.",
+          "Different people bring judgement, context, and experience. In many organisations, this human variation is precisely what makes decisions work.",
+          "So the question is not whether every decision should be identical.",
+          "The real question is whether differences are intentional, understood, and aligned with what is best for the business.",
+        ],
+      },
+      {
+        heading: "Where differences usually show up",
+        paragraphs: [
+          "Variation tends to appear in familiar places.",
+          "Repeat or loyal customers may receive different treatment. Different staff may request different documents. Decision time may depend on who handles the case. Offers may vary for comparable situations.",
+          "Individually, each decision can usually be defended. Collectively, these differences start to raise quiet questions.",
+        ],
+      },
+      {
+        heading:
+          "Not always about correctness — but about fairness, effort, control, and what is best for the business",
+        paragraphs: [
+          "When similar cases produce different outcomes without a clear reason, the issue is not always that a decision is wrong.",
+          "More often, it affects how fair the process feels, how much effort is required to achieve results, who really controls outcomes, and whether the business is operating in its own best interests.",
+        ],
+      },
+      {
+        heading: "When inconsistency is healthy",
+        paragraphs: [
+          "Inconsistency can be a strength when context genuinely matters, volumes are manageable, and experienced people are close to the work.",
+          "In these environments, judgement fills gaps that rigid rules would struggle to capture.",
+          "Trying to eliminate variation here can slow decisions, frustrate staff, and remove exactly the nuance that makes the business work.",
+        ],
+      },
+      {
+        heading: "When inconsistency becomes costly",
+        paragraphs: [
+          "Inconsistency starts to matter when it creates side effects.",
+          "Customers feel treated differently without understanding why. Staff feel exposed or unfairly measured. Repeat behaviour becomes unpredictable. Cost-to-serve increases quietly through rework and delay.",
+          "At this point, variation is no longer serving judgement. It is creating noise.",
+        ],
+      },
+      {
+        heading: "How staff experience this",
+        paragraphs: [
+          "From the staff side, inconsistency often feels like the rules are unclear or constantly shifting.",
+          "People may feel that following the process puts them at a disadvantage, while bending the rules produces better results — especially when commissions or targets are involved.",
+          "This is how quiet resistance emerges, not through misconduct, but through pragmatic adaptation.",
+        ],
+      },
+      {
+        heading: "When individuals outperform the process",
+        paragraphs: [
+          "A particularly important moment is when certain individuals consistently get better outcomes than the process itself.",
+          "This may reflect experience and skill, but it raises critical questions.",
+          "Do we know why they succeed? Could others replicate it? Is the organisation learning from it, or is performance trapped inside individuals?",
+          "If the business cannot answer these questions, control begins to shift quietly.",
+        ],
+      },
+      {
+        heading: "The customer sees this too",
+        paragraphs: [
+          "From the customer’s perspective, inconsistency often appears as different answers, different document requests, or different turnaround times depending on who they speak to.",
+          "Over time, this erodes trust — particularly for repeat customers, who expect familiarity and predictability.",
+          "For repeat-driven businesses, this is often one of the earliest economic warning signs.",
+        ],
+      },
+      {
+        heading: "Finding the right level of progress",
+        paragraphs: [
+          "The question is not how to eliminate inconsistency, but what level of consistency actually serves the business today.",
+          "Some organisations choose to stay largely manual and accept variation. Others reduce variation in specific decisions to protect cost, trust, or repeat economics.",
+          "Neither path is better, and neither is worse. What matters is alignment with the organisation’s dream, ambition, and commercial reality.",
+        ],
+      },
+      {
+        heading: "A simple reflection",
+        paragraphs: [
+          "Are differences in decisions mostly intentional or accidental?",
+          "Do we know which variations matter economically?",
+          "Are we comfortable explaining these differences to staff and customers?",
+          "If the answers are unclear, the issue is not automation or technology. It is clarity about what consistency means for us.",
+        ],
+      },
+    ],
   },
+},
+
 
   /* ======================================================
      FIELD NOTES

@@ -9,7 +9,7 @@ export const TOOL_CATEGORIES = [
   "Calculator",
   "Assessment",
   "Strategy",
-  "Operations',
+  "Operations",
 ];
 
 export const TOOL_TYPES = ["Calculator", "Assessment", "Explorer"];

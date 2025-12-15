@@ -35,7 +35,7 @@ import ScorecardProfitImpact from "./pages/tools/ScorecardProfitImpact.jsx";
 import DecisioningFitReadiness from "./pages/tools/DecisioningFitReadiness";
 
 // If you have compare page:
-// import ScorecardCompareProfit from "./pages/tools/ScorecardCompareProfit.jsx";
+import ScorecardCompareProfit from "./pages/tools/ScorecardCompareProfit.jsx";
 
 // NEW: legal + library + cookie
 import CookieNotice from "./components/CookieNotice.jsx";
@@ -114,9 +114,9 @@ export default function App() {
         <Route path="/tools/decisioning-fit-readiness" element={<DecisioningFitReadiness />}
         />
 
-        {/* If you have compare page:
+
         <Route path="/tools/scorecard-compare-profit" element={<ScorecardCompareProfit />} />
-        */}
+
 
         {/* Library */}
         <Route path="/library" element={<Library />} />

@@ -645,32 +645,112 @@ export const LIBRARY = [
      FIELD NOTES
      ====================================================== */
 
-  {
-    slug: "field-note-5-percent-bad-rate",
-    kind: "notes",
-    title:
-      "Field Note: “We have a 5% bad rate — we’re fine” (Sometimes you aren’t)",
-    summary:
-      "Why acceptable headline numbers can still hide risk and missed opportunity.",
-    date: "2025-01-16",
-    read: "4 min",
-    tags: ["Metrics", "Blind spots"],
-    category: "Field notes",
-    type: "Field Note",
-    featured: false,
-    accent: "slate",
-    body: {
-      sections: [
-        {
-          bullets: [
-            "Risk averaged across segments",
-            "Late-appearing fraud",
-            "Repeat behaviour masking stress",
-          ],
-        },
-      ],
-    },
+{
+  slug: "field-note-5-percent-bad-rate",
+  kind: "notes",
+  title:
+    "Field Note: “We have a 5% bad rate — we’re fine” (Sometimes you aren’t)",
+  summary:
+    "Why a reassuring headline number can still hide leakage, fragility, and missed opportunity.",
+  date: "2025-01-27",
+  read: "7–8 min",
+  tags: [
+    "Bad rate",
+    "Leakage",
+    "Repeat behaviour",
+    "Fraud",
+    "Short-term products",
+  ],
+  category: "Field notes",
+  type: "Field Note",
+  featured: false,
+  accent: "slate",
+  body: {
+    sections: [
+      {
+        heading: "Why this statement feels comforting",
+        paragraphs: [
+          "A low bad rate is one of the most reassuring metrics in any credit or decision-driven business.",
+          "It suggests discipline, prudence, and control. It provides confidence to management, investors, and regulators.",
+          "When the number is stable, it is natural to conclude that things are working as intended.",
+        ],
+      },
+      {
+        heading: "What a headline bad rate does — and does not — tell you",
+        paragraphs: [
+          "A single bad-rate number is an average.",
+          "It blends together new and repeat customers, different channels, different products, and different decision paths.",
+          "As an average, it can remain stable even while important dynamics underneath it change materially.",
+        ],
+      },
+      {
+        heading: "Where problems often hide",
+        paragraphs: [
+          "Issues rarely announce themselves through a sudden spike in losses.",
+          "They more often appear as slow leakage: margin erosion, rising operational effort, growing fraud exposure, or declining quality of repeat behaviour.",
+          "These shifts can persist for a long time before they affect the headline number.",
+        ],
+      },
+      {
+        heading: "Short-term and repeat-driven products are especially deceptive",
+        paragraphs: [
+          "In short-term or repeat-heavy businesses, bad rates can look healthy even when underlying affordability or identity issues are emerging.",
+          "Fraud may pass early checks and only surface later. Stress may appear across repeat cycles rather than in first loans.",
+          "A stable bad rate here does not always mean stable economics.",
+        ],
+      },
+      {
+        heading: "Fraud often looks like performance — until it doesn’t",
+        paragraphs: [
+          "Some of the most damaging fraud patterns initially resemble good customers.",
+          "They repay early, behave predictably, and do not immediately trigger loss metrics.",
+          "By the time losses appear, the exposure has often scaled quietly.",
+        ],
+      },
+      {
+        heading: "Why repeat behaviour deserves separate attention",
+        paragraphs: [
+          "Repeat customers are usually cheaper to serve, faster to decide, and less risky — when decisioning is sound.",
+          "When repeat behaviour deteriorates, approval rules tighten, or service slows, it often signals deeper issues.",
+          "Looking only at aggregate bad rate can mask this shift.",
+        ],
+      },
+      {
+        heading: "The effort question",
+        paragraphs: [
+          "Another blind spot is effort.",
+          "Sometimes a stable bad rate is achieved only because staff are reviewing more cases, escalating more decisions, or working longer hours.",
+          "The metric holds — but the system becomes fragile.",
+        ],
+      },
+      {
+        heading: "Better questions than ‘are we fine?’",
+        paragraphs: [
+          "Instead of asking whether the bad rate is acceptable, more useful questions include:",
+          "Where are losses concentrated? How do repeat customers behave over time? How much effort is required to maintain this outcome?",
+          "These questions reveal resilience, not just performance.",
+        ],
+      },
+      {
+        heading: "What this note is not saying",
+        paragraphs: [
+          "This is not an argument to chase ever-lower bad rates.",
+          "It is not a warning that something must be wrong.",
+          "It is a reminder that comfort metrics should be understood, not trusted blindly.",
+        ],
+      },
+      {
+        heading: "Where this leaves you",
+        paragraphs: [
+          "If your bad rate is low and the economics feel healthy, that may be entirely sufficient.",
+          "If the number feels reassuring but effort, uncertainty, or unease are rising, it is worth looking underneath while you still have time.",
+          "Clarity here protects both profit and peace of mind.",
+        ],
+      },
+    ],
   },
+},
+
 
   {
     slug: "field-note-when-everything-feels-fine",
@@ -698,30 +778,119 @@ export const LIBRARY = [
     },
   },
 
-  {
-    slug: "field-note-where-responsibility-disappears",
-    kind: "notes",
-    title: "Where Responsibility Quietly Disappears in People-Based Decisions",
-    summary:
-      "How habits, precedent, and trust can blur ownership over time.",
-    date: "2025-01-18",
-    read: "3 min",
-    tags: ["Responsibility", "Delegation"],
-    category: "Field notes",
-    type: "Field Note",
-    featured: false,
-    accent: "slate",
-    body: {
-      sections: [
-        {
-          paragraphs: [
-            "Responsibility rarely disappears suddenly.",
-            "It fades gradually into habit, assumption, and precedent.",
-          ],
-        },
-      ],
-    },
+{
+  slug: "field-note-where-responsibility-disappears",
+  kind: "notes",
+  title: "Where Responsibility Quietly Disappears in People-Based Decisions",
+  summary:
+    "How trust, habit, and good intentions can slowly blur ownership — even in well-run businesses.",
+  date: "2025-01-28",
+  read: "7–8 min",
+  tags: [
+    "Responsibility",
+    "Delegation",
+    "Trust",
+    "Decision ownership",
+    "Governance",
+  ],
+  category: "Field notes",
+  type: "Field Note",
+  featured: false,
+  accent: "slate",
+  body: {
+    sections: [
+      {
+        heading: "Responsibility rarely disappears suddenly",
+        paragraphs: [
+          "In most organisations, responsibility does not vanish through a single decision or event.",
+          "It fades slowly, through trust, habit, and the understandable desire to keep things running smoothly.",
+          "By the time it becomes noticeable, no one can point to when the shift occurred.",
+        ],
+      },
+      {
+        heading: "How trust becomes delegation",
+        paragraphs: [
+          "As people prove themselves capable, others rely on them more.",
+          "Judgement is trusted. Exceptions are accepted. Decisions are waved through.",
+          "This is not negligence. It is often a sign of maturity and respect.",
+        ],
+      },
+      {
+        heading: "When delegation becomes assumption",
+        paragraphs: [
+          "Over time, trust turns into assumption.",
+          "People stop checking why decisions are made. Outcomes are accepted because they come from familiar hands or trusted systems.",
+          "The question of ownership quietly recedes into the background.",
+        ],
+      },
+      {
+        heading: "The moment responsibility becomes unclear",
+        paragraphs: [
+          "The issue usually surfaces only when something goes wrong — or when someone asks an uncomfortable question.",
+          "Who decided this? Why was this exception allowed? What changed?",
+          "When answers differ depending on who is asked, responsibility has already blurred.",
+        ],
+      },
+      {
+        heading: "Why this is not about blame",
+        paragraphs: [
+          "This pattern is not the result of bad actors or poor discipline.",
+          "It emerges because businesses prioritise continuity, speed, and trust — especially when things are working reasonably well.",
+          "The problem is not delegation itself, but the absence of deliberate boundaries around it.",
+        ],
+      },
+      {
+        heading: "People-based systems amplify this risk",
+        paragraphs: [
+          "In manual or judgement-heavy environments, responsibility is often embedded in individuals rather than structures.",
+          "When those individuals leave, change roles, or become overloaded, decision quality can shift suddenly.",
+          "The organisation then realises how much knowledge and authority was never truly shared.",
+        ],
+      },
+      {
+        heading: "Why staying manual does not avoid this",
+        paragraphs: [
+          "It is a mistake to assume that remaining manual protects against loss of control.",
+          "In fact, people-based systems can hide responsibility drift more effectively than formal ones, precisely because outcomes appear reasonable most of the time.",
+          "Control feels present — until it is tested.",
+        ],
+      },
+      {
+        heading: "The subtle cost of blurred ownership",
+        paragraphs: [
+          "When responsibility is unclear, learning slows.",
+          "Mistakes are repeated. Improvements are tentative. People hesitate to change what they do not fully own.",
+          "Over time, effort increases as individuals compensate for structural ambiguity.",
+        ],
+      },
+      {
+        heading: "What clarity actually looks like",
+        paragraphs: [
+          "Clarity does not require rigid rules or removing judgement.",
+          "It requires knowing which decisions belong to policy, which to judgement, and who is accountable for changing each.",
+          "This can exist in fully manual environments when it is intentional.",
+        ],
+      },
+      {
+        heading: "A simple test",
+        paragraphs: [
+          "If a decision started producing worse outcomes tomorrow, who would notice first?",
+          "Not who would be blamed later — but who would recognise the drift early enough to respond calmly.",
+          "The answer to that question reveals where responsibility truly sits.",
+        ],
+      },
+      {
+        heading: "Where this leaves you",
+        paragraphs: [
+          "Responsibility does not need to be centralised or automated to be clear.",
+          "It does need to be explicit.",
+          "Whether decisions remain manual or evolve, clarity of ownership is what ultimately preserves control.",
+        ],
+      },
+    ],
   },
+},
+
 
   /* ======================================================
      BRIEFINGS

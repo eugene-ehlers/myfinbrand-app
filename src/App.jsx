@@ -112,10 +112,8 @@ export default function App() {
         {/* Tools */}
         <Route path="/tools" element={<Tools />} />
         <Route path="/tools/scorecard-profit-impact" element={<ScorecardProfitImpact />} />
-        <Route path="/tools/decisioning-fit-readiness" element={<DecisioningFitReadiness />}/>
-        <Route path="/tools/decision-tradeoff-prioritiser" element={<DecisionTradeoffPrioritiser /> 
-
-
+        <Route path="/tools/decisioning-fit-readiness" element={<DecisioningFitReadiness />} />
+        <Route path="/tools/decision-tradeoff-prioritiser" element={<DecisionTradeoffPrioritiser /> } /> 
         <Route path="/tools/scorecard-compare-profit" element={<ScorecardCompareProfit />} />
 
 

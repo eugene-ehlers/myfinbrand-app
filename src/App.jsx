@@ -35,6 +35,8 @@ import ScorecardProfitImpact from "./pages/tools/ScorecardProfitImpact.jsx";
 import DecisioningFitReadiness from "./pages/tools/DecisioningFitReadiness";
 import DecisionTradeoffPrioritiser from "./pages/tools/DecisionTradeoffPrioritiser";
 import RepeatVsNewEconomics from "./pages/tools/RepeatVsNewEconomics";
+import RuleChangeLearningHygiene from "./pages/tools/RuleChangeLearningHygiene";
+
 
 
 // If you have compare page:
@@ -118,6 +120,7 @@ export default function App() {
         <Route path="/tools/decision-tradeoff-prioritiser" element={<DecisionTradeoffPrioritiser /> } /> 
         <Route path="/tools/scorecard-compare-profit" element={<ScorecardCompareProfit />} />
         <Route path="/tools/repeat-vs-new-customer-economics" element={<RepeatVsNewEconomics />} />
+        <Route path="/tools/rule-change-learning-hygiene" element={<RuleChangeLearningHygiene />} />
 
 
 

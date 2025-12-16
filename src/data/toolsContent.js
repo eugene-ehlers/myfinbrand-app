@@ -173,7 +173,29 @@ export const TOOLS = [
   featuredRank: 2,
   accent: "slate",
   ctaLabel: "Prioritise trade-offs",
+},
+
+  {
+  slug: "rule-change-learning-hygiene",
+  path: "/tools/rule-change-learning-hygiene",
+  title: "Rule Change Learning Hygiene Checklist",
+  summary:
+    "A diagnostic to understand whether rule changes are producing learning — or just motion.",
+  date: "2025-02-01",
+  read: "3–4 min",
+  category: ["Strategy", "Operations"],
+  type: "Assessment",
+  tags: [
+    "Rule changes",
+    "Learning",
+    "Governance",
+    "Decision quality",
+  ],
+  featured: false,
+  accent: "slate",
+  ctaLabel: "Assess learning hygiene",
 }
+
 
 
 

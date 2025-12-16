@@ -149,26 +149,7 @@ export const TOOLS = [
   ctaLabel: "Compare economics",
 },
 
-  {
-  slug: "repeat-vs-new-customer-economics",
-  path: "/tools/repeat-vs-new-customer-economics",
-  title: "Repeat vs New Customer Economics Comparator",
-  summary:
-    "Compare cost, risk, and profit between new and repeat customers to understand where your economics really come from.",
-  date: "2025-01-31",
-  read: "3–4 min",
-  category: ["Operations", "Profitability"],
-  type: "Calculator",
-  tags: [
-    "Repeat customers",
-    "Cost-to-serve",
-    "Profitability",
-    "Customer economics",
-  ],
-  featured: false,
-  accent: "slate",
-  ctaLabel: "Compare economics",
-},
+
 
 
 {

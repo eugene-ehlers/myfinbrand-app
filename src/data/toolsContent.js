@@ -194,7 +194,29 @@ export const TOOLS = [
   featured: false,
   accent: "slate",
   ctaLabel: "Assess learning hygiene",
+},
+
+  {
+  slug: "decision-ownership-control-map",
+  path: "/tools/decision-ownership-control-map",
+  title: "Decision Ownership & Control Map",
+  summary:
+    "Map who makes decisions, who can change them, and who bears the consequences — to clarify control without removing judgement.",
+  date: "2025-02-02",
+  read: "4–5 min",
+  category: ["Strategy", "Governance"],
+  type: "Assessment",
+  tags: [
+    "Decision ownership",
+    "Control",
+    "Governance",
+    "Black box risk",
+  ],
+  featured: false,
+  accent: "slate",
+  ctaLabel: "Map decision ownership",
 }
+
 
 
 

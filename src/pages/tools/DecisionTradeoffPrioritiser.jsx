@@ -14,53 +14,43 @@ const OPTIONS = [
 export default function DecisionTradeoffPrioritiser() {
   const [ranking, setRanking] = useState([]);
 
-  const handleSelect = (id) => {
-    if (ranking.includes(id)) return;
-    setRanking([...ranking, id]);
+  const toggle = (id) => {
+    setRanking((prev) =>
+      prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : [...prev, id]
+    );
   };
-
-  const reset = () => setRanking([]);
-
-  const ordered = ranking.map(
-    (id) => OPTIONS.find((o) => o.id === id)?.label
-  );
 
   const primary = ranking[0];
   const secondary = ranking[1];
 
   const interpretation = () => {
     if (!primary) {
-      return "Make your selections to see how your priorities line up.";
+      return "Select the factors that most influence your decisions to see how trade-offs are shaping outcomes.";
     }
 
-    if (primary === "profit") {
-      return "You are primarily optimising for profitability. This often brings clarity, but can create tension if cost, fairness, or speed expectations are not explicitly managed.";
+    switch (primary) {
+      case "profit":
+        return "Profit appears to be the primary driver. This often brings clarity and discipline, but tension can arise if cost, fairness, or speed expectations are not made explicit.";
+      case "cost":
+        return "Cost and effort appear to dominate. This can stabilise operations, but risks frustration if service speed or perceived fairness is compromised.";
+      case "speed":
+        return "Speed and experience appear most important. This often improves conversion and satisfaction, but can quietly increase risk or operational strain.";
+      case "risk":
+        return "Risk control appears dominant. This protects the downside, but may limit growth or responsiveness if applied too broadly.";
+      case "fairness":
+        return "Fairness and consistency appear most important. This supports trust and morale, but may feel rigid in environments with many edge cases.";
+      default:
+        return "";
     }
-
-    if (primary === "cost") {
-      return "You are primarily optimising for cost and effort. This can stabilise operations, but risks frustration if service speed or perceived fairness is not protected.";
-    }
-
-    if (primary === "speed") {
-      return "You are primarily optimising for speed and experience. This often improves conversion, but can quietly increase risk or operational strain if unchecked.";
-    }
-
-    if (primary === "risk") {
-      return "You are primarily optimising for risk control. This can protect the downside, but may limit growth or responsiveness if applied too broadly.";
-    }
-
-    if (primary === "fairness") {
-      return "You are primarily optimising for fairness and consistency. This supports trust, but may feel rigid if edge cases are common.";
-    }
-
-    return "";
   };
 
   return (
     <div className="min-h-screen bg-[rgb(var(--surface))] text-slate-900">
       <Seo
         title="Decision Trade-off Prioritiser | TSDG"
-        description="A prioritisation exercise to make decision trade-offs explicit."
+        description="Make decision trade-offs explicit without forcing false precision."
       />
 
       <SiteHeader />
@@ -72,7 +62,7 @@ export default function DecisionTradeoffPrioritiser() {
 
         <p className="mt-4 text-slate-700">
           Decisions involve trade-offs. Select the factors that most influence
-          your decisions — in order of importance.
+          your decisions today. Order reflects priority.
         </p>
 
         <div className="mt-8 space-y-3">
@@ -83,30 +73,19 @@ export default function DecisionTradeoffPrioritiser() {
             return (
               <button
                 key={o.id}
-                onClick={() => handleSelect(o.id)}
-                disabled={selected}
+                onClick={() => toggle(o.id)}
                 className={`w-full text-left rounded-xl border p-4 transition ${
                   selected
-                    ? "bg-slate-900 text-white cursor-default"
+                    ? "bg-slate-900 text-white"
                     : "bg-white hover:bg-slate-50"
                 }`}
               >
-                {selected ? `${index + 1}. ` : ""}{o.label}
+                {selected ? `${index + 1}. ` : ""}
+                {o.label}
               </button>
             );
           })}
         </div>
-
-        {ranking.length > 0 && (
-          <div className="mt-4 text-sm">
-            <button
-              onClick={reset}
-              className="underline underline-offset-2 text-slate-600"
-            >
-              Reset priorities
-            </button>
-          </div>
-        )}
 
         <div className="mt-10 rounded-2xl border bg-slate-50 p-6">
           <h2 className="text-lg font-semibold">What this suggests</h2>
@@ -116,8 +95,7 @@ export default function DecisionTradeoffPrioritiser() {
           {secondary && (
             <p className="mt-3 text-sm text-slate-600">
               Your secondary priority further shapes how trade-offs are handled.
-              Tension usually appears when secondary priorities are not openly
-              acknowledged.
+              Tension usually appears when this is not openly acknowledged.
             </p>
           )}
 
@@ -132,4 +110,3 @@ export default function DecisionTradeoffPrioritiser() {
     </div>
   );
 }
-

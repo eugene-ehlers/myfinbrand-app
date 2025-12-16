@@ -36,6 +36,7 @@ import DecisioningFitReadiness from "./pages/tools/DecisioningFitReadiness";
 import DecisionTradeoffPrioritiser from "./pages/tools/DecisionTradeoffPrioritiser";
 import RepeatVsNewEconomics from "./pages/tools/RepeatVsNewEconomics";
 import RuleChangeLearningHygiene from "./pages/tools/RuleChangeLearningHygiene";
+import DecisionOwnershipControlMap from "./pages/tools/DecisionOwnershipControlMap";
 
 
 
@@ -121,6 +122,7 @@ export default function App() {
         <Route path="/tools/scorecard-compare-profit" element={<ScorecardCompareProfit />} />
         <Route path="/tools/repeat-vs-new-customer-economics" element={<RepeatVsNewEconomics />} />
         <Route path="/tools/rule-change-learning-hygiene" element={<RuleChangeLearningHygiene />} />
+        <Route path="/tools/decision-ownership-control-map" element={<DecisionOwnershipControlMap />} />
 
 
 

@@ -84,3 +84,44 @@ body {
   background: linear-gradient(90deg, rgba(179,83,45,.35) 0%, rgba(43,212,224,.20) 100%);
 }
 
+/* Library article typography */
+.article {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.article h2 {
+  font-size: 1.5rem;       /* ~ text-2xl */
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+}
+
+.article h3 {
+  font-size: 1.125rem;     /* ~ text-lg */
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.article p {
+  font-size: 1rem;
+  line-height: 1.75;
+  margin-bottom: 1.25rem;
+  color: rgb(var(--ink));
+}
+
+.article p.lead {
+  font-size: 1.125rem;
+  line-height: 1.7;
+}
+
+.article .reflection {
+  margin: 2.5rem 0;
+  padding: 1.25rem 1.5rem;
+  background: rgb(var(--surface-2));
+  border-left: 4px solid rgba(var(--primary), 0.35);
+  font-size: 1rem;
+}
+

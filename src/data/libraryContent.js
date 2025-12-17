@@ -154,74 +154,231 @@ export const LIBRARY = [
   /* ======================================================
      SITUATIONS
      ====================================================== */
-
-  {
-    slug: "situation-im-ok-should-i-worry",
-    kind: "situations",
-    title: "Situation: “I’m ok — should I worry?”",
-    summary:
-      "When nothing is broken, results are acceptable, but the world around you is changing.",
-    date: "2025-01-11",
-    read: "3–4 min",
-    tags: ["Change", "Timing", "Stability"],
-    category: "Situations",
-    type: "Situation",
-    featured: true,
-    featuredRank: 2,
-    accent: "slate",
-    body: {
-      sections: [
-        {
-          heading: "The situation",
-          paragraphs: [
-            "Your business is running. Customers are paying. Staff know what to do.",
-            "At the same time, regulations, competitors, customer behaviour, and expectations seem to be shifting.",
-          ],
-        },
-        {
-          heading: "Why this is uncomfortable",
-          paragraphs: [
-            "There is no clear reason to act, but also no clear reason to ignore what is changing.",
-            "This is not panic territory. It is timing territory.",
-          ],
-        },
-      ],
-    },
+{
+  slug: "situation-im-ok-should-i-worry",
+  kind: "situations",
+  title: "Situation: “I’m ok — should I worry?”",
+  summary:
+    "When nothing is broken, results are acceptable, and yet the world around your business is clearly changing.",
+  date: "2025-01-11",
+  read: "7–8 min",
+  tags: [
+    "Change",
+    "Timing",
+    "Stability",
+    "Business resilience",
+    "Decision confidence",
+  ],
+  category: "Situations",
+  type: "Situation",
+  featured: true,
+  featuredRank: 2,
+  accent: "slate",
+  body: {
+    sections: [
+      {
+        heading: "The situation",
+        paragraphs: [
+          "Your business is operating.",
+          "Customers are paying. Staff know what to do. Problems are handled as they arise.",
+          "From a day-to-day perspective, there is no crisis demanding attention.",
+        ],
+      },
+      {
+        heading: "And yet, the environment is shifting",
+        paragraphs: [
+          "At the same time, it is difficult to ignore what is happening around you.",
+          "Regulation evolves. Competitors change how they operate. Customer expectations rise. Capital, technology, and data become more central to decision-making.",
+          "None of these changes break your business today — but they change the context in which it operates.",
+        ],
+      },
+      {
+        heading: "Why this creates an uncomfortable question",
+        paragraphs: [
+          "The question ‘should I worry?’ feels awkward precisely because nothing is wrong.",
+          "Acting too early can feel wasteful or reactive. Acting too late can feel irresponsible.",
+          "Without a clear trigger, it becomes difficult to justify either staying put or moving forward.",
+        ],
+      },
+      {
+        heading: "Why many businesses stay in this state for a long time",
+        paragraphs: [
+          "Most organisations do not change because of foresight.",
+          "They change because something forces the issue: a loss, a regulatory challenge, cost pressure, or competitive shock.",
+          "Until then, staying where you are feels rational — especially when effort is manageable and outcomes are acceptable.",
+        ],
+      },
+      {
+        heading: "Why ‘ok’ is not the same as resilient",
+        paragraphs: [
+          "Being ‘ok’ means the business works under current conditions.",
+          "Resilience is about whether it would still work if conditions shifted slightly.",
+          "This distinction matters because many changes arrive gradually rather than dramatically.",
+        ],
+      },
+      {
+        heading: "Common signals that timing may matter",
+        paragraphs: [
+          "Effort increases faster than results.",
+          "Decisions take longer to explain or justify.",
+          "Certain people become critical to keeping things running.",
+          "Repeat customers or staff behave differently than they used to.",
+          "None of these signals demand action — but they do suggest that fit may be changing.",
+        ],
+      },
+      {
+        heading: "The temptation to do something — anything",
+        paragraphs: [
+          "In this situation, there is often pressure to act in visible ways.",
+          "Add more staff. Open more locations. Take on more risk. Launch new products or enter new markets.",
+          "These actions can create the feeling of progress, even when the underlying decision foundations remain unchanged.",
+        ],
+      },
+      {
+        heading: "Why this is not about urgency",
+        paragraphs: [
+          "This situation is not panic territory.",
+          "There is time to think, reflect, and choose deliberately.",
+          "The danger lies not in staying where you are, but in drifting into change — or complexity — without intention.",
+        ],
+      },
+      {
+        heading: "A more useful way to frame the question",
+        paragraphs: [
+          "Instead of asking ‘should I worry?’, a more productive question is:",
+          "‘Does the way we make decisions today still support the business we want to protect or build?’",
+          "This reframes the issue away from fear and toward alignment.",
+        ],
+      },
+      {
+        heading: "Neither choice is better — or worse",
+        paragraphs: [
+          "Staying where you are can be a strong, rational decision.",
+          "Moving forward can also be a strong, rational decision.",
+          "What matters is not movement, but alignment between your ambition, your risk appetite, and how decisions are actually made.",
+        ],
+      },
+      {
+        heading: "Where this leaves you",
+        paragraphs: [
+          "If your business is ‘ok’ and you are comfortable with the effort, reliance on people, and level of control you have, staying put may be exactly right.",
+          "If things are ‘ok’ but increasingly hard to explain, scale, or rely on calmly, that awareness itself is valuable.",
+          "It gives you the chance to think ahead — not because you must change, but because you can.",
+        ],
+      },
+    ],
   },
+},
 
-  {
-    slug: "situation-everyone-we-trust-says-its-fine",
-    kind: "situations",
-    title:
-      "Situation: “Everyone we trust says it’s fine — so why does it feel wrong?”",
-    summary:
-      "When systems, standards, and advisors all agree — yet unease remains.",
-    date: "2025-01-12",
-    read: "3–4 min",
-    tags: ["Delegated trust", "Early signals"],
-    category: "Situations",
-    type: "Situation",
-    featured: false,
-    accent: "slate",
-    body: {
-      sections: [
-        {
-          heading: "The quiet contradiction",
-          paragraphs: [
-            "Reports look acceptable. Trusted people confirm nothing is wrong.",
-            "And yet, something does not fully sit right.",
-          ],
-        },
-        {
-          heading: "Why this matters",
-          paragraphs: [
-            "This feeling usually appears before metrics move.",
-            "It is not a call to action — it is a prompt to look more closely.",
-          ],
-        },
-      ],
-    },
+
+{
+  slug: "situation-everyone-we-trust-says-its-fine",
+  kind: "situations",
+  title:
+    "Situation: “Everyone we trust says it’s fine — so why does it feel wrong?”",
+  summary:
+    "When systems, standards, advisors, and benchmarks all agree — yet unease remains.",
+  date: "2025-01-12",
+  read: "7–8 min",
+  tags: [
+    "Delegated trust",
+    "Early signals",
+    "Governance",
+    "Decision ownership",
+    "Quiet drift",
+  ],
+  category: "Situations",
+  type: "Situation",
+  featured: false,
+  accent: "slate",
+  body: {
+    sections: [
+      {
+        heading: "The situation",
+        paragraphs: [
+          "You have done what responsible operators are supposed to do.",
+          "You have reviewed the reports. Benchmarks look acceptable. Systems are operating as designed.",
+          "Advisors, peers, industry standards, and internal experts all confirm that nothing appears out of line.",
+          "From a formal perspective, the business is defensible.",
+        ],
+      },
+      {
+        heading: "And yet, something does not feel settled",
+        paragraphs: [
+          "Despite all of this reassurance, there is a lingering sense of discomfort.",
+          "It is not panic, and it is not fear. It is a quiet feeling that explanations are becoming thinner, effort is increasing, or outcomes feel harder to anticipate than they used to.",
+          "This feeling is easy to dismiss precisely because it lacks evidence.",
+        ],
+      },
+      {
+        heading: "Why this is an uncomfortable place to be",
+        paragraphs: [
+          "Questioning trusted systems or advisors can feel disloyal or irrational.",
+          "After all, these are the very people, standards, and tools that helped the business succeed.",
+          "Raising concerns without clear data can sound like overthinking — or worse, a lack of confidence in the organisation’s foundations.",
+        ],
+      },
+      {
+        heading: "How trust gradually shifts responsibility",
+        paragraphs: [
+          "Over time, responsibility often moves outward without anyone choosing it.",
+          "Decisions are justified because they align with industry practice. Outcomes are accepted because advisors agree. Processes are defended because systems are certified or compliant.",
+          "Each step makes sense. Together, they can create distance between the business and its own decisions.",
+        ],
+      },
+      {
+        heading: "Why this feeling often appears before metrics change",
+        paragraphs: [
+          "Formal metrics are designed to confirm outcomes, not detect subtle drift.",
+          "They aggregate behaviour, smooth variation, and focus on what has already happened.",
+          "Human unease responds earlier to effort, inconsistency, and reliance on explanation rather than clarity.",
+        ],
+      },
+      {
+        heading: "Common signs that trust has replaced ownership",
+        paragraphs: [
+          "Decisions are defended by reference rather than reasoning: “that’s what the system does”, “that’s the industry standard”, or “that’s what we were advised”.",
+          "Few people can explain why specific trade-offs were chosen, or what would justify changing them.",
+          "When outcomes are challenged, the answer depends on who is asked.",
+        ],
+      },
+      {
+        heading: "Why this does not mean something is wrong",
+        paragraphs: [
+          "This situation does not imply negligence, incompetence, or failure.",
+          "Many well-run businesses operate like this for long periods.",
+          "Trust, standards, and external validation are necessary and valuable.",
+          "The issue is not trust itself, but when trust quietly replaces deliberate ownership.",
+        ],
+      },
+      {
+        heading: "The real risk of ignoring the feeling",
+        paragraphs: [
+          "When unease is ignored, organisations often compensate with effort.",
+          "More reviews, more explanations, more senior involvement — all to maintain acceptable outcomes.",
+          "The business remains defensible, but becomes harder to change, harder to explain, and more fragile under pressure.",
+        ],
+      },
+      {
+        heading: "A more useful way to engage the discomfort",
+        paragraphs: [
+          "Instead of asking whether something is wrong, ask where decisions feel least owned.",
+          "Which outcomes would be hardest to explain if challenged? Which rules feel least intentional? Which assurances do you rely on without fully understanding?",
+          "These questions do not demand action. They demand clarity.",
+        ],
+      },
+      {
+        heading: "Where this leaves you",
+        paragraphs: [
+          "If everything feels fine and you are comfortable relying on existing systems, standards, and advisors, staying where you are may be entirely appropriate.",
+          "If things feel fine but increasingly difficult to explain or own, the feeling itself is worth respecting.",
+          "Not as a call to change — but as a signal to re-establish deliberate ownership while you still can.",
+        ],
+      },
+    ],
   },
+},
+
 
 {
   slug: "situation-decisions-mostly-work-except-when-they-dont",
@@ -1125,30 +1282,136 @@ export const LIBRARY = [
      BRIEFINGS
      ====================================================== */
 
-  {
-    slug: "briefing-delegating-without-realising-it",
-    kind: "briefings",
-    title: "Briefing: Delegating Decisions Without Realising It",
-    summary:
-      "How responsibility shifts quietly even in well-intentioned teams.",
-    date: "2025-01-19",
-    read: "4 min",
-    tags: ["Delegation", "Governance"],
-    category: "Briefings",
-    type: "Briefing",
-    featured: false,
-    accent: "slate",
-    body: {
-      sections: [
-        {
-          paragraphs: [
-            "Delegation is often implicit, not deliberate.",
-            "Over time, no one is quite sure who owns the outcome.",
-          ],
-        },
-      ],
-    },
+{
+  slug: "briefing-delegating-without-realising-it",
+  kind: "briefings",
+  title: "Briefing: Delegating Decisions Without Realising It",
+  summary:
+    "How responsibility shifts quietly even in well-intentioned teams — and why this often happens without anyone choosing it.",
+  date: "2025-01-19",
+  read: "8–9 min",
+  tags: [
+    "Delegation",
+    "Decision ownership",
+    "Governance",
+    "Control",
+    "People-based decisions",
+  ],
+  category: "Briefings",
+  type: "Briefing",
+  featured: false,
+  accent: "slate",
+  body: {
+    sections: [
+      {
+        heading: "Delegation rarely feels like a decision",
+        paragraphs: [
+          "In most organisations, delegation does not happen through a formal handover or explicit choice.",
+          "It happens gradually, as people rely on others to ‘handle things’ because they are capable, experienced, or simply available.",
+          "Nothing feels wrong at the time. In fact, it often feels like progress.",
+        ],
+      },
+      {
+        heading: "Why well-run teams are especially vulnerable",
+        paragraphs: [
+          "This pattern is most common in disciplined, functional teams — not chaotic ones.",
+          "When outcomes are acceptable, trust grows. When trust grows, oversight relaxes. When oversight relaxes, responsibility shifts.",
+          "The intention is efficiency, not abdication.",
+        ],
+      },
+      {
+        heading: "How responsibility moves without being noticed",
+        paragraphs: [
+          "At first, someone is asked for input.",
+          "Later, they are asked to decide.",
+          "Eventually, their decisions are accepted without question.",
+          "At no point does anyone announce that authority has moved — but it has.",
+        ],
+      },
+      {
+        heading: "Why this is hard to see while things are working",
+        paragraphs: [
+          "As long as results remain stable, delegation feels justified.",
+          "Decisions still get made. Customers are served. Problems are handled.",
+          "Because nothing is visibly broken, the underlying shift in ownership goes unnoticed.",
+        ],
+      },
+      {
+        heading: "The moment it becomes visible",
+        paragraphs: [
+          "Responsibility drift usually becomes visible only when something changes.",
+          "A result deteriorates. A regulator asks a question. A customer challenges a decision. A key person is absent.",
+          "At that moment, the organisation realises it cannot clearly explain who owns the decision — or why it was made.",
+        ],
+      },
+      {
+        heading: "Why this is not about competence or trust",
+        paragraphs: [
+          "It is tempting to frame this as a people issue.",
+          "In reality, it is a structural one.",
+          "The problem is not that individuals cannot be trusted, but that the boundaries of their authority were never made explicit.",
+        ],
+      },
+      {
+        heading: "How incentives quietly reinforce delegation",
+        paragraphs: [
+          "Delegation is often reinforced by incentives.",
+          "Sales staff may learn that bending rules produces better results. Experienced operators may resolve issues faster by bypassing formal checks.",
+          "Over time, the organisation rewards outcomes without fully understanding the paths taken to achieve them.",
+        ],
+      },
+      {
+        heading: "When delegation turns into dependence",
+        paragraphs: [
+          "A critical moment occurs when the business becomes dependent on specific individuals to maintain outcomes.",
+          "These people are not at fault — they are compensating for gaps in clarity.",
+          "But dependence means control has already narrowed, even if performance looks stable.",
+        ],
+      },
+      {
+        heading: "Why staying manual does not prevent this",
+        paragraphs: [
+          "Many organisations assume that remaining manual preserves control.",
+          "In reality, manual systems can accelerate responsibility drift because authority is embedded in people rather than structures.",
+          "Control feels personal and present — until it is tested.",
+        ],
+      },
+      {
+        heading: "What deliberate delegation actually looks like",
+        paragraphs: [
+          "Deliberate delegation does not remove judgement.",
+          "It clarifies which decisions individuals can make, which ones require escalation, and who owns changes to rules or policy.",
+          "This clarity can exist without automation, documentation overhead, or new systems.",
+        ],
+      },
+      {
+        heading: "A simple diagnostic question",
+        paragraphs: [
+          "If a decision outcome started drifting tomorrow, who would feel responsible to investigate it?",
+          "Not who would be blamed later — but who would feel ownership early enough to act calmly.",
+          "If the answer is unclear, delegation has already outpaced governance.",
+        ],
+      },
+      {
+        heading: "Why this matters even if results are acceptable",
+        paragraphs: [
+          "Delegation without clarity does not always cause failure.",
+          "It causes fragility.",
+          "The business becomes harder to explain, harder to scale, and harder to change without risk.",
+        ],
+      },
+      {
+        heading: "Where this leaves you",
+        paragraphs: [
+          "Delegating decisions is not a mistake.",
+          "Delegating them without choosing to — and without defining boundaries — is where control erodes.",
+          "Whether decisions remain manual or evolve, explicit ownership is what allows trust and control to coexist.",
+        ],
+      },
+    ],
   },
+},
+
 
 {
   slug: "briefing-what-good-enough-decisioning-looks-like",

@@ -25,6 +25,129 @@ export const LIBRARY = [
   /* ======================================================
      START HERE
      ====================================================== */
+{
+  slug: "start-here-running-decisions-without-losing-control",
+  kind: "briefings",
+  title: "Start Here: Running Decisions Without Losing Control",
+  summary:
+    "A calm orientation for operators who run people- and Excel-based decisions and want to stay in control — without rushing into change.",
+  date: "2025-01-10",
+  read: "10–12 min",
+  tags: [
+    "Manual decisions",
+    "Control",
+    "Ownership",
+    "Decision maturity",
+    "Business ambition",
+  ],
+  category: "Start here",
+  type: "Briefing",
+  featured: true,
+  featuredRank: 1,
+  accent: "slate",
+  body: {
+    sections: [
+      {
+        heading: "You are not behind",
+        paragraphs: [
+          "Many well-run businesses still rely on people, judgement, spreadsheets, and experience.",
+          "This is not a flaw. It is often a sign of proximity to customers, strong intuition, and founders or operators who are close to the work.",
+          "Manual decisioning has powered profitable businesses for decades — and continues to do so today.",
+          "Being manual does not mean being naive, unsophisticated, or at risk by default.",
+        ],
+      },
+      {
+        heading: "Where problems usually begin",
+        paragraphs: [
+          "Problems rarely start because decisions are manual.",
+          "They start when conditions change — volumes increase, staff turnover rises, regulations tighten, competitors shift, or costs quietly creep up.",
+          "At that point, a simple question becomes harder to answer:",
+          "Why was this decision made — and would it be made the same way tomorrow?",
+        ],
+      },
+      {
+        heading: "Control is not about automation",
+        paragraphs: [
+          "Control is often misunderstood as having systems, models, or formal processes.",
+          "In reality, control means being able to explain, defend, and deliberately change how decisions are made.",
+          "A fully manual business can be in control. A highly automated one can be deeply out of control.",
+          "The difference is not technology — it is clarity.",
+        ],
+      },
+      {
+        heading: "The quiet risk of people-based decisions",
+        paragraphs: [
+          "People-based decisioning works best when the same experienced individuals are involved consistently.",
+          "Over time, however, knowledge concentrates. Exceptions become habitual. Judgement becomes assumed rather than articulated.",
+          "Nothing breaks. Results often remain acceptable.",
+          "But responsibility slowly shifts from something owned by the business to something embedded in individuals.",
+        ],
+      },
+      {
+        heading: "Why this often feels uncomfortable before it feels urgent",
+        paragraphs: [
+          "Most operators do not experience a sudden crisis.",
+          "They experience unease: effort rising faster than results, decisions becoming harder to explain, staff asking more questions, or repeat customers behaving differently.",
+          "This discomfort is not a signal that something is wrong.",
+          "It is often a signal that the business has outgrown some of its informal decision foundations.",
+        ],
+      },
+      {
+        heading: "This library is not a roadmap",
+        paragraphs: [
+          "This library does not assume you should modernise, automate, or introduce decision engines.",
+          "There is no required endpoint.",
+          "Some organisations remain manual by choice — and do so exceptionally well.",
+          "Others progress selectively, carefully, and in stages.",
+        ],
+      },
+      {
+        heading: "What this library is actually for",
+        paragraphs: [
+          "This library exists to help you think clearly about decisions before anything feels urgent.",
+          "It focuses on situations operators recognise, questions they already ask quietly, and trade-offs that are often implicit rather than discussed.",
+          "The goal is not to push change, but to make your current position visible — so that any decision to stay, pause, or progress is deliberate.",
+        ],
+      },
+      {
+        heading: "Progress is not always better — and neither is standing still",
+        paragraphs: [
+          "Progress is not inherently better.",
+          "Staying manual is not inherently worse.",
+          "What matters is alignment: between how decisions are made and what the business is trying to protect or build.",
+          "Problems arise when ambition, complexity, and decision foundations drift apart without being acknowledged.",
+        ],
+      },
+      {
+        heading: "A grounding question to start with",
+        paragraphs: [
+          "If nothing changed for the next three years, would this way of deciding still feel calm?",
+          "If the business grew, or a key person left, would decisions remain explainable?",
+          "If the answer is yes, you may already be where you need to be.",
+          "If not, awareness — not urgency — is the appropriate response.",
+        ],
+      },
+      {
+        heading: "How to use what follows",
+        paragraphs: [
+          "The notes that follow are organised as situations, questions, field notes, and briefings.",
+          "You do not need to read them in order.",
+          "You may find yourself recognising your business in some and not others.",
+          "That is expected.",
+        ],
+      },
+      {
+        heading: "Where this leaves you",
+        paragraphs: [
+          "You are not late.",
+          "You are not failing.",
+          "You are not required to change.",
+          "You are simply invited to look clearly at how decisions support the business you care about — and to protect that deliberately.",
+        ],
+      },
+    ],
+  },
+},
 
 
 

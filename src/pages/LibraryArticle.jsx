@@ -1,16 +1,19 @@
 // src/pages/LibraryArticle.jsx
 
-import React from "react";
+import React, { useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import Seo from "../components/Seo.jsx";
 import SiteHeader from "../components/layout/SiteHeader.jsx";
 import SiteFooter from "../components/layout/SiteFooter.jsx";
 import { getLibraryItem } from "../data/libraryContent";
+import { TOOLS } from "../data/toolsContent";
 
 /**
  * LibraryArticle
- * Renders a single library note / situation / question / briefing
- * with optional related tools at the end.
+ * Renders a single library article with optional related tools.
+ * Tools are linked:
+ *  - Explicitly via article.relatedTools (if present)
+ *  - Otherwise automatically via shared tags
  */
 export default function LibraryArticle() {
   const { kind, slug } = useParams();
@@ -39,6 +42,36 @@ export default function LibraryArticle() {
     );
   }
 
+  /**
+   * Resolve related tools:
+   * 1. Use explicit relatedTools if provided
+   * 2. Else infer via overlapping tags
+   */
+  const relatedTools = useMemo(() => {
+    // Explicit wins
+    if (article.relatedTools && article.relatedTools.length > 0) {
+      return article.relatedTools;
+    }
+
+    if (!article.tags || article.tags.length === 0) return [];
+
+    const articleTags = article.tags.map((t) => t.toLowerCase());
+
+    return TOOLS.filter((tool) => {
+      if (!tool.tags) return false;
+      return tool.tags.some((tt) =>
+        articleTags.includes(tt.toLowerCase())
+      );
+    })
+      .slice(0, 3) // calm, not aggressive
+      .map((tool) => ({
+        slug: tool.slug,
+        path: tool.path,
+        title: tool.title,
+        description: tool.summary,
+      }));
+  }, [article]);
+
   return (
     <div
       className="min-h-screen text-slate-900"
@@ -54,7 +87,7 @@ export default function LibraryArticle() {
 
       <main className="page-container mx-auto max-w-5xl px-4 pb-16 pt-10">
         {/* =========================
-            Article header
+            Header
            ========================= */}
         <header className="mb-10">
           <div className="text-xs uppercase tracking-wide text-slate-500">
@@ -86,7 +119,7 @@ export default function LibraryArticle() {
         </header>
 
         {/* =========================
-            Article body
+            Body
            ========================= */}
         <article className="prose prose-slate max-w-none">
           {article.body?.sections?.map((section, idx) => (
@@ -109,16 +142,16 @@ export default function LibraryArticle() {
         </article>
 
         {/* =========================
-            Related tools (light, optional)
+            Related tools (automatic)
            ========================= */}
-        {article.relatedTools && article.relatedTools.length > 0 && (
+        {relatedTools.length > 0 && (
           <section className="mt-14 rounded-2xl border bg-slate-50 p-6">
             <div className="text-xs uppercase tracking-wide text-slate-500">
-              If you want to explore this further
+              Practical tools related to this topic
             </div>
 
             <div className="mt-4 space-y-4">
-              {article.relatedTools.map((tool) => (
+              {relatedTools.map((tool) => (
                 <Link
                   key={tool.slug}
                   to={tool.path}
@@ -139,7 +172,7 @@ export default function LibraryArticle() {
         )}
 
         {/* =========================
-            Back to library
+            Back link
            ========================= */}
         <div className="mt-14">
           <Link
@@ -150,13 +183,6 @@ export default function LibraryArticle() {
           </Link>
         </div>
       </main>
-
-      <SiteFooter />
-    </div>
-  );
-}
-
-
 
       <SiteFooter />
     </div>

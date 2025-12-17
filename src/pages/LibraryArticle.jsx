@@ -121,17 +121,16 @@ export default function LibraryArticle() {
         {/* =========================
             Body
            ========================= */}
-        <article className="prose prose-slate max-w-none">
-          {article.body?.sections?.map((section, idx) => (
-            <section key={idx} className="mb-10">
+        <article className="article">
+          {article.body.sections.map((section, idx) => (
+            <section key={idx}>
               {section.heading && <h2>{section.heading}</h2>}
-
-              {section.paragraphs?.map((p, i) => (
-                <p key={i}>{p}</p>
-              ))}
-
+        
+              {section.paragraphs &&
+                section.paragraphs.map((p, i) => <p key={i}>{p}</p>)}
+        
               {section.bullets && (
-                <ul>
+                <ul className="list-disc pl-6 space-y-2">
                   {section.bullets.map((b, i) => (
                     <li key={i}>{b}</li>
                   ))}
@@ -140,6 +139,7 @@ export default function LibraryArticle() {
             </section>
           ))}
         </article>
+
 
         {/* =========================
             Related tools (automatic)

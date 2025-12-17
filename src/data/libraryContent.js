@@ -875,46 +875,148 @@ export const LIBRARY = [
 },
 
 
-  {
-    slug: "field-note-when-everything-feels-fine",
-    kind: "notes",
-    title: "When Everything You Trust Says “It’s Fine” — and It Isn’t",
-    summary:
-      "Why early signals are usually human, not numerical.",
-    date: "2025-01-17",
-    read: "3–4 min",
-    tags: ["Human signals", "Ownership"],
-    category: "Field notes",
-    type: "Field Note",
-    featured: true,
-    featuredRank: 3,
-    accent: "slate",
-    body: {
-      sections: [
-        {
-          paragraphs: [
-            "The most expensive problems rarely announce themselves early.",
-            "They surface first as unease, not failure.",
-          ],
-        },
-      ],
-    },
+{
+  slug: "field-note-when-everything-feels-fine",
+  kind: "notes",
+  title: "Field Note: When Everything Feels Fine — and It Isn’t",
+  summary:
+    "Why some of the most important warning signs appear as unease, not failure — and why experienced operators often feel them first.",
+  date: "2025-01-17",
+  read: "9–10 min",
+  tags: [
+    "Early signals",
+    "Operator intuition",
+    "Hidden risk",
+    "Decision ownership",
+    "Quiet drift",
+  ],
+  category: "Field notes",
+  type: "Field Note",
+  featured: true,
+  featuredRank: 3,
+  accent: "slate",
+  body: {
+    sections: [
+      {
+        heading: "Nothing is obviously wrong",
+        paragraphs: [
+          "On paper, things look fine.",
+          "Key metrics are within acceptable ranges. Losses are controlled. Customers are paying. Staff know what to do.",
+          "There is no incident, no crisis, no urgent trigger demanding attention.",
+          "From the outside, there is little reason to question the way decisions are being made.",
+        ],
+      },
+      {
+        heading: "And yet, something does not sit right",
+        paragraphs: [
+          "Despite the numbers, there is a sense of unease.",
+          "It may surface as a fleeting thought rather than a clear concern. A feeling that effort is rising. That explanations are getting harder. That outcomes feel less predictable than they used to.",
+          "This discomfort is easy to dismiss precisely because nothing is broken.",
+        ],
+      },
+      {
+        heading: "Why this feeling is often ignored",
+        paragraphs: [
+          "In well-run businesses, unease without evidence can feel irresponsible.",
+          "Operators are trained to trust data, reports, benchmarks, and external reassurance.",
+          "When trusted systems, advisors, peers, and metrics all say things are acceptable, questioning them can feel like overthinking — or worse, a lack of confidence in the very foundations that built the business.",
+        ],
+      },
+      {
+        heading: "Why experienced operators feel this first",
+        paragraphs: [
+          "This kind of unease is rarely random.",
+          "It tends to be felt first by people who are close to the work, who have seen cycles repeat, and who understand how the business behaves under stress.",
+          "They notice small changes long before they appear in dashboards: more exceptions, more explanations, more effort to achieve the same outcome.",
+        ],
+      },
+      {
+        heading: "The difference between performance and resilience",
+        paragraphs: [
+          "Performance answers the question: are we getting acceptable results today?",
+          "Resilience answers a different question: would these results hold if conditions changed slightly?",
+          "A business can perform well while quietly losing resilience — especially when people compensate for structural ambiguity with experience and effort.",
+        ],
+      },
+      {
+        heading: "Why metrics often lag reality",
+        paragraphs: [
+          "Most formal metrics are designed to confirm outcomes, not detect drift.",
+          "They aggregate behaviour, smooth variation, and focus on what has already happened.",
+          "By the time a metric visibly moves, the underlying pattern has usually been present for some time.",
+          "Human discomfort often appears earlier because it responds to effort, friction, and inconsistency — not just loss.",
+        ],
+      },
+      {
+        heading: "Common places where drift hides",
+        paragraphs: [
+          "Early warning signs rarely announce themselves clearly.",
+          "They hide in rising manual intervention, repeated debate over similar cases, growing reliance on specific individuals, or quiet workarounds that ‘just make things easier’.",
+          "Each makes sense in isolation. Together, they often signal that decision logic is becoming harder to hold in one’s head.",
+        ],
+      },
+      {
+        heading: "Why this is not a call to panic",
+        paragraphs: [
+          "This field note is not a warning that something must be wrong.",
+          "Many businesses operate in this state for years without serious issue.",
+          "Unease does not demand immediate action. It demands attention.",
+          "The risk lies not in feeling it, but in dismissing it indefinitely.",
+        ],
+      },
+      {
+        heading: "The quiet cost of ignoring early signals",
+        paragraphs: [
+          "When early signals are ignored, organisations tend to compensate with effort.",
+          "More reviews. More escalation. More experienced people involved in routine decisions.",
+          "Results remain stable, but cost-to-serve increases and learning slows.",
+          "By the time action feels unavoidable, options are often narrower and more expensive.",
+        ],
+      },
+      {
+        heading: "A useful way to engage the feeling",
+        paragraphs: [
+          "Instead of asking whether something is wrong, ask where things feel heavier than they used to.",
+          "Which decisions take more energy? Which outcomes require more explanation? Which people are becoming critical points of failure?",
+          "These questions do not require metrics to answer. They require honesty.",
+        ],
+      },
+      {
+        heading: "What this feeling is really about",
+        paragraphs: [
+          "This unease is rarely about correctness.",
+          "More often, it is about effort, fairness, predictability, and control.",
+          "It reflects a growing gap between how decisions are made and how clearly they can be owned, explained, and adjusted.",
+        ],
+      },
+      {
+        heading: "Where this leaves you",
+        paragraphs: [
+          "If everything feels fine and the economics support it, staying where you are may be entirely appropriate.",
+          "If things feel fine but effort, uncertainty, or reliance on a few people is increasing, the feeling itself is worth respecting.",
+          "Not as a demand for change — but as an invitation to look more closely while there is still time to do so calmly.",
+        ],
+      },
+    ],
   },
+},
+
 
 {
   slug: "field-note-where-responsibility-disappears",
   kind: "notes",
-  title: "Where Responsibility Quietly Disappears in People-Based Decisions",
+  title: "Field Note: Where Responsibility Quietly Disappears in People-Based Decisions",
   summary:
-    "How trust, habit, and good intentions can slowly blur ownership — even in well-run businesses.",
+    "How trust, habit, and good intentions can slowly blur ownership — even in disciplined, well-run organisations.",
   date: "2025-01-28",
-  read: "7–8 min",
+  read: "9–10 min",
   tags: [
     "Responsibility",
-    "Delegation",
-    "Trust",
     "Decision ownership",
+    "Delegation",
+    "People-based systems",
     "Governance",
+    "Control",
   ],
   category: "Field notes",
   type: "Field Note",
@@ -925,81 +1027,84 @@ export const LIBRARY = [
       {
         heading: "Responsibility rarely disappears suddenly",
         paragraphs: [
-          "In most organisations, responsibility does not vanish through a single decision or event.",
-          "It fades slowly, through trust, habit, and the understandable desire to keep things running smoothly.",
-          "By the time it becomes noticeable, no one can point to when the shift occurred.",
+          "In most organisations, responsibility is not lost through a single decision, system change, or restructuring.",
+          "It fades gradually — through trust, habit, and the understandable desire to keep things running smoothly.",
+          "By the time someone asks who actually owns a decision, the answer is often unclear not because no one cares, but because no one noticed the shift happening.",
         ],
       },
       {
-        heading: "How trust becomes delegation",
+        heading: "How trust quietly becomes delegation",
         paragraphs: [
           "As people prove themselves capable, others rely on them more.",
-          "Judgement is trusted. Exceptions are accepted. Decisions are waved through.",
-          "This is not negligence. It is often a sign of maturity and respect.",
+          "Experienced staff are trusted to ‘handle it’. Exceptions are waved through. Judgement calls become routine.",
+          "This is not negligence. It is often a sign of maturity, respect, and operational efficiency.",
+          "Problems arise only when this reliance is never made explicit.",
         ],
       },
       {
-        heading: "When delegation becomes assumption",
+        heading: "When delegation turns into assumption",
         paragraphs: [
-          "Over time, trust turns into assumption.",
-          "People stop checking why decisions are made. Outcomes are accepted because they come from familiar hands or trusted systems.",
-          "The question of ownership quietly recedes into the background.",
+          "Over time, trust becomes assumption.",
+          "Decisions are accepted because they come from familiar people, long-standing processes, or systems that have ‘always worked’.",
+          "The question of why something was decided a certain way is asked less frequently — until it suddenly matters again.",
         ],
       },
       {
         heading: "The moment responsibility becomes unclear",
         paragraphs: [
-          "The issue usually surfaces only when something goes wrong — or when someone asks an uncomfortable question.",
-          "Who decided this? Why was this exception allowed? What changed?",
-          "When answers differ depending on who is asked, responsibility has already blurred.",
+          "This pattern usually surfaces during discomfort, not success.",
+          "A result drifts. A regulator asks a question. A customer challenges a decision. A senior person leaves.",
+          "When explanations differ depending on who is asked, responsibility has already blurred.",
+          "At that point, it is often impossible to identify when the shift occurred.",
         ],
       },
       {
-        heading: "Why this is not about blame",
+        heading: "Why this is not about blame or discipline",
         paragraphs: [
-          "This pattern is not the result of bad actors or poor discipline.",
-          "It emerges because businesses prioritise continuity, speed, and trust — especially when things are working reasonably well.",
-          "The problem is not delegation itself, but the absence of deliberate boundaries around it.",
+          "Responsibility drift is rarely caused by bad actors or lack of controls.",
+          "It emerges because businesses prioritise continuity, speed, and trust — especially when outcomes are acceptable.",
+          "People fill gaps pragmatically. Systems are adapted locally. Exceptions are made to keep things moving.",
+          "All of this feels reasonable at the time.",
         ],
       },
       {
-        heading: "People-based systems amplify this risk",
+        heading: "Why people-based systems amplify the risk",
         paragraphs: [
-          "In manual or judgement-heavy environments, responsibility is often embedded in individuals rather than structures.",
-          "When those individuals leave, change roles, or become overloaded, decision quality can shift suddenly.",
-          "The organisation then realises how much knowledge and authority was never truly shared.",
+          "In manual or judgement-heavy environments, responsibility often lives inside individuals rather than structures.",
+          "Certain people become informal safeguards. Others defer to them. Decisions work — until those people are unavailable, overloaded, or leave.",
+          "At that point, the organisation realises how much authority and logic was never truly shared or owned collectively.",
         ],
       },
       {
-        heading: "Why staying manual does not avoid this",
+        heading: "Why staying manual does not prevent loss of control",
         paragraphs: [
-          "It is a mistake to assume that remaining manual protects against loss of control.",
-          "In fact, people-based systems can hide responsibility drift more effectively than formal ones, precisely because outcomes appear reasonable most of the time.",
-          "Control feels present — until it is tested.",
+          "It is a common misconception that remaining manual protects against loss of control.",
+          "In reality, people-based systems can hide responsibility drift more effectively than formal ones.",
+          "Outcomes appear reasonable, exceptions are explained away, and control feels present — until it is tested.",
         ],
       },
       {
-        heading: "The subtle cost of blurred ownership",
+        heading: "The hidden cost of blurred ownership",
         paragraphs: [
           "When responsibility is unclear, learning slows.",
-          "Mistakes are repeated. Improvements are tentative. People hesitate to change what they do not fully own.",
-          "Over time, effort increases as individuals compensate for structural ambiguity.",
+          "Mistakes repeat quietly. Improvements feel tentative. People hesitate to change what they do not fully own.",
+          "Effort increases as individuals compensate for structural ambiguity, often without the organisation noticing the cost.",
         ],
       },
       {
         heading: "What clarity actually looks like",
         paragraphs: [
-          "Clarity does not require rigid rules or removing judgement.",
-          "It requires knowing which decisions belong to policy, which to judgement, and who is accountable for changing each.",
-          "This can exist in fully manual environments when it is intentional.",
+          "Clarity does not require rigid rules, automation, or removing judgement.",
+          "It requires knowing which decisions belong to policy, which rely on judgement, and who is accountable for changing each.",
+          "This clarity can exist in fully manual environments when it is deliberate.",
         ],
       },
       {
-        heading: "A simple test",
+        heading: "A simple test of ownership",
         paragraphs: [
           "If a decision started producing worse outcomes tomorrow, who would notice first?",
           "Not who would be blamed later — but who would recognise the drift early enough to respond calmly.",
-          "The answer to that question reveals where responsibility truly sits.",
+          "The answer to that question reveals where responsibility truly sits today.",
         ],
       },
       {
@@ -1007,12 +1112,13 @@ export const LIBRARY = [
         paragraphs: [
           "Responsibility does not need to be centralised or automated to be clear.",
           "It does need to be explicit.",
-          "Whether decisions remain manual or evolve, clarity of ownership is what ultimately preserves control.",
+          "Whether decisions remain manual or evolve over time, clarity of ownership is what ultimately preserves control.",
         ],
       },
     ],
   },
 },
+
 
 
   /* ======================================================

@@ -120,9 +120,7 @@ function classifyIssues(result) {
   const quality = result.quality || {};
   const qualityStatus = quality.status || null;
   const qualityDecision = quality.decision || null; // for future expansion
-  const qualityReasons = Array.isArray(quality.reasons)
-    ? quality.reasons
-    : [];
+  const qualityReasons = Array.isArray(quality.reasons) ? quality.reasons : [];
 
   // ───────────────────────────────────────────────
   // 1) PIPELINE IN-PROGRESS / QUEUED STATE
@@ -331,7 +329,6 @@ function buildUiSummary(docType, agentic, fields = []) {
       agentic?.structured ||
       {};
 
-
     const txs =
       (agentic?.structured &&
         Array.isArray(agentic.structured.transactions) &&
@@ -387,13 +384,9 @@ function buildUiSummary(docType, agentic, fields = []) {
         null,
 
       opening_balance:
-        typeof stmt.opening_balance === "number"
-          ? stmt.opening_balance
-          : null,
+        typeof stmt.opening_balance === "number" ? stmt.opening_balance : null,
       closing_balance:
-        typeof stmt.closing_balance === "number"
-          ? stmt.closing_balance
-          : null,
+        typeof stmt.closing_balance === "number" ? stmt.closing_balance : null,
       total_credits: totalCredits,
       total_debits: totalDebits,
       currency: stmt.currency || "ZAR",
@@ -426,10 +419,8 @@ function buildUiSummary(docType, agentic, fields = []) {
   if (docType === "payslips") {
     return {
       kind: "payslip",
-      employee_name:
-        getField("Employee Name") || getField("Employee") || null,
-      employer_name:
-        getField("Employer Name") || getField("Employer") || null,
+      employee_name: getField("Employee Name") || getField("Employee") || null,
+      employer_name: getField("Employer Name") || getField("Employer") || null,
       period_label:
         getField("Salary Period Label") || getField("Salary Period") || null,
       gross_pay:
@@ -438,10 +429,7 @@ function buildUiSummary(docType, agentic, fields = []) {
         getField("Gross") ||
         null,
       net_pay:
-        getField("Net Salary") ||
-        getField("Net Pay") ||
-        getField("Net") ||
-        null,
+        getField("Net Salary") || getField("Net Pay") || getField("Net") || null,
       currency: getField("Currency") || "ZAR",
     };
   }
@@ -481,18 +469,15 @@ function buildUiSummary(docType, agentic, fields = []) {
         getField("Customer Name") ||
         null,
       holder_type: getField("Holder Type") || null,
-      address_line_1:
-        getField("Address Line 1") || getField("Address1") || null,
-      address_line_2:
-        getField("Address Line 2") || getField("Address2") || null,
+      address_line_1: getField("Address Line 1") || getField("Address1") || null,
+      address_line_2: getField("Address Line 2") || getField("Address2") || null,
       city: getField("City / Town") || getField("City") || null,
       province:
         getField("Province / State") ||
         getField("Province") ||
         getField("State") ||
         null,
-      postal_code:
-        getField("Postal Code") || getField("Postcode") || null,
+      postal_code: getField("Postal Code") || getField("Postcode") || null,
       country: getField("Country") || null,
       proof_entity_name:
         getField("Proof Entity Name") ||
@@ -575,6 +560,7 @@ export default function Results() {
         const hasDetailed = !!data.detailed;
         const qualityStatus = data.quality?.status || null;
         const pipelineStage = data.statusAudit || null;
+
         const inProgress =
           (!hasQuick &&
             !hasDetailed &&
@@ -657,10 +643,18 @@ export default function Results() {
   const riskBand =
     agentic?.risk_score?.band ?? result?.riskScore?.band ?? null;
 
-  // Confidence now comes from backend quality.confidence
+  // Confidence: normalize 0–1 or 0–100 into a percent
   const quality = result?.quality || {};
-  const confidence =
+  const rawConfidence =
     typeof quality.confidence === "number" ? quality.confidence : null;
+
+  const confidencePct =
+    typeof rawConfidence === "number"
+      ? rawConfidence <= 1
+        ? rawConfidence * 100
+        : rawConfidence
+      : null;
+
   const qualityStatus = quality.status || null;
 
   // Analysis mode from backend / agentic (with fallback)
@@ -673,9 +667,17 @@ export default function Results() {
 
   const { issues, overallStatus, inProgress } = classifyIssues(result);
 
-  // Prefer agentic summary, then fall back
+  // Summary selection aligned to current backend contract:
+  // - detailed: result.detailed.result.summary or result.detailed.summary
+  // - quick: result.quick.summary
+  // - fallbacks for any legacy paths
   const agenticSummary =
-    agentic?.summary || result?.summary || result?.quick?.summary || null;
+    result?.detailed?.result?.summary ??
+    result?.detailed?.summary ??
+    result?.quick?.summary ??
+    agentic?.summary ??
+    result?.summary ??
+    null;
 
   // Ratios & cashflow summaries
   const ratios =
@@ -908,9 +910,7 @@ export default function Results() {
                   {/* AI summary */}
                   {agenticSummary && !inProgress && (
                     <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-                      <h2 className="text-sm font-semibold mb-2">
-                        AI summary
-                      </h2>
+                      <h2 className="text-sm font-semibold mb-2">AI summary</h2>
                       <p className="text-sm text-slate-800 whitespace-pre-wrap">
                         {agenticSummary}
                       </p>
@@ -939,8 +939,8 @@ export default function Results() {
                         Confidence
                       </div>
                       <div className="mt-1 text-2xl font-semibold">
-                        {typeof confidence === "number"
-                          ? (confidence * 100).toFixed(1) + "%"
+                        {confidencePct != null
+                          ? confidencePct.toFixed(1) + "%"
                           : "—"}
                       </div>
                     </div>
@@ -1688,8 +1688,8 @@ export default function Results() {
                         Confidence
                       </div>
                       <div className="mt-1 text-2xl font-semibold">
-                        {typeof confidence === "number"
-                          ? (confidence * 100).toFixed(1) + "%"
+                        {confidencePct != null
+                          ? confidencePct.toFixed(1) + "%"
                           : "—"}
                       </div>
                     </div>
@@ -1987,9 +1987,7 @@ export default function Results() {
                   {genericScores && !inProgress && (
                     <div className="mb-4 rounded-lg border border-[rgb(var(--border))] bg-white p-4 text-sm">
                       <div className="flex items-center justify-between mb-3">
-                        <h2 className="text-sm font-semibold">
-                          Model scores
-                        </h2>
+                        <h2 className="text-sm font-semibold">Model scores</h2>
                       </div>
                       <div className="overflow-x-auto">
                         <table className="min-w-full text-xs">
@@ -2082,3 +2080,4 @@ export default function Results() {
     </div>
   );
 }
+

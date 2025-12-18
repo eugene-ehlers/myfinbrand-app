@@ -285,10 +285,9 @@ export default function Dashboard() {
         return;
       }
 
-      const { url, fields, ocr_result_key } = presignJson || {};
-
-
-      if (!url || !fields || !ocr_result_key) {
+      const { url, fields, objectKey } = presignJson || {};
+      
+      if (!url || !fields || !objectKey) {
 
         console.error("Presign response missing fields", presignJson);
         setStatus({
@@ -323,7 +322,7 @@ export default function Dashboard() {
         setPages([]);
 
         // Navigate to Results for this object
-        navigate(`/results?ocr_result_key=${encodeURIComponent(ocr_result_key)}`);
+        navigate(`/results?objectKey=${encodeURIComponent(objectKey)}`);
 
       } else {
         const text = await s3Res.text().catch(() => "");

@@ -328,7 +328,9 @@ function buildUiSummary(docType, agentic, fields = []) {
     const stmt =
       agentic?.structured?.statement_summary ||
       agentic?.statement_summary ||
+      agentic?.structured ||
       {};
+
 
     const txs =
       (agentic?.structured &&
@@ -373,8 +375,17 @@ function buildUiSummary(docType, agentic, fields = []) {
         stmt.account_name ||
         stmt.account_name_normalised ||
         null,
-      period_start: stmt.statement_start_date || stmt.period_start || null,
-      period_end: stmt.statement_end_date || stmt.period_end || null,
+      period_start:
+        stmt.statement_start_date ||
+        stmt.period_start ||
+        stmt.statement_period_start ||
+        null,
+      period_end:
+        stmt.statement_end_date ||
+        stmt.period_end ||
+        stmt.statement_period_end ||
+        null,
+
       opening_balance:
         typeof stmt.opening_balance === "number"
           ? stmt.opening_balance

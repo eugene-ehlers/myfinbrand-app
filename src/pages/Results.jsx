@@ -434,6 +434,7 @@ function buildUiSummary(docType, agentic, fields = []) {
     };
   }
 
+
   // PAYSLIPS
   if (docType === "payslips") {
     return {
@@ -452,6 +453,7 @@ function buildUiSummary(docType, agentic, fields = []) {
       currency: getField("Currency") || "ZAR",
     };
   }
+
 
   // ID DOCUMENTS
   if (docType === "id_documents") {

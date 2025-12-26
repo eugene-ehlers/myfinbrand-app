@@ -468,33 +468,80 @@ function buildUiSummary(docType, agentic, fields = []) {
 
   // PROOF OF ADDRESS
   if (docType === "proof_of_address") {
+    const s = agentic?.structured || {};
+    const addressLines = Array.isArray(s.address_lines) ? s.address_lines : [];
+  
+    const line1 = addressLines[0] || null;
+    const line2 = addressLines.length > 1 ? addressLines.slice(1).join(", ") : null;
+  
     return {
       kind: "address",
+  
+      // Your backend uses structured.customer_name for POA
       holder_name:
-        getField("Address Holder Name") ||
-        getField("Account Holder Name") ||
+        s.customer_name ||
+        getField("customer_name") ||
         getField("Customer Name") ||
+        getField("Account Holder Name") ||
+        getField("Address Holder Name") ||
         null,
+  
+      // Not currently provided in structured payload (fine to remain field-only)
       holder_type: getField("Holder Type") || null,
-      address_line_1: getField("Address Line 1") || getField("Address1") || null,
-      address_line_2: getField("Address Line 2") || getField("Address2") || null,
+  
+      // Prefer address_lines from structured, then fall back to fields
+      address_line_1:
+        line1 ||
+        getField("address_line_1") ||
+        getField("Address Line 1") ||
+        getField("Address1") ||
+        null,
+  
+      address_line_2:
+        line2 ||
+        getField("address_line_2") ||
+        getField("Address Line 2") ||
+        getField("Address2") ||
+        null,
+  
+      // Your structured payload doesn't split city/province today; keep as field fallbacks
       city: getField("City / Town") || getField("City") || null,
       province:
         getField("Province / State") ||
         getField("Province") ||
         getField("State") ||
         null,
-      postal_code: getField("Postal Code") || getField("Postcode") || null,
-      country: getField("Country") || null,
+  
+      postal_code:
+        s.postal_code ||
+        getField("postal_code") ||
+        getField("Postal Code") ||
+        getField("Postcode") ||
+        null,
+  
+      country:
+        s.country ||
+        getField("Country") ||
+        null,
+  
+      // issuer_name + issue_date are in structured
       proof_entity_name:
+        s.issuer_name ||
+        getField("issuer_name") ||
         getField("Proof Entity Name") ||
         getField("Provider") ||
         getField("Issuer") ||
         null,
+  
       document_issue_date:
-        getField("Document Issue Date") || getField("Issue Date") || null,
+        s.issue_date ||
+        getField("issue_date") ||
+        getField("Document Issue Date") ||
+        getField("Issue Date") ||
+        null,
     };
   }
+
 
   return null;
 }

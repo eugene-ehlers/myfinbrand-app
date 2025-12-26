@@ -437,22 +437,46 @@ function buildUiSummary(docType, agentic, fields = []) {
 
   // PAYSLIPS
   if (docType === "payslips") {
+    const s = agentic?.structured || {};
+  
+    const periodStart = s.pay_period_start || null;
+    const periodEnd = s.pay_period_end || null;
+    const periodLabel =
+      periodStart && periodEnd ? `${periodStart} to ${periodEnd}` : null;
+  
+    const grossRaw =
+      s.gross_pay ?? getField("gross_pay") ?? getField("Gross Pay") ?? null;
+  
+    const netRaw =
+      s.net_pay ?? getField("net_pay") ?? getField("Net Pay") ?? null;
+  
+    const grossPay =
+      grossRaw == null ? null : typeof grossRaw === "number" ? grossRaw : Number(grossRaw);
+  
+    const netPay =
+      netRaw == null ? null : typeof netRaw === "number" ? netRaw : Number(netRaw);
+  
     return {
       kind: "payslip",
-      employee_name: getField("Employee Name") || getField("Employee") || null,
-      employer_name: getField("Employer Name") || getField("Employer") || null,
-      period_label:
-        getField("Salary Period Label") || getField("Salary Period") || null,
-      gross_pay:
-        getField("Gross Salary") ||
-        getField("Gross Pay") ||
-        getField("Gross") ||
+      employee_name:
+        s.employee_name ||
+        getField("employee_name") ||
+        getField("Employee Name") ||
+        getField("Employee") ||
         null,
-      net_pay:
-        getField("Net Salary") || getField("Net Pay") || getField("Net") || null,
-      currency: getField("Currency") || "ZAR",
+      employer_name:
+        s.employer_name ||
+        getField("employer_name") ||
+        getField("Employer Name") ||
+        getField("Employer") ||
+        null,
+      period_label: periodLabel || null,
+      gross_pay: Number.isFinite(grossPay) ? grossPay : null,
+      net_pay: Number.isFinite(netPay) ? netPay : null,
+      currency: s.currency || getField("currency") || "ZAR",
     };
   }
+
 
 
   // ID DOCUMENTS

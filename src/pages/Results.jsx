@@ -386,31 +386,51 @@ function buildUiSummary(docType, agentic, fields = []) {
 
     return {
       kind: "bank",
+    
+      // Prefer current structured contract keys first, then legacy keys, then fields[] fallback
       account_holder:
+        stmt.account_holder_name ||
         stmt.account_holder ||
         stmt.account_name ||
         stmt.account_name_normalised ||
+        getField("account_holder_name") ||
         null,
+    
       period_start:
+        stmt.statement_period_start ||
         stmt.statement_start_date ||
         stmt.period_start ||
-        stmt.statement_period_start ||
+        getField("statement_period_start") ||
         null,
+    
       period_end:
+        stmt.statement_period_end ||
         stmt.statement_end_date ||
         stmt.period_end ||
-        stmt.statement_period_end ||
+        getField("statement_period_end") ||
         null,
-
+    
+      // Normalize numeric values (strings -> numbers)
       opening_balance:
-        typeof stmt.opening_balance === "number" ? stmt.opening_balance : null,
+        stmt.opening_balance != null
+          ? Number(stmt.opening_balance)
+          : getField("opening_balance") != null
+          ? Number(getField("opening_balance"))
+          : null,
+    
       closing_balance:
-        typeof stmt.closing_balance === "number" ? stmt.closing_balance : null,
-      total_credits: totalCredits,
-      total_debits: totalDebits,
-      currency: stmt.currency || "ZAR",
+        stmt.closing_balance != null
+          ? Number(stmt.closing_balance)
+          : getField("closing_balance") != null
+          ? Number(getField("closing_balance"))
+          : null,
+    
+      total_credits: totalCredits != null ? Number(totalCredits) : null,
+      total_debits: totalDebits != null ? Number(totalDebits) : null,
+    
+      currency: stmt.currency || getField("currency") || "ZAR",
     };
-  }
+
 
   // FINANCIAL STATEMENTS
   if (docType === "financial_statements") {

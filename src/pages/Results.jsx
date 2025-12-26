@@ -723,7 +723,16 @@ export default function Results() {
   const docType = agentic?.docType ?? result?.docType ?? "—";
   const docTypeLabel = DOC_TYPE_LABELS[docType] || docType || "—";
   const fields = Array.isArray(result?.fields) ? result.fields : [];
-  const pipelineStage = result?.statusAudit || null;
+  const pipelineStage =
+    typeof result?.statusAudit === "string"
+      ? result.statusAudit
+      : result?.statusAudit && typeof result.statusAudit === "object"
+      ? result.statusAudit.pipeline_stage ||
+        result.statusAudit.pipelineStage ||
+        result.statusAudit.stage ||
+        null
+      : null;
+
 
   // Build a UI summary based on docType + agentic content + fields
   const uiSummary = buildUiSummary(docType, agentic, fields);

@@ -430,7 +430,7 @@ function buildUiSummary(docType, agentic, fields = []) {
     
       currency: stmt.currency || getField("currency") || "ZAR",
     };
-
+  }
 
   // FINANCIAL STATEMENTS
   if (docType === "financial_statements") {

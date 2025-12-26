@@ -722,8 +722,20 @@ export default function Results() {
   const { agentic } = deriveAgenticFromResult(result);
 
   // High-level fields from the stub / aggregator
-  const docType = agentic?.docType ?? result?.docType ?? "—";
-  const docTypeLabel = DOC_TYPE_LABELS[docType] || docType || "—";
+  const docTypeRaw = agentic?.docType ?? result?.docType ?? null;
+
+// Normalize docType so UI logic is stable even if backend returns "Payslip" / "payslip"
+  const docType =
+    typeof docTypeRaw === "string"
+      ? (() => {
+          const k = docTypeRaw.trim().toLowerCase();
+          if (k === "payslip") return "payslips";
+          if (k === "id_document") return "id_documents";
+          return k;
+        })()
+      : null;
+  
+  const docTypeLabel = (docType && DOC_TYPE_LABELS[docType]) || docTypeRaw || "—";
   const fields = Array.isArray(result?.fields) ? result.fields : [];
   const pipelineStage =
     typeof result?.statusAudit === "string"

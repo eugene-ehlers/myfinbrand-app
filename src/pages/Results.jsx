@@ -561,15 +561,12 @@ export default function Results() {
         const data = await res.json();
         if (cancelled) return;
 
-        setResult(data);
-
         const hasQuick = !!data.quick;
         const hasDetailed = !!data.detailed;
         const qualityStatus = data.quality?.status || null;
         const pipelineStage = data.statusAudit || null;
-
+        
         const inProgress =
-          // normal queued stages while no final payload is present
           (!hasQuick &&
             !hasDetailed &&
             (pipelineStage === "uploaded" ||
@@ -577,8 +574,18 @@ export default function Results() {
               pipelineStage === "detailed_ai_queued" ||
               pipelineStage === "quick_ai_queued")) ||
           (!hasQuick && !hasDetailed && qualityStatus === "pending") ||
-          // defensive: stage says "completed" but detailed payload not present yet
           (pipelineStage === "detailed_ai_completed" && !hasDetailed);
+        
+        // Only overwrite the UI with partial results if we don't already have something better
+        setResult((prev) => {
+          if (!prev) return data;
+          if (!inProgress) return data; // final → always take it
+          // in progress → keep previous if it already has quick/detailed to avoid flicker
+          const prevHasAny = !!prev.quick || !!prev.detailed;
+          const nextHasAny = hasQuick || hasDetailed;
+          return prevHasAny && !nextHasAny ? prev : data;
+        });
+
 
 
         if (inProgress && attempt < maxAttempts) {

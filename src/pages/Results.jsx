@@ -126,9 +126,16 @@ function classifyIssues(result) {
   // 1) PIPELINE IN-PROGRESS / QUEUED STATE
   // ───────────────────────────────────────────────
   const isInProgress =
+    // normal queued stages while no final payload is present
     (!hasAnyFinalResult &&
-      (pipelineStage === "uploaded" || pipelineStage === "ocr_completed")) ||
-    (!hasAnyFinalResult && qualityStatus === "pending");
+      (pipelineStage === "uploaded" ||
+        pipelineStage === "ocr_completed" ||
+        pipelineStage === "detailed_ai_queued" ||
+        pipelineStage === "quick_ai_queued")) ||
+    (!hasAnyFinalResult && qualityStatus === "pending") ||
+    // defensive: stage says "completed" but detailed payload not present yet (avoid false "completed" UI)
+    (pipelineStage === "detailed_ai_completed" && !hasDetailed);
+
 
   if (isInProgress) {
     return {
@@ -562,11 +569,17 @@ export default function Results() {
         const pipelineStage = data.statusAudit || null;
 
         const inProgress =
+          // normal queued stages while no final payload is present
           (!hasQuick &&
             !hasDetailed &&
             (pipelineStage === "uploaded" ||
-              pipelineStage === "ocr_completed")) ||
-          (!hasQuick && !hasDetailed && qualityStatus === "pending");
+              pipelineStage === "ocr_completed" ||
+              pipelineStage === "detailed_ai_queued" ||
+              pipelineStage === "quick_ai_queued")) ||
+          (!hasQuick && !hasDetailed && qualityStatus === "pending") ||
+          // defensive: stage says "completed" but detailed payload not present yet
+          (pipelineStage === "detailed_ai_completed" && !hasDetailed);
+
 
         if (inProgress && attempt < maxAttempts) {
           attempt += 1;

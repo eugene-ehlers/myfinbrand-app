@@ -102,7 +102,16 @@ function classifyIssues(result) {
   }
 
   const issues = [];
-  const pipelineStage = result.statusAudit || null;
+  const pipelineStage =
+    typeof result.statusAudit === "string"
+      ? result.statusAudit
+      : result.statusAudit && typeof result.statusAudit === "object"
+      ? result.statusAudit.pipeline_stage ||
+        result.statusAudit.pipelineStage ||
+        result.statusAudit.stage ||
+        null
+      : null;
+
 
   // Which payloads do we actually have?
   const hasQuick = !!result.quick;

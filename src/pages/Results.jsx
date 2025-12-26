@@ -135,15 +135,18 @@ function classifyIssues(result) {
   // 1) PIPELINE IN-PROGRESS / QUEUED STATE
   // ───────────────────────────────────────────────
   const isInProgress =
-    // normal queued stages while no final payload is present
+    // If we have no final payload yet, we are still processing — even if stage is missing/unknown
     (!hasAnyFinalResult &&
-      (pipelineStage === "uploaded" ||
+      (pipelineStage == null ||
+        pipelineStage === "uploaded" ||
         pipelineStage === "ocr_completed" ||
         pipelineStage === "detailed_ai_queued" ||
-        pipelineStage === "quick_ai_queued")) ||
+        pipelineStage === "quick_ai_queued" ||
+        pipelineStage === "detailed_ai_completed")) ||
     (!hasAnyFinalResult && qualityStatus === "pending") ||
     // defensive: stage says "completed" but detailed payload not present yet (avoid false "completed" UI)
     (pipelineStage === "detailed_ai_completed" && !hasDetailed);
+
 
 
   if (isInProgress) {

@@ -623,17 +623,29 @@ export default function Results() {
         const hasQuick = !!data.quick;
         const hasDetailed = !!data.detailed;
         const qualityStatus = data.quality?.status || null;
-        const pipelineStage = data.statusAudit || null;
+        const pipelineStage =
+          typeof data.statusAudit === "string"
+            ? data.statusAudit
+            : data.statusAudit && typeof data.statusAudit === "object"
+            ? data.statusAudit.pipeline_stage ||
+              data.statusAudit.pipelineStage ||
+              data.statusAudit.stage ||
+              null
+            : null;
+
         
         const inProgress =
           (!hasQuick &&
             !hasDetailed &&
-            (pipelineStage === "uploaded" ||
+            (pipelineStage == null ||
+              pipelineStage === "uploaded" ||
               pipelineStage === "ocr_completed" ||
               pipelineStage === "detailed_ai_queued" ||
-              pipelineStage === "quick_ai_queued")) ||
+              pipelineStage === "quick_ai_queued" ||
+              pipelineStage === "detailed_ai_completed")) ||
           (!hasQuick && !hasDetailed && qualityStatus === "pending") ||
           (pipelineStage === "detailed_ai_completed" && !hasDetailed);
+
         
         // Only overwrite the UI with partial results if we don't already have something better
         setResult((prev) => {

@@ -17,6 +17,27 @@ function useQuery() {
 }
 
 /**
+ * Coerce a value to an object.
+ * - If object: return as-is
+ * - If JSON string: parse
+ * - Otherwise: null
+ *
+ * IMPORTANT: must be available to buildUiSummary() and classifyIssues()
+ */
+function coerceToObject(maybeObjOrJsonString) {
+  if (!maybeObjOrJsonString) return null;
+  if (typeof maybeObjOrJsonString === "object") return maybeObjOrJsonString;
+  if (typeof maybeObjOrJsonString === "string") {
+    try {
+      return JSON.parse(maybeObjOrJsonString);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+/**
  * Derive a unified "agentic" payload from the backend result.
  *
  * Supports multiple shapes:
@@ -112,7 +133,6 @@ function classifyIssues(result) {
         null
       : null;
 
-
   // Which payloads do we actually have?
   const hasQuick = !!result.quick;
   const hasDetailed = !!result.detailed;
@@ -131,20 +151,6 @@ function classifyIssues(result) {
   const qualityDecision = quality.decision || null; // for future expansion
   const qualityReasons = Array.isArray(quality.reasons) ? quality.reasons : [];
 
-  function coerceToObject(maybeObjOrJsonString) {
-    if (!maybeObjOrJsonString) return null;
-    if (typeof maybeObjOrJsonString === "object") return maybeObjOrJsonString;
-    if (typeof maybeObjOrJsonString === "string") {
-      try {
-        return JSON.parse(maybeObjOrJsonString);
-      } catch {
-        return null;
-      }
-    }
-    return null;
-  }
-
-
   // ───────────────────────────────────────────────
   // 1) PIPELINE IN-PROGRESS / QUEUED STATE
   // ───────────────────────────────────────────────
@@ -160,8 +166,6 @@ function classifyIssues(result) {
     (!hasAnyFinalResult && qualityStatus === "pending") ||
     // defensive: stage says "completed" but detailed payload not present yet (avoid false "completed" UI)
     (pipelineStage === "detailed_ai_completed" && !hasDetailed);
-
-
 
   if (isInProgress) {
     return {
@@ -329,8 +333,9 @@ function formatStatusBadge(status) {
   }
   return (
     <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-slate-100 text-slate-700">
-      Status unknown
-    </span>
+        Status unknown
+      </span>
+    );
   );
 }
 
@@ -400,7 +405,7 @@ function buildUiSummary(docType, agentic, fields = []) {
 
     return {
       kind: "bank",
-    
+
       // Prefer current structured contract keys first, then legacy keys, then fields[] fallback
       account_holder:
         stmt.account_holder_name ||
@@ -409,21 +414,21 @@ function buildUiSummary(docType, agentic, fields = []) {
         stmt.account_name_normalised ||
         getField("account_holder_name") ||
         null,
-    
+
       period_start:
         stmt.statement_period_start ||
         stmt.statement_start_date ||
         stmt.period_start ||
         getField("statement_period_start") ||
         null,
-    
+
       period_end:
         stmt.statement_period_end ||
         stmt.statement_end_date ||
         stmt.period_end ||
         getField("statement_period_end") ||
         null,
-    
+
       // Normalize numeric values (strings -> numbers)
       opening_balance:
         stmt.opening_balance != null
@@ -431,17 +436,17 @@ function buildUiSummary(docType, agentic, fields = []) {
           : getField("opening_balance") != null
           ? Number(getField("opening_balance"))
           : null,
-    
+
       closing_balance:
         stmt.closing_balance != null
           ? Number(stmt.closing_balance)
           : getField("closing_balance") != null
           ? Number(getField("closing_balance"))
           : null,
-    
+
       total_credits: totalCredits != null ? Number(totalCredits) : null,
       total_debits: totalDebits != null ? Number(totalDebits) : null,
-    
+
       currency: stmt.currency || getField("currency") || "ZAR",
     };
   }
@@ -454,17 +459,17 @@ function buildUiSummary(docType, agentic, fields = []) {
       const n = typeof v === "number" ? v : Number(String(v).replace(/,/g, ""));
       return Number.isFinite(n) ? n : null;
     };
-  
+
     // Coerce structured to an object even if backend serialized it as a JSON string
     const structuredRaw = agentic?.structured ?? null;
     const s = coerceToObject(structuredRaw) || {};
-  
+
     // Backward-compatible support for structured.financials nesting
     const fin = coerceToObject(s.financials) || null;
-  
+
     const income = fin?.income_statement || s.income_statement || {};
     const balance = fin?.balance_sheet || s.balance_sheet || {};
-  
+
     // Fallbacks from fields[] in case the UI agentic payload is missing/partial
     const entityName = s.entity_name || getField("entity_name") || "UNKNOWN";
     const periodStart =
@@ -473,27 +478,22 @@ function buildUiSummary(docType, agentic, fields = []) {
       getField("reporting_period_start") ||
       getField("period_start") ||
       null;
-  
+
     const periodEnd =
       s.reporting_period_end ||
       s.period_end ||
       getField("reporting_period_end") ||
       getField("period_end") ||
       null;
-  
-    const currency =
-      s.currency || getField("currency") || "ZAR";
-  
+
+    const currency = s.currency || getField("currency") || "ZAR";
+
     const revenue =
-      income.revenue ??
-      s.income_statement?.revenue ??
-      getFieldNum("revenue");
-  
+      income.revenue ?? s.income_statement?.revenue ?? getFieldNum("revenue");
+
     const ebitda =
-      income.ebitda ??
-      s.income_statement?.ebitda ??
-      getFieldNum("ebitda");
-  
+      income.ebitda ?? s.income_statement?.ebitda ?? getFieldNum("ebitda");
+
     const netProfit =
       income.profit_after_tax ??
       income.net_profit ??
@@ -502,25 +502,23 @@ function buildUiSummary(docType, agentic, fields = []) {
       getFieldNum("profit_after_tax") ??
       getFieldNum("net_profit") ??
       getFieldNum("netProfit");
-  
+
     const totalAssets =
       balance.assets_total ??
       balance.totalAssets ??
       getFieldNum("assets_total") ??
       getFieldNum("total_assets") ??
       getFieldNum("totalAssets");
-  
+
     const totalLiabilities =
       balance.liabilities_total ??
       balance.totalLiabilities ??
       getFieldNum("liabilities_total") ??
       getFieldNum("total_liabilities") ??
       getFieldNum("totalLiabilities");
-  
-    const equity =
-      balance.equity ??
-      getFieldNum("equity");
-  
+
+    const equity = balance.equity ?? getFieldNum("equity");
+
     return {
       kind: "financials",
       entity_name: entityName,
@@ -536,29 +534,31 @@ function buildUiSummary(docType, agentic, fields = []) {
     };
   }
 
-
-
   // PAYSLIPS
   if (docType === "payslips") {
     const s = agentic?.structured || {};
-  
+
     const periodStart = s.pay_period_start || null;
     const periodEnd = s.pay_period_end || null;
     const periodLabel =
       periodStart && periodEnd ? `${periodStart} to ${periodEnd}` : null;
-  
+
     const grossRaw =
       s.gross_pay ?? getField("gross_pay") ?? getField("Gross Pay") ?? null;
-  
+
     const netRaw =
       s.net_pay ?? getField("net_pay") ?? getField("Net Pay") ?? null;
-  
+
     const grossPay =
-      grossRaw == null ? null : typeof grossRaw === "number" ? grossRaw : Number(grossRaw);
-  
+      grossRaw == null
+        ? null
+        : typeof grossRaw === "number"
+        ? grossRaw
+        : Number(grossRaw);
+
     const netPay =
       netRaw == null ? null : typeof netRaw === "number" ? netRaw : Number(netRaw);
-  
+
     return {
       kind: "payslip",
       employee_name:
@@ -579,8 +579,6 @@ function buildUiSummary(docType, agentic, fields = []) {
       currency: s.currency || getField("currency") || "ZAR",
     };
   }
-
-
 
   // ID DOCUMENTS
   if (docType === "id_documents") {
@@ -611,13 +609,14 @@ function buildUiSummary(docType, agentic, fields = []) {
   if (docType === "proof_of_address") {
     const s = agentic?.structured || {};
     const addressLines = Array.isArray(s.address_lines) ? s.address_lines : [];
-  
+
     const line1 = addressLines[0] || null;
-    const line2 = addressLines.length > 1 ? addressLines.slice(1).join(", ") : null;
-  
+    const line2 =
+      addressLines.length > 1 ? addressLines.slice(1).join(", ") : null;
+
     return {
       kind: "address",
-  
+
       // Your backend uses structured.customer_name for POA
       holder_name:
         s.customer_name ||
@@ -626,10 +625,10 @@ function buildUiSummary(docType, agentic, fields = []) {
         getField("Account Holder Name") ||
         getField("Address Holder Name") ||
         null,
-  
+
       // Not currently provided in structured payload (fine to remain field-only)
       holder_type: getField("Holder Type") || null,
-  
+
       // Prefer address_lines from structured, then fall back to fields
       address_line_1:
         line1 ||
@@ -637,14 +636,14 @@ function buildUiSummary(docType, agentic, fields = []) {
         getField("Address Line 1") ||
         getField("Address1") ||
         null,
-  
+
       address_line_2:
         line2 ||
         getField("address_line_2") ||
         getField("Address Line 2") ||
         getField("Address2") ||
         null,
-  
+
       // Your structured payload doesn't split city/province today; keep as field fallbacks
       city: getField("City / Town") || getField("City") || null,
       province:
@@ -652,19 +651,16 @@ function buildUiSummary(docType, agentic, fields = []) {
         getField("Province") ||
         getField("State") ||
         null,
-  
+
       postal_code:
         s.postal_code ||
         getField("postal_code") ||
         getField("Postal Code") ||
         getField("Postcode") ||
         null,
-  
-      country:
-        s.country ||
-        getField("Country") ||
-        null,
-  
+
+      country: s.country || getField("Country") || null,
+
       // issuer_name + issue_date are in structured
       proof_entity_name:
         s.issuer_name ||
@@ -673,7 +669,7 @@ function buildUiSummary(docType, agentic, fields = []) {
         getField("Provider") ||
         getField("Issuer") ||
         null,
-  
+
       document_issue_date:
         s.issue_date ||
         getField("issue_date") ||
@@ -682,7 +678,6 @@ function buildUiSummary(docType, agentic, fields = []) {
         null,
     };
   }
-
 
   return null;
 }
@@ -762,7 +757,6 @@ export default function Results() {
               null
             : null;
 
-        
         const inProgress =
           (!hasQuick &&
             !hasDetailed &&
@@ -775,7 +769,6 @@ export default function Results() {
           (!hasQuick && !hasDetailed && qualityStatus === "pending") ||
           (pipelineStage === "detailed_ai_completed" && !hasDetailed);
 
-        
         // Only overwrite the UI with partial results if we don't already have something better
         setResult((prev) => {
           if (!prev) return data;
@@ -785,8 +778,6 @@ export default function Results() {
           const nextHasAny = hasQuick || hasDetailed;
           return prevHasAny && !nextHasAny ? prev : data;
         });
-
-
 
         if (inProgress && attempt < maxAttempts) {
           attempt += 1;
@@ -851,7 +842,7 @@ export default function Results() {
   // High-level fields from the stub / aggregator
   const docTypeRaw = agentic?.docType ?? result?.docType ?? null;
 
-// Normalize docType so UI logic is stable even if backend returns "Payslip" / "payslip"
+  // Normalize docType so UI logic is stable even if backend returns "Payslip" / "payslip"
   const docType =
     typeof docTypeRaw === "string"
       ? (() => {
@@ -861,7 +852,7 @@ export default function Results() {
           return k;
         })()
       : null;
-  
+
   const docTypeLabel = (docType && DOC_TYPE_LABELS[docType]) || docTypeRaw || "—";
   const fields = Array.isArray(result?.fields) ? result.fields : [];
   const pipelineStage =
@@ -874,15 +865,13 @@ export default function Results() {
         null
       : null;
 
-
   // Build a UI summary based on docType + agentic content + fields
   const uiSummary = buildUiSummary(docType, agentic, fields);
 
   // Classification & risk (where present)
   const classification = agentic?.classification || null;
   const riskScore = agentic?.risk_score?.score ?? result?.riskScore ?? null;
-  const riskBand =
-    agentic?.risk_score?.band ?? result?.riskScore?.band ?? null;
+  const riskBand = agentic?.risk_score?.band ?? result?.riskScore?.band ?? null;
 
   // Confidence: normalize 0–1 or 0–100 into a percent
   const quality = result?.quality || {};
@@ -899,8 +888,7 @@ export default function Results() {
   const qualityStatus = quality.status || null;
 
   // Analysis mode from backend / agentic (with fallback)
-  const analysisModeRaw =
-    agentic?.analysisMode || result?.analysisMode || null;
+  const analysisModeRaw = agentic?.analysisMode || result?.analysisMode || null;
 
   const analysisMode =
     analysisModeRaw ||
@@ -1958,271 +1946,10 @@ export default function Results() {
                       </div>
                       <div className="mt-1 text-sm font-medium">
                         {uiSummary?.period_start || "—"}
-                        {uiSummary?.period_end
-                          ? ` → ${uiSummary.period_end}`
-                          : ""}
+                        {uiSummary?.period_end ? ` → ${uiSummary.period_end}` : ""}
                       </div>
                     </div>
                   </div>
-
-                  {/* Income & cashflow metrics */}
-                  {classification?.income_summary && !inProgress && (
-                    <div className="mb-4 rounded-lg border border-[rgb(var(--border))] bg-white p-4 text-sm">
-                      <div className="flex items-center justify-between mb-3">
-                        <h2 className="text-sm font-semibold">
-                          Income &amp; expenses (scores)
-                        </h2>
-                      </div>
-                      <div className="grid gap-4 md:grid-cols-4">
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Total income
-                          </div>
-                          <div className="font-medium">
-                            {classification.income_summary.total_income != null
-                              ? classification.income_summary.total_income.toLocaleString(
-                                  "en-ZA"
-                                )
-                              : "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Frequency
-                          </div>
-                          <div className="font-medium">
-                            {classification.income_summary.frequency ||
-                              classification.income_summary
-                                .income_frequency ||
-                              classification.income_frequency ||
-                              "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Salary component
-                          </div>
-                          <div className="font-medium">
-                            {classification.income_summary.salary != null
-                              ? classification.income_summary.salary.toLocaleString(
-                                  "en-ZA"
-                                )
-                              : "—"}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Other recurring income
-                          </div>
-                          <div className="font-medium">
-                            {classification.income_summary
-                              .third_party_income != null
-                              ? classification.income_summary.third_party_income.toLocaleString(
-                                  "en-ZA"
-                                )
-                              : "—"}
-                          </div>
-                        </div>
-                      </div>
-
-                      {classification.expense_summary && (
-                        <div className="mt-4 grid gap-4 md:grid-cols-4">
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Total expenses
-                            </div>
-                            <div className="font-medium">
-                              {classification.expense_summary
-                                .total_expenses != null
-                                ? classification.expense_summary.total_expenses.toLocaleString(
-                                    "en-ZA"
-                                  )
-                                : "—"}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Housing
-                            </div>
-                            <div className="font-medium">
-                              {classification.expense_summary.housing != null
-                                ? classification.expense_summary.housing.toLocaleString(
-                                    "en-ZA"
-                                  )
-                                : "—"}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Food &amp; groceries
-                            </div>
-                            <div className="font-medium">
-                              {classification.expense_summary.food_groceries != null
-                                ? classification.expense_summary.food_groceries.toLocaleString(
-                                    "en-ZA"
-                                  )
-                                : "—"}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Transport
-                            </div>
-                            <div className="font-medium">
-                              {classification.expense_summary.transport != null
-                                ? classification.expense_summary.transport.toLocaleString(
-                                    "en-ZA"
-                                  )
-                                : "—"}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Bank ratios – agent view */}
-                  {bankRatios &&
-                    !inProgress &&
-                    docType === "bank_statements" && (
-                      <div className="mb-4 rounded-lg border border-[rgb(var(--border))] bg-white p-4 text-sm">
-                        <div className="flex items-center justify-between mb-3">
-                          <h2 className="text-sm font-semibold">
-                            Bank statement cashflow metrics
-                          </h2>
-                        </div>
-                        <div className="grid gap-4 md:grid-cols-3">
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Net cash flow
-                            </div>
-                            <div className="font-medium">
-                              {bankNetCashFlow != null
-                                ? bankNetCashFlow.toLocaleString("en-ZA")
-                                : "—"}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Inflow / outflow ratio
-                            </div>
-                            <div className="font-medium">
-                              {bankInflowToOutflow != null
-                                ? Number(bankInflowToOutflow).toFixed(2)
-                                : "—"}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Closing vs opening balance
-                            </div>
-                            <div className="font-medium">
-                              {bankClosingToOpening != null
-                                ? Number(bankClosingToOpening).toFixed(2)
-                                : "—"}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                  {/* Financial ratios – agent view */}
-                  {financialRatios &&
-                    !inProgress &&
-                    docType === "financial_statements" && (
-                      <div className="mb-4 rounded-lg border border-[rgb(var(--border))] bg-white p-4 text-sm">
-                        <div className="flex items-center justify-between mb-3">
-                          <h2 className="text-sm font-semibold">
-                            Financial ratios
-                          </h2>
-                        </div>
-                        <div className="grid gap-4 md:grid-cols-4">
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Current ratio
-                            </div>
-                            <div className="font-medium">
-                              {currentRatio != null
-                                ? Number(currentRatio).toFixed(2)
-                                : "—"}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Quick ratio
-                            </div>
-                            <div className="font-medium">
-                              {quickRatio != null
-                                ? Number(quickRatio).toFixed(2)
-                                : "—"}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Debt / Equity
-                            </div>
-                            <div className="font-medium">
-                              {debtToEquity != null
-                                ? Number(debtToEquity).toFixed(2)
-                                : "—"}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Interest cover
-                            </div>
-                            <div className="font-medium">
-                              {interestCover != null
-                                ? Number(interestCover).toFixed(2)
-                                : "—"}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="mt-4 grid gap-4 md:grid-cols-4">
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Net margin
-                            </div>
-                            <div className="font-medium">
-                              {netMargin != null
-                                ? Number(netMargin).toFixed(2)
-                                : "—"}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Return on assets
-                            </div>
-                            <div className="font-medium">
-                              {returnOnAssets != null
-                                ? Number(returnOnAssets).toFixed(2)
-                                : "—"}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Debt service coverage
-                            </div>
-                            <div className="font-medium">
-                              {debtServiceCoverage != null
-                                ? Number(debtServiceCoverage).toFixed(2)
-                                : "—"}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Cashflow coverage
-                            </div>
-                            <div className="font-medium">
-                              {cashflowCoverage != null
-                                ? Number(cashflowCoverage).toFixed(2)
-                                : "—"}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
 
                   {/* Generic scores table (if contracts expose scores[]) */}
                   {genericScores && !inProgress && (
@@ -2243,20 +1970,18 @@ export default function Results() {
                             </tr>
                           </thead>
                           <tbody>
-                            {Object.entries(genericScores).map(
-                              ([key, value]) => (
-                                <tr key={key} className="odd:bg-slate-50/50">
-                                  <td className="p-2 border-b border-[rgb(var(--border))]">
-                                    {key}
-                                  </td>
-                                  <td className="p-2 border-b border-[rgb(var(--border))]">
-                                    {typeof value === "number"
-                                      ? value.toFixed(4)
-                                      : String(value)}
-                                  </td>
-                                </tr>
-                              )
-                            )}
+                            {Object.entries(genericScores).map(([key, value]) => (
+                              <tr key={key} className="odd:bg-slate-50/50">
+                                <td className="p-2 border-b border-[rgb(var(--border))]">
+                                  {key}
+                                </td>
+                                <td className="p-2 border-b border-[rgb(var(--border))]">
+                                  {typeof value === "number"
+                                    ? value.toFixed(4)
+                                    : String(value)}
+                                </td>
+                              </tr>
+                            ))}
                           </tbody>
                         </table>
                       </div>
@@ -2321,4 +2046,3 @@ export default function Results() {
     </div>
   );
 }
-

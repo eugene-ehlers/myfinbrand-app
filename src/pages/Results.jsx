@@ -131,6 +131,20 @@ function classifyIssues(result) {
   const qualityDecision = quality.decision || null; // for future expansion
   const qualityReasons = Array.isArray(quality.reasons) ? quality.reasons : [];
 
+  function coerceToObject(maybeObjOrJsonString) {
+    if (!maybeObjOrJsonString) return null;
+    if (typeof maybeObjOrJsonString === "object") return maybeObjOrJsonString;
+    if (typeof maybeObjOrJsonString === "string") {
+      try {
+        return JSON.parse(maybeObjOrJsonString);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+
+
   // ───────────────────────────────────────────────
   // 1) PIPELINE IN-PROGRESS / QUEUED STATE
   // ───────────────────────────────────────────────
@@ -434,67 +448,91 @@ function buildUiSummary(docType, agentic, fields = []) {
 
   // FINANCIAL STATEMENTS
   if (docType === "financial_statements") {
-    /**
-     * Your backend payload (per your shared JSON) looks like:
-     *
-     * agentic = {
-     *   summary: "<string>",                 // human-readable bullet summary
-     *   structured: {
-     *     entity_name: "Fintest_1",
-     *     reporting_period_start: "2024-01-01",
-     *     reporting_period_end: "2024-12-31",
-     *     currency: "USD",
-     *     income_statement: { revenue, ebitda, profit_after_tax, ... },
-     *     balance_sheet: { assets_total, liabilities_total, equity, ... },
-     *     cash_flow_statement: { ... }
-     *   }
-     * }
-     *
-     * Older/alternate contract (we keep support):
-     * structured.financials = { income_statement, balance_sheet, cash_flow_statement }
-     */
+    const getFieldNum = (name) => {
+      const v = getField(name);
+      if (v == null) return null;
+      const n = typeof v === "number" ? v : Number(String(v).replace(/,/g, ""));
+      return Number.isFinite(n) ? n : null;
+    };
   
-    const s = agentic?.structured || {};
+    // Coerce structured to an object even if backend serialized it as a JSON string
+    const structuredRaw = agentic?.structured ?? null;
+    const s = coerceToObject(structuredRaw) || {};
   
-    // Support older nested shape if it exists
-    const fin = s.financials || null;
+    // Backward-compatible support for structured.financials nesting
+    const fin = coerceToObject(s.financials) || null;
   
-    // Prefer the nested "financials" shape if present, otherwise use top-level structured keys
     const income = fin?.income_statement || s.income_statement || {};
     const balance = fin?.balance_sheet || s.balance_sheet || {};
   
+    // Fallbacks from fields[] in case the UI agentic payload is missing/partial
+    const entityName = s.entity_name || getField("entity_name") || "UNKNOWN";
+    const periodStart =
+      s.reporting_period_start ||
+      s.period_start ||
+      getField("reporting_period_start") ||
+      getField("period_start") ||
+      null;
+  
+    const periodEnd =
+      s.reporting_period_end ||
+      s.period_end ||
+      getField("reporting_period_end") ||
+      getField("period_end") ||
+      null;
+  
+    const currency =
+      s.currency || getField("currency") || "ZAR";
+  
+    const revenue =
+      income.revenue ??
+      s.income_statement?.revenue ??
+      getFieldNum("revenue");
+  
+    const ebitda =
+      income.ebitda ??
+      s.income_statement?.ebitda ??
+      getFieldNum("ebitda");
+  
+    const netProfit =
+      income.profit_after_tax ??
+      income.net_profit ??
+      income.netProfit ??
+      s.income_statement?.profit_after_tax ??
+      getFieldNum("profit_after_tax") ??
+      getFieldNum("net_profit") ??
+      getFieldNum("netProfit");
+  
+    const totalAssets =
+      balance.assets_total ??
+      balance.totalAssets ??
+      getFieldNum("assets_total") ??
+      getFieldNum("total_assets") ??
+      getFieldNum("totalAssets");
+  
+    const totalLiabilities =
+      balance.liabilities_total ??
+      balance.totalLiabilities ??
+      getFieldNum("liabilities_total") ??
+      getFieldNum("total_liabilities") ??
+      getFieldNum("totalLiabilities");
+  
+    const equity =
+      balance.equity ??
+      getFieldNum("equity");
+  
     return {
       kind: "financials",
-  
-      // These keys match your backend JSON
-      entity_name: s.entity_name || "UNKNOWN",
-      period_start: s.reporting_period_start || null,
-      period_end: s.reporting_period_end || null,
-      currency: s.currency || "ZAR",
-  
-      // Income statement
-      revenue: income.revenue ?? null,
-      ebitda: income.ebitda ?? null,
-  
-      // Net profit can come under different names depending on the model/contract
-      net_profit:
-        income.profit_after_tax ??
-        income.net_profit ??
-        income.netProfit ??
-        null,
-  
-      // Balance sheet totals can also vary by naming convention
-      total_assets:
-        balance.assets_total ??
-        balance.totalAssets ??
-        null,
-  
-      total_liabilities:
-        balance.liabilities_total ??
-        balance.totalLiabilities ??
-        null,
-  
-      equity: balance.equity ?? null,
+      entity_name: entityName,
+      period_start: periodStart,
+      period_end: periodEnd,
+      currency,
+      revenue,
+      ebitda,
+      net_profit: netProfit,
+      total_assets: totalAssets,
+      total_liabilities: totalLiabilities,
+      equity,
     };
   }
 

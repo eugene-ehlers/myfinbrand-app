@@ -336,7 +336,6 @@ function formatStatusBadge(status) {
         Status unknown
       </span>
     );
-  );
 }
 
 // map backend docType → nice label

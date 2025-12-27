@@ -434,25 +434,70 @@ function buildUiSummary(docType, agentic, fields = []) {
 
   // FINANCIAL STATEMENTS
   if (docType === "financial_statements") {
-    const summary = agentic?.summary || {};
-    const financials = agentic?.structured?.financials || {};
-    const income = financials.income_statement || {};
-    const balance = financials.balance_sheet || {};
-
+    /**
+     * Your backend payload (per your shared JSON) looks like:
+     *
+     * agentic = {
+     *   summary: "<string>",                 // human-readable bullet summary
+     *   structured: {
+     *     entity_name: "Fintest_1",
+     *     reporting_period_start: "2024-01-01",
+     *     reporting_period_end: "2024-12-31",
+     *     currency: "USD",
+     *     income_statement: { revenue, ebitda, profit_after_tax, ... },
+     *     balance_sheet: { assets_total, liabilities_total, equity, ... },
+     *     cash_flow_statement: { ... }
+     *   }
+     * }
+     *
+     * Older/alternate contract (we keep support):
+     * structured.financials = { income_statement, balance_sheet, cash_flow_statement }
+     */
+  
+    const s = agentic?.structured || {};
+  
+    // Support older nested shape if it exists
+    const fin = s.financials || null;
+  
+    // Prefer the nested "financials" shape if present, otherwise use top-level structured keys
+    const income = fin?.income_statement || s.income_statement || {};
+    const balance = fin?.balance_sheet || s.balance_sheet || {};
+  
     return {
       kind: "financials",
-      entity_name: summary.entity_name || "UNKNOWN",
-      period_start: summary.period_start || null,
-      period_end: summary.period_end || null,
-      currency: summary.currency || "ZAR",
-      revenue: income.revenue ?? summary.revenue ?? null,
-      ebitda: income.ebitda ?? summary.ebitda ?? null,
-      net_profit: income.netProfit ?? summary.net_profit ?? null,
-      total_assets: balance.totalAssets ?? null,
-      total_liabilities: balance.totalLiabilities ?? null,
+  
+      // These keys match your backend JSON
+      entity_name: s.entity_name || "UNKNOWN",
+      period_start: s.reporting_period_start || null,
+      period_end: s.reporting_period_end || null,
+      currency: s.currency || "ZAR",
+  
+      // Income statement
+      revenue: income.revenue ?? null,
+      ebitda: income.ebitda ?? null,
+  
+      // Net profit can come under different names depending on the model/contract
+      net_profit:
+        income.profit_after_tax ??
+        income.net_profit ??
+        income.netProfit ??
+        null,
+  
+      // Balance sheet totals can also vary by naming convention
+      total_assets:
+        balance.assets_total ??
+        balance.totalAssets ??
+        null,
+  
+      total_liabilities:
+        balance.liabilities_total ??
+        balance.totalLiabilities ??
+        null,
+  
       equity: balance.equity ?? null,
     };
   }
+
 
 
   // PAYSLIPS

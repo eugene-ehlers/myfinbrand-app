@@ -450,88 +450,92 @@ function buildUiSummary(docType, agentic, fields = []) {
     };
   }
 
-  // FINANCIAL STATEMENTS
-  if (docType === "financial_statements") {
-    const getFieldNum = (name) => {
-      const v = getField(name);
-      if (v == null) return null;
-      const n = typeof v === "number" ? v : Number(String(v).replace(/,/g, ""));
-      return Number.isFinite(n) ? n : null;
-    };
-
-    // Coerce structured to an object even if backend serialized it as a JSON string
-    const structuredRaw = agentic?.structured ?? null;
-    const s = coerceToObject(structuredRaw) || {};
-
-    // Backward-compatible support for structured.financials nesting
-    const fin = coerceToObject(s.financials) || null;
-
-    const income = fin?.income_statement || s.income_statement || {};
-    const balance = fin?.balance_sheet || s.balance_sheet || {};
-
-    // Fallbacks from fields[] in case the UI agentic payload is missing/partial
-    const entityName = s.entity_name || getField("entity_name") || "UNKNOWN";
-    const periodStart =
-      s.reporting_period_start ||
-      s.period_start ||
-      getField("reporting_period_start") ||
-      getField("period_start") ||
-      null;
-
-    const periodEnd =
-      s.reporting_period_end ||
-      s.period_end ||
-      getField("reporting_period_end") ||
-      getField("period_end") ||
-      null;
-
-    const currency = s.currency || getField("currency") || "ZAR";
-
-    const revenue =
-      income.revenue ?? s.income_statement?.revenue ?? getFieldNum("revenue");
-
-    const ebitda =
-      income.ebitda ?? s.income_statement?.ebitda ?? getFieldNum("ebitda");
-
-    const netProfit =
-      income.profit_after_tax ??
-      income.net_profit ??
-      income.netProfit ??
-      s.income_statement?.profit_after_tax ??
-      getFieldNum("profit_after_tax") ??
-      getFieldNum("net_profit") ??
-      getFieldNum("netProfit");
-
-    const totalAssets =
-      balance.assets_total ??
-      balance.totalAssets ??
-      getFieldNum("assets_total") ??
-      getFieldNum("total_assets") ??
-      getFieldNum("totalAssets");
-
-    const totalLiabilities =
-      balance.liabilities_total ??
-      balance.totalLiabilities ??
-      getFieldNum("liabilities_total") ??
-      getFieldNum("total_liabilities") ??
-      getFieldNum("totalLiabilities");
-
-    const equity = balance.equity ?? getFieldNum("equity");
-
-    return {
-      kind: "financials",
-      entity_name: entityName,
-      period_start: periodStart,
-      period_end: periodEnd,
-      currency,
-      revenue,
-      ebitda,
-      net_profit: netProfit,
-      total_assets: totalAssets,
-      total_liabilities: totalLiabilities,
-      equity,
-    };
-  }
+    // FINANCIAL STATEMENTS
+    if (docType === "financial_statements") {
+      const getFieldNum = (name) => {
+        const v = getField(name);
+        if (v == null) return null;
+        const n = typeof v === "number" ? v : Number(String(v).replace(/,/g, ""));
+        return Number.isFinite(n) ? n : null;
+      };
+  
+      // Try to normalise structured payload; some backends return it as a string
+      const s = coerceToObject(agentic?.structured) || agentic?.structured || {};
+  
+      // Support older nesting: structured.financials.*
+      const fin = coerceToObject(s?.financials) || s?.financials || null;
+  
+      // Support also “income_statement” accidentally being placed at agentic root (seen in some legacy contracts)
+      const income =
+        s?.income_statement ||
+        fin?.income_statement ||
+        agentic?.income_statement ||
+        agentic?.financials?.income_statement ||
+        {};
+  
+      const balance =
+        s?.balance_sheet ||
+        fin?.balance_sheet ||
+        agentic?.balance_sheet ||
+        agentic?.financials?.balance_sheet ||
+        {};
+  
+      return {
+        kind: "financials",
+        entity_name: s?.entity_name || agentic?.entity_name || getField("entity_name") || "UNKNOWN",
+        period_start:
+          s?.reporting_period_start ||
+          s?.period_start ||
+          agentic?.reporting_period_start ||
+          agentic?.period_start ||
+          getField("reporting_period_start") ||
+          getField("period_start") ||
+          null,
+        period_end:
+          s?.reporting_period_end ||
+          s?.period_end ||
+          agentic?.reporting_period_end ||
+          agentic?.period_end ||
+          getField("reporting_period_end") ||
+          getField("period_end") ||
+          null,
+        currency: s?.currency || agentic?.currency || getField("currency") || "ZAR",
+  
+        revenue: income?.revenue ?? getFieldNum("revenue") ?? null,
+        ebitda: income?.ebitda ?? getFieldNum("ebitda") ?? null,
+  
+        // Your backend uses profit_after_tax
+        net_profit:
+          income?.profit_after_tax ??
+          income?.net_profit ??
+          income?.netIncome ??
+          income?.net_income ??
+          getFieldNum("profit_after_tax") ??
+          getFieldNum("net_profit") ??
+          getFieldNum("net_income") ??
+          null,
+  
+        total_assets:
+          balance?.assets_total ??
+          balance?.total_assets ??
+          balance?.totalAssets ??
+          getFieldNum("assets_total") ??
+          getFieldNum("total_assets") ??
+          getFieldNum("totalAssets") ??
+          null,
+  
+        total_liabilities:
+          balance?.liabilities_total ??
+          balance?.total_liabilities ??
+          balance?.totalLiabilities ??
+          getFieldNum("liabilities_total") ??
+          getFieldNum("total_liabilities") ??
+          getFieldNum("totalLiabilities") ??
+          null,
+  
+        equity: balance?.equity ?? getFieldNum("equity") ?? null,
+      };
+    }
 
   // PAYSLIPS
   if (docType === "payslips") {

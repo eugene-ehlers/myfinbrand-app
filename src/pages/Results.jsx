@@ -52,72 +52,86 @@ function coerceToObject(maybeObjOrJsonString) {
  * - legacy: result.quick.result
  * - legacy: result.quick.structured
  */
-function deriveAgenticFromResult(result) {
-  if (!result) {
-    return { agentic: null, rawAgentic: null, detailedEnvelope: null };
-  }
 
-  const detailedEnvelope = result.detailed || null;
 
-  // 1) If backend already provides top-level agentic, prefer that
-  if (result.agentic && typeof result.agentic === "object") {
-    return {
-      agentic: result.agentic,
-      rawAgentic: result.agentic,
-      detailedEnvelope,
-    };
-  }
-
-  // 2) If we have a detailed envelope using the new contract
-  let agenticFromDetailed = null;
-  if (
-    detailedEnvelope &&
-    typeof detailedEnvelope === "object" &&
-    detailedEnvelope.result &&
-    typeof detailedEnvelope.result === "object"
-  ) {
-    const r = detailedEnvelope.result;
-    agenticFromDetailed = {
-      docType:
-        detailedEnvelope.docType || result.docType || r.docType || "unknown",
-      analysisMode:
-        detailedEnvelope.analysisMode || result.analysisMode || "detailed",
-      quality: detailedEnvelope.quality || result.quality || null,
-      // Flatten result.* into the agentic object
-      ...r,
-    };
-  }
-
-  // 3) Legacy / quick-path contracts
-  // 3) PRIORITY ORDER FOR AGENTIC PAYLOAD
-  //    1. detailedEnvelope.result (new contract, most reliable)
-  //    2. result.agentic (future explicit contract)
-  //    3. quick.result or quick.structured (legacy fallbacks)
-  const rawAgentic =
-    agenticFromDetailed ||
-    result.agentic ||
-    result.quick?.result ||
-    result.quick?.structured ||
-    null;
-
-  // Unwrap `.result` if nested (legacy shape)
-  let agentic = rawAgentic ?? null;
+  function deriveAgenticFromResult(result) {
+    if (!result) {
+      return { agentic: null, rawAgentic: null, detailedEnvelope: null };
+    }
   
-  // If rawAgentic has a nested `.result`, MERGE it instead of replacing.
-  // This preserves sibling keys like structured/ratios/risk_score.
-  if (
-    rawAgentic &&
-    typeof rawAgentic === "object" &&
-    rawAgentic.result &&
-    typeof rawAgentic.result === "object"
-  ) {
-    agentic = { ...rawAgentic, ...rawAgentic.result };
-    delete agentic.result; // optional, but keeps downstream logic clean
-  }
+    const detailedEnvelope = result.detailed || null;
   
-  return { agentic, rawAgentic, detailedEnvelope };
+    const asObj = (v) => {
+      if (!v) return null;
+      if (typeof v === "object") return v;
+      if (typeof v === "string") {
+        try {
+          const parsed = JSON.parse(v);
+          return parsed && typeof parsed === "object" ? parsed : null;
+        } catch {
+          return null;
+        }
+      }
+      return null;
+    };
+  
+    // Prefer explicit top-level agentic if present
+    const topAgentic = asObj(result.agentic);
+    if (topAgentic) {
+      return { agentic: topAgentic, rawAgentic: topAgentic, detailedEnvelope };
+    }
+  
+    // Candidate locations for the detailed S3 payload (these vary by aggregator implementations)
+    const candidates = [
+      detailedEnvelope?.result, // common: { summary, structured, ratios, risk_score, ... }
+      detailedEnvelope?.result?.result, // common: double-wrapped
+      detailedEnvelope?.agentic, // common: detailed.agentic
+      detailedEnvelope?.agentic?.result, // common: detailed.agentic.result
+      result?.detailed?.result, // defensive alias
+      result?.detailed?.result?.result,
+      result?.quick?.result,
+      result?.quick?.structured,
+      result?.result,
+      result?.result?.result,
+    ]
+      .map(asObj)
+      .filter(Boolean);
+  
+    // Pick first viable candidate
+    let rawAgentic = candidates[0] || null;
+  
+    if (!rawAgentic) {
+      return { agentic: null, rawAgentic: null, detailedEnvelope };
+    }
+  
+    // If it's a wrapper like { docType, analysisMode, result: {...} }, merge it so we don't lose wrapper fields
+    let agentic = rawAgentic;
+  
+    if (
+      agentic &&
+      typeof agentic === "object" &&
+      agentic.result &&
+      typeof agentic.result === "object"
+    ) {
+      agentic = { ...agentic, ...agentic.result };
+      delete agentic.result;
+    }
+  
+    // If we came from detailedEnvelope, ensure docType/analysisMode are present (helpful for UI routing)
+    if (detailedEnvelope && typeof detailedEnvelope === "object") {
+      agentic = {
+        docType: detailedEnvelope.docType || result.docType || agentic.docType,
+        analysisMode:
+          detailedEnvelope.analysisMode || result.analysisMode || agentic.analysisMode,
+        quality: detailedEnvelope.quality || result.quality || agentic.quality,
+        ...agentic,
+      };
+    }
+  
+    return { agentic, rawAgentic, detailedEnvelope };
+  }
 
-}
+
 
 // ---- Helpers to interpret errors & run status ----
 

@@ -915,7 +915,10 @@ export default function Results() {
   // Confidence: normalize 0–1 or 0–100 into a percent
   const quality = result?.quality || {};
   const rawConfidence =
-    typeof quality.confidence === "number" ? quality.confidence : null;
+    typeof quality.confidence === "number" ? quality.confidence
+      : typeof agentic?.classification?.confidence === "number" ? agentic.classification.confidence
+      : typeof result?.detailed?.classification?.confidence === "number" ? result.detailed.classification.confidence
+      : null;
 
   const confidencePct =
     typeof rawConfidence === "number"
@@ -975,6 +978,7 @@ export default function Results() {
     null;
   const debtToEquity =
     financialRatios?.debt_to_equity ??
+    financialRatios?.debt_to_equity_ratio ??
     financialRatios?.leverage?.debt_to_equity ??
     null;
   const interestCover =
@@ -991,11 +995,15 @@ export default function Results() {
     null;
   const debtServiceCoverage =
     financialRatios?.debt_service_coverage ??
+    financialRatios?.debt_service_coverage_ratio ??
     financialRatios?.dscr ??
+    financialRatios?.dscr_ratio ??
     financialRatios?.coverage?.debt_service_coverage ??
     null;
   const cashflowCoverage =
     financialRatios?.cashflow_coverage ??
+    financialRatios?.cash_flow_coverage_ratio ??
+    financialRatios?.cash_flow_coverage ??
     financialRatios?.coverage?.cashflow_coverage ??
     null;
 

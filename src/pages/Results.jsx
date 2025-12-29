@@ -101,9 +101,22 @@ function deriveAgenticFromResult(result) {
     null;
 
   // Unwrap `.result` if nested (legacy shape)
-  const agentic = rawAgentic?.result ?? rawAgentic ?? null;
-
+  let agentic = rawAgentic ?? null;
+  
+  // If rawAgentic has a nested `.result`, MERGE it instead of replacing.
+  // This preserves sibling keys like structured/ratios/risk_score.
+  if (
+    rawAgentic &&
+    typeof rawAgentic === "object" &&
+    rawAgentic.result &&
+    typeof rawAgentic.result === "object"
+  ) {
+    agentic = { ...rawAgentic, ...rawAgentic.result };
+    delete agentic.result; // optional, but keeps downstream logic clean
+  }
+  
   return { agentic, rawAgentic, detailedEnvelope };
+
 }
 
 // ---- Helpers to interpret errors & run status ----

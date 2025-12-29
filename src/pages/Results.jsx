@@ -83,11 +83,12 @@ function coerceToObject(maybeObjOrJsonString) {
   
     // Candidate locations for the detailed S3 payload (these vary by aggregator implementations)
     const candidates = [
-      detailedEnvelope?.result, // common: { summary, structured, ratios, risk_score, ... }
-      detailedEnvelope?.result?.result, // common: double-wrapped
-      detailedEnvelope?.agentic, // common: detailed.agentic
-      detailedEnvelope?.agentic?.result, // common: detailed.agentic.result
-      result?.detailed?.result, // defensive alias
+      detailedEnvelope,          // IMPORTANT: your current live payload is here
+      detailedEnvelope?.result,
+      detailedEnvelope?.result?.result,
+      detailedEnvelope?.agentic,
+      detailedEnvelope?.agentic?.result,
+      result?.detailed?.result,
       result?.detailed?.result?.result,
       result?.quick?.result,
       result?.quick?.structured,
@@ -900,8 +901,16 @@ export default function Results() {
 
   // Classification & risk (where present)
   const classification = agentic?.classification || null;
-  const riskScore = agentic?.risk_score?.score ?? result?.riskScore ?? null;
-  const riskBand = agentic?.risk_score?.band ?? result?.riskScore?.band ?? null;
+  const riskScore =
+    agentic?.risk_score?.score ?? 
+    result?.riskScore?.score ?? 
+    null;
+  const riskBand =
+    agentic?.risk_score?.band ??
+    result?.riskScore?.band ??
+    null;
+
+
 
   // Confidence: normalize 0–1 or 0–100 into a percent
   const quality = result?.quality || {};
@@ -943,6 +952,7 @@ export default function Results() {
     agentic?.ratios ||
     agentic?.financial_ratios ||
     agentic?.statement_ratios ||
+    result?.detailed?.ratios ||
     null;
 
   const bankRatios = docType === "bank_statements" ? ratios : null;

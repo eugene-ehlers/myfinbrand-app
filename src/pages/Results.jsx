@@ -1386,7 +1386,7 @@ export default function Results() {
                               <div className="font-medium">
                                 {uiSummary.revenue != null
                                   ? uiSummary.revenue.toLocaleString("en-ZA")
-                                  : "—"}
+                                  : "-"}
                               </div>
                             </div>
                             <div>
@@ -1396,7 +1396,7 @@ export default function Results() {
                               <div className="font-medium">
                                 {uiSummary.ebitda != null
                                   ? uiSummary.ebitda.toLocaleString("en-ZA")
-                                  : "—"}
+                                  : "-"}
                               </div>
                             </div>
                             <div>
@@ -1406,7 +1406,7 @@ export default function Results() {
                               <div className="font-medium">
                                 {uiSummary.net_profit != null
                                   ? uiSummary.net_profit.toLocaleString("en-ZA")
-                                  : "—"}
+                                  : "-"}
                               </div>
                             </div>
                           </div>
@@ -1421,7 +1421,7 @@ export default function Results() {
                                   ? uiSummary.total_assets.toLocaleString(
                                       "en-ZA"
                                     )
-                                  : "—"}
+                                  : "-"}
                               </div>
                             </div>
                             <div>
@@ -1433,7 +1433,7 @@ export default function Results() {
                                   ? uiSummary.total_liabilities.toLocaleString(
                                       "en-ZA"
                                     )
-                                  : "—"}
+                                  : "-"}
                               </div>
                             </div>
                             <div>
@@ -1443,7 +1443,7 @@ export default function Results() {
                               <div className="font-medium">
                                 {uiSummary.equity != null
                                   ? uiSummary.equity.toLocaleString("en-ZA")
-                                  : "—"}
+                                  : "-"}
                               </div>
                             </div>
                           </div>

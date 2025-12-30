@@ -1,19 +1,13 @@
 // src/pages/Results.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  AlertCircle,
-  CheckCircle2,
-  Download,
-  Home as HomeIcon,
-  FileText,
-} from "lucide-react";
+import { AlertCircle, CheckCircle2, Download, Home as HomeIcon, FileText } from "lucide-react";
 import SiteHeader from "../components/layout/SiteHeader.jsx";
 import SiteFooter from "../components/layout/SiteFooter.jsx";
 
 function useQuery() {
   const { search } = useLocation();
-  return React.useMemo(() => new URLSearchParams(search), [search]);
+  return useMemo(() => new URLSearchParams(search), [search]);
 }
 
 /**
@@ -37,33 +31,70 @@ function coerceToObject(maybeObjOrJsonString) {
   return null;
 }
 
-/**
- * Number formatting helpers.
- * Rule:
- * - show "—" only for null/undefined/non-finite
- * - show 0 if the value is 0
- */
-function toFiniteNumber(v) {
-  if (v == null) return null;
+/** Treat only null/undefined/NaN as missing. Preserve 0. */
+function toNumberOrNull(v) {
+  if (v === null || v === undefined) return null;
   if (typeof v === "number") return Number.isFinite(v) ? v : null;
+  if (typeof v === "string") {
+    // Accept "1 200 000", "1,200,000", "(80,000)" etc.
+    const s = v.trim();
+    if (!s) return null;
 
-  // strings like "1 200 000" or "1,200,000"
-  const s = String(v).trim();
-  if (!s) return null;
+    // Parentheses negative
+    const isParenNeg = /^\(.*\)$/.test(s);
+    const raw = s.replace(/^\(|\)$/g, "");
 
-  const normalized = s.replace(/,/g, "").replace(/\s+/g, "");
-  const n = Number(normalized);
-  return Number.isFinite(n) ? n : null;
+    // Remove spaces/commas
+    const cleaned = raw.replace(/[,\s]/g, "");
+    const n = Number(cleaned);
+    if (!Number.isFinite(n)) return null;
+    return isParenNeg ? -Math.abs(n) : n;
+  }
+  return null;
 }
 
-function fmtNum(v, locale = "en-ZA") {
-  const n = toFiniteNumber(v);
-  return n == null ? "—" : n.toLocaleString(locale);
+function formatNumber(n, locale = "en-ZA") {
+  if (n === null || n === undefined) return "—";
+  if (typeof n !== "number" || !Number.isFinite(n)) return "—";
+  return n.toLocaleString(locale);
 }
 
-function fmtFixed(v, digits = 2) {
-  const n = toFiniteNumber(v);
-  return n == null ? "—" : Number(n).toFixed(digits);
+function formatFixed(n, digits = 2) {
+  if (n === null || n === undefined) return "—";
+  const num = typeof n === "number" ? n : toNumberOrNull(n);
+  if (num === null) return "—";
+  return Number(num).toFixed(digits);
+}
+
+/**
+ * Prefer defined values (including 0). Only skip null/undefined.
+ */
+function firstDefined(...vals) {
+  for (const v of vals) {
+    if (v !== null && v !== undefined) return v;
+  }
+  return null;
+}
+
+// map backend docType → nice label
+const DOC_TYPE_LABELS = {
+  bank_statements: "Bank statement",
+  payslips: "Payslip",
+  id_documents: "ID / Passport",
+  financial_statements: "Financial statements",
+  proof_of_address: "Proof of address",
+  generic: "Other / Generic",
+};
+
+function normalizeDocType(docTypeRaw) {
+  if (typeof docTypeRaw !== "string") return null;
+  const k = docTypeRaw.trim().toLowerCase();
+  if (k === "payslip") return "payslips";
+  if (k === "id_document") return "id_documents";
+  if (k === "bank_statement") return "bank_statements";
+  if (k === "financial_statement") return "financial_statements";
+  if (k === "proof_of_address_document") return "proof_of_address";
+  return k;
 }
 
 /**
@@ -71,12 +102,7 @@ function fmtFixed(v, digits = 2) {
  *
  * Supports multiple shapes:
  * - result.agentic (future explicit contract)
- * - result.detailed = {
- *     docType,
- *     analysisMode,
- *     quality,
- *     result: { summary, structured, classification, ratios, risk_score, scores, ... }
- *   }
+ * - result.detailed = { docType, analysisMode, quality, result: { summary, structured, ... } }
  * - legacy: result.result
  * - legacy: result.quick.result
  * - legacy: result.quick.structured
@@ -108,34 +134,14 @@ function deriveAgenticFromResult(result) {
     return { agentic: topAgentic, rawAgentic: topAgentic, detailedEnvelope };
   }
 
-  // Detect when `result.detailed` itself is the agentic payload (your current financial_statements shape)
-  const detailedAsAgentic = asObj(detailedEnvelope);
-  const detailedLooksLikeAgentic =
-    detailedAsAgentic &&
-    typeof detailedAsAgentic === "object" &&
-    // typical agentic payload keys
-    (typeof detailedAsAgentic.summary === "string" ||
-      typeof detailedAsAgentic.status === "string" ||
-      typeof detailedAsAgentic.mode === "string" ||
-      typeof detailedAsAgentic.lambda_version === "string" ||
-      typeof detailedAsAgentic.structured === "object" ||
-      typeof detailedAsAgentic.ratios === "object" ||
-      typeof detailedAsAgentic.risk_score === "object");
-
-  // Candidate locations for the detailed S3 payload (these vary by aggregator implementations)
+  // Candidate locations for the detailed payload
   const candidates = [
-    // IMPORTANT: accept detailed itself when it already contains the payload
-    detailedLooksLikeAgentic ? detailedAsAgentic : null,
-
-    // common envelope: { docType, analysisMode, quality, result: {...} }
     detailedEnvelope?.result,
     detailedEnvelope?.result?.result,
-
-    // other variants
     detailedEnvelope?.agentic,
     detailedEnvelope?.agentic?.result,
-
-    // legacy
+    result?.detailed?.result,
+    result?.detailed?.result?.result,
     result?.quick?.result,
     result?.quick?.structured,
     result?.result,
@@ -144,39 +150,25 @@ function deriveAgenticFromResult(result) {
     .map(asObj)
     .filter(Boolean);
 
-  const rawAgentic = candidates[0] || null;
+  let rawAgentic = candidates[0] || null;
 
   if (!rawAgentic) {
     return { agentic: null, rawAgentic: null, detailedEnvelope };
   }
 
-  // Unwrap if it's a wrapper like { result: {...} }
+  // If it's a wrapper like { docType, analysisMode, result: {...} }, merge it so we don't lose wrapper fields
   let agentic = rawAgentic;
-  if (
-    agentic &&
-    typeof agentic === "object" &&
-    agentic.result &&
-    typeof agentic.result === "object"
-  ) {
+
+  if (agentic && typeof agentic === "object" && agentic.result && typeof agentic.result === "object") {
     agentic = { ...agentic, ...agentic.result };
     delete agentic.result;
   }
 
-  // If we came from a detailed envelope that has metadata, preserve it
-  if (
-    detailedEnvelope &&
-    typeof detailedEnvelope === "object" &&
-    // only apply envelope metadata if it actually looks like an envelope
-    ("docType" in detailedEnvelope ||
-      "analysisMode" in detailedEnvelope ||
-      "quality" in detailedEnvelope)
-  ) {
+  // If we came from detailedEnvelope, ensure docType/analysisMode are present
+  if (detailedEnvelope && typeof detailedEnvelope === "object") {
     agentic = {
       docType: detailedEnvelope.docType || result.docType || agentic.docType,
-      analysisMode:
-        detailedEnvelope.analysisMode ||
-        result.analysisMode ||
-        agentic.analysisMode,
+      analysisMode: detailedEnvelope.analysisMode || result.analysisMode || agentic.analysisMode,
       quality: detailedEnvelope.quality || result.quality || agentic.quality,
       ...agentic,
     };
@@ -184,7 +176,6 @@ function deriveAgenticFromResult(result) {
 
   return { agentic, rawAgentic, detailedEnvelope };
 }
-
 
 // ---- Helpers to interpret errors & run status ----
 
@@ -207,10 +198,7 @@ function classifyIssues(result) {
     typeof result.statusAudit === "string"
       ? result.statusAudit
       : result.statusAudit && typeof result.statusAudit === "object"
-      ? result.statusAudit.pipeline_stage ||
-        result.statusAudit.pipelineStage ||
-        result.statusAudit.stage ||
-        null
+      ? result.statusAudit.pipeline_stage || result.statusAudit.pipelineStage || result.statusAudit.stage || null
       : null;
 
   // Which payloads do we actually have?
@@ -231,9 +219,7 @@ function classifyIssues(result) {
   const qualityDecision = quality.decision || null;
   const qualityReasons = Array.isArray(quality.reasons) ? quality.reasons : [];
 
-  // ───────────────────────────────────────────────
   // 1) PIPELINE IN-PROGRESS / QUEUED STATE
-  // ───────────────────────────────────────────────
   const isInProgress =
     (!hasAnyFinalResult &&
       (pipelineStage == null ||
@@ -254,16 +240,13 @@ function classifyIssues(result) {
     };
   }
 
-  // ───────────────────────────────────────────────
   // 2) REAL ISSUES: OCR / QUALITY / AGENTIC
-  // ───────────────────────────────────────────────
 
-  // ---- OCR issues ----
+  // OCR issues
   if (ocrEngine && ocrEngine.error) {
     const msg = String(ocrEngine.error || "");
     let category = "internal";
-    let userMessage =
-      "We could not reliably read text from this document. The OCR engine reported an error.";
+    let userMessage = "We could not reliably read text from this document. The OCR engine reported an error.";
 
     if (/timed out/i.test(msg)) {
       category = "internal";
@@ -275,8 +258,7 @@ function classifyIssues(result) {
         "We could not convert this PDF into text. This often happens with unusual or password-protected PDFs. Try downloading the original statement again or asking the client for a different version.";
     } else if (/empty/i.test(msg) || /no text/i.test(msg)) {
       category = "document";
-      userMessage =
-        "The document appears to be blank or has no extractable text. Please confirm the file and try again.";
+      userMessage = "The document appears to be blank or has no extractable text. Please confirm the file and try again.";
     }
 
     issues.push({
@@ -288,13 +270,11 @@ function classifyIssues(result) {
     });
   }
 
-  // ---- QUALITY decision (STOP) → real blocking error ----
+  // QUALITY STOP
   if (qualityDecision === "STOP") {
     const reasonText =
       qualityReasons.length > 0
-        ? `We stopped processing because the document quality was too low: ${qualityReasons.join(
-            "; "
-          )}.`
+        ? `We stopped processing because the document quality was too low: ${qualityReasons.join("; ")}.`
         : "We stopped processing because the document quality was too low for reliable analysis.";
 
     issues.push({
@@ -302,26 +282,18 @@ function classifyIssues(result) {
       level: "error",
       category: "document",
       userMessage: reasonText,
-      rawMessage: JSON.stringify({
-        decision: qualityDecision,
-        reasons: qualityReasons,
-      }),
+      rawMessage: JSON.stringify({ decision: qualityDecision, reasons: qualityReasons }),
     });
   }
 
-  // ---- Agentic / GPT issues ----
+  // Agentic / AI issues
   if (agenticStatus === "error") {
     const errorType = agentic?.error_type || rawAgentic?.error_type || "";
     const msg =
-      agentic?.msg ||
-      agentic?.error ||
-      rawAgentic?.msg ||
-      rawAgentic?.error ||
-      "Agentic parser error";
+      agentic?.msg || agentic?.error || rawAgentic?.msg || rawAgentic?.error || "Agentic parser error";
 
     let category = "internal";
-    let userMessage =
-      "Our AI parser could not complete the analysis for this document.";
+    let userMessage = "Our AI parser could not complete the analysis for this document.";
 
     if (errorType === "model_call_failure") {
       category = "internal";
@@ -346,16 +318,12 @@ function classifyIssues(result) {
     });
   }
 
-  // ---- Suspicious-but-not-crashing cases ----
+  // Suspicious-but-not-crashing: bank statements with no transactions
   if (!ocrEngine.error && agentic && agenticStatus !== "error") {
     if (docType === "bank_statements") {
       let txs = [];
-      if (Array.isArray(agentic?.structured?.transactions)) {
-        txs = agentic.structured.transactions;
-      }
-      if (!txs.length && Array.isArray(agentic?.transactions)) {
-        txs = agentic.transactions;
-      }
+      if (Array.isArray(agentic?.structured?.transactions)) txs = agentic.structured.transactions;
+      if (!txs.length && Array.isArray(agentic?.transactions)) txs = agentic.transactions;
 
       if (txs.length === 0) {
         issues.push({
@@ -371,11 +339,8 @@ function classifyIssues(result) {
   }
 
   let overallStatus = "ok";
-  if (issues.some((i) => i.level === "error")) {
-    overallStatus = "error";
-  } else if (issues.some((i) => i.level === "warning")) {
-    overallStatus = "warning";
-  }
+  if (issues.some((i) => i.level === "error")) overallStatus = "error";
+  else if (issues.some((i) => i.level === "warning")) overallStatus = "warning";
 
   return { issues, overallStatus, inProgress: false, pipelineStage };
 }
@@ -416,97 +381,137 @@ function formatStatusBadge(status) {
   );
 }
 
-// map backend docType → nice label
-const DOC_TYPE_LABELS = {
-  bank_statements: "Bank statement",
-  payslips: "Payslip",
-  id_documents: "ID / Passport",
-  financial_statements: "Financial statements",
-  proof_of_address: "Proof of address",
-  generic: "Other / Generic",
-};
+/**
+ * Standardized ratios extraction (doc-type aware) with stable keys.
+ * - Preserves 0
+ * - Only returns null when truly missing
+ */
+function buildUiRatios(docType, agentic) {
+  if (!agentic) return null;
+
+  // Ratios live at agentic.ratios in your detailed payload.
+  const r = coerceToObject(agentic?.ratios) || agentic?.ratios || null;
+  if (!r || typeof r !== "object") return null;
+
+  if (docType === "financial_statements") {
+    const currentRatio = toNumberOrNull(firstDefined(r.current_ratio, r.currentRatio));
+    const quickRatio = toNumberOrNull(firstDefined(r.quick_ratio, r.quickRatio));
+    const debtToEquity = toNumberOrNull(
+      firstDefined(r.debt_to_equity_ratio, r.debt_to_equity, r.debtToEquity, r.debtToEquityRatio)
+    );
+    const interestCover = toNumberOrNull(
+      firstDefined(r.interest_cover, r.interest_cover_ratio, r.interestCover, r.interestCoverRatio)
+    );
+    const netMargin = toNumberOrNull(firstDefined(r.net_margin, r.netMargin));
+    const returnOnAssets = toNumberOrNull(firstDefined(r.return_on_assets, r.roa, r.returnOnAssets));
+    const debtServiceCoverage = toNumberOrNull(
+      firstDefined(r.debt_service_coverage_ratio, r.dscr, r.debtServiceCoverage, r.debt_service_coverage)
+    );
+    const cashflowCoverage = toNumberOrNull(firstDefined(r.cash_flow_coverage_ratio, r.cashflow_coverage_ratio, r.cashflowCoverage));
+
+    return {
+      kind: "financials",
+      currentRatio,
+      quickRatio,
+      debtToEquity,
+      interestCover,
+      netMargin,
+      returnOnAssets,
+      debtServiceCoverage,
+      cashflowCoverage,
+    };
+  }
+
+  if (docType === "bank_statements") {
+    return {
+      kind: "bank",
+      netCashFlow: toNumberOrNull(firstDefined(r.net_cash_flow, r.netCashFlow)),
+      inflowToOutflow: toNumberOrNull(firstDefined(r.inflow_to_outflow_ratio, r.inflowToOutflowRatio)),
+      closingToOpening: toNumberOrNull(firstDefined(r.closing_to_opening_balance_ratio, r.closingToOpeningBalanceRatio)),
+    };
+  }
+
+  // Other doc types: keep ratios available for agent view / future use
+  return { kind: "generic", raw: r };
+}
 
 // ---- Build a doc-type aware UI summary from agentic JSON + fields ----
 function buildUiSummary(docType, agentic, fields = []) {
   if (!agentic && !fields.length) return null;
 
   const getField = (name) =>
-    fields.find((f) => f.name && f.name.toLowerCase() === name.toLowerCase())
-      ?.value ?? null;
+    fields.find((f) => f.name && f.name.toLowerCase() === name.toLowerCase())?.value ?? null;
+
+  const getFieldNum = (name) => toNumberOrNull(getField(name));
 
   // BANK STATEMENTS
   if (docType === "bank_statements") {
-    const stmt =
-      agentic?.structured?.statement_summary ||
-      agentic?.statement_summary ||
-      agentic?.structured ||
-      {};
+    const s = coerceToObject(agentic?.structured) || agentic?.structured || {};
+    const stmt = s.statement_summary || agentic?.statement_summary || s || {};
 
     const txs =
-      (agentic?.structured &&
-        Array.isArray(agentic.structured.transactions) &&
-        agentic.structured.transactions) ||
+      (s && Array.isArray(s.transactions) && s.transactions) ||
       (Array.isArray(agentic?.transactions) ? agentic.transactions : []);
 
     let totalCredits = null;
     let totalDebits = null;
 
-    if (
-      typeof stmt.total_credits === "number" ||
-      typeof stmt.total_debits === "number"
-    ) {
-      totalCredits =
-        typeof stmt.total_credits === "number" ? stmt.total_credits : null;
-      totalDebits =
-        typeof stmt.total_debits === "number" ? stmt.total_debits : null;
-    } else if (txs.length) {
+    // Prefer totals if present
+    if (stmt.total_credits !== null && stmt.total_credits !== undefined) {
+      totalCredits = toNumberOrNull(stmt.total_credits);
+    }
+    if (stmt.total_debits !== null && stmt.total_debits !== undefined) {
+      totalDebits = toNumberOrNull(stmt.total_debits);
+    }
+
+    // Fallback: compute from txs
+    if ((totalCredits === null || totalDebits === null) && txs.length) {
       let credits = 0;
       let debits = 0;
       for (const tx of txs) {
-        const amount = toFiniteNumber(tx.amount) ?? 0;
+        const amount = toNumberOrNull(tx?.amount);
+        if (amount === null) continue;
         if (amount >= 0) credits += amount;
         else debits += Math.abs(amount);
       }
-      totalCredits = credits;
-      totalDebits = debits;
+      if (totalCredits === null) totalCredits = credits;
+      if (totalDebits === null) totalDebits = debits;
     }
 
     return {
       kind: "bank",
       account_holder:
-        stmt.account_holder_name ||
-        stmt.account_holder ||
-        stmt.account_name ||
-        stmt.account_name_normalised ||
-        getField("account_holder_name") ||
-        null,
+        firstDefined(
+          stmt.account_holder_name,
+          stmt.account_holder,
+          stmt.account_name,
+          stmt.account_name_normalised,
+          getField("account_holder_name"),
+          getField("account_holder")
+        ) || null,
       period_start:
-        stmt.statement_period_start ||
-        stmt.statement_start_date ||
-        stmt.period_start ||
-        getField("statement_period_start") ||
-        null,
+        firstDefined(
+          stmt.statement_period_start,
+          stmt.statement_start_date,
+          stmt.period_start,
+          getField("statement_period_start"),
+          getField("statement_start_date"),
+          getField("period_start")
+        ) || null,
       period_end:
-        stmt.statement_period_end ||
-        stmt.statement_end_date ||
-        stmt.period_end ||
-        getField("statement_period_end") ||
-        null,
-      opening_balance:
-        stmt.opening_balance != null
-          ? toFiniteNumber(stmt.opening_balance)
-          : getField("opening_balance") != null
-          ? toFiniteNumber(getField("opening_balance"))
-          : null,
-      closing_balance:
-        stmt.closing_balance != null
-          ? toFiniteNumber(stmt.closing_balance)
-          : getField("closing_balance") != null
-          ? toFiniteNumber(getField("closing_balance"))
-          : null,
-      total_credits: totalCredits != null ? toFiniteNumber(totalCredits) : null,
-      total_debits: totalDebits != null ? toFiniteNumber(totalDebits) : null,
-      currency: stmt.currency || getField("currency") || "ZAR",
+        firstDefined(
+          stmt.statement_period_end,
+          stmt.statement_end_date,
+          stmt.period_end,
+          getField("statement_period_end"),
+          getField("statement_end_date"),
+          getField("period_end")
+        ) || null,
+      opening_balance: firstDefined(toNumberOrNull(stmt.opening_balance), getFieldNum("opening_balance")),
+      closing_balance: firstDefined(toNumberOrNull(stmt.closing_balance), getFieldNum("closing_balance")),
+      total_credits: totalCredits !== null ? Number(totalCredits) : null,
+      total_debits: totalDebits !== null ? Number(totalDebits) : null,
+      currency: firstDefined(stmt.currency, getField("currency"), "ZAR"),
     };
   }
 
@@ -523,191 +528,324 @@ function buildUiSummary(docType, agentic, fields = []) {
       {};
 
     const balance =
-      s?.balance_sheet ||
-      fin?.balance_sheet ||
-      agentic?.balance_sheet ||
-      agentic?.financials?.balance_sheet ||
-      {};
+      s?.balance_sheet || fin?.balance_sheet || agentic?.balance_sheet || agentic?.financials?.balance_sheet || {};
 
     return {
       kind: "financials",
-      entity_name:
-        s?.entity_name || agentic?.entity_name || getField("entity_name") || "UNKNOWN",
+      entity_name: firstDefined(s?.entity_name, agentic?.entity_name, getField("entity_name"), "UNKNOWN"),
       period_start:
-        s?.reporting_period_start ||
-        s?.period_start ||
-        agentic?.reporting_period_start ||
-        agentic?.period_start ||
-        getField("reporting_period_start") ||
-        getField("period_start") ||
-        null,
+        firstDefined(
+          s?.reporting_period_start,
+          s?.period_start,
+          agentic?.reporting_period_start,
+          agentic?.period_start,
+          getField("reporting_period_start"),
+          getField("period_start")
+        ) || null,
       period_end:
-        s?.reporting_period_end ||
-        s?.period_end ||
-        agentic?.reporting_period_end ||
-        agentic?.period_end ||
-        getField("reporting_period_end") ||
-        getField("period_end") ||
-        null,
-      currency: s?.currency || agentic?.currency || getField("currency") || "ZAR",
+        firstDefined(
+          s?.reporting_period_end,
+          s?.period_end,
+          agentic?.reporting_period_end,
+          agentic?.period_end,
+          getField("reporting_period_end"),
+          getField("period_end")
+        ) || null,
+      currency: firstDefined(s?.currency, agentic?.currency, getField("currency"), "ZAR"),
 
-      revenue: income?.revenue ?? toFiniteNumber(getField("revenue")),
-      ebitda: income?.ebitda ?? toFiniteNumber(getField("ebitda")),
-      net_profit:
-        income?.profit_after_tax ??
-        income?.net_profit ??
-        income?.netIncome ??
-        income?.net_income ??
-        toFiniteNumber(getField("profit_after_tax")) ??
-        toFiniteNumber(getField("net_profit")) ??
-        toFiniteNumber(getField("net_income")) ??
-        null,
-
-      total_assets:
-        balance?.assets_total ??
-        balance?.total_assets ??
-        balance?.totalAssets ??
-        toFiniteNumber(getField("assets_total")) ??
-        toFiniteNumber(getField("total_assets")) ??
-        toFiniteNumber(getField("totalAssets")) ??
-        null,
-
-      total_liabilities:
-        balance?.liabilities_total ??
-        balance?.total_liabilities ??
-        balance?.totalLiabilities ??
-        toFiniteNumber(getField("liabilities_total")) ??
-        toFiniteNumber(getField("total_liabilities")) ??
-        toFiniteNumber(getField("totalLiabilities")) ??
-        null,
-
-      equity: balance?.equity ?? toFiniteNumber(getField("equity")) ?? null,
+      // Numbers: preserve 0, only null when truly missing
+      revenue: firstDefined(toNumberOrNull(income?.revenue), getFieldNum("revenue")),
+      ebitda: firstDefined(toNumberOrNull(income?.ebitda), getFieldNum("ebitda")),
+      net_profit: firstDefined(
+        toNumberOrNull(income?.profit_after_tax),
+        toNumberOrNull(income?.net_profit),
+        toNumberOrNull(income?.netIncome),
+        toNumberOrNull(income?.net_income),
+        getFieldNum("profit_after_tax"),
+        getFieldNum("net_profit"),
+        getFieldNum("net_income")
+      ),
+      total_assets: firstDefined(
+        toNumberOrNull(balance?.assets_total),
+        toNumberOrNull(balance?.total_assets),
+        toNumberOrNull(balance?.totalAssets),
+        getFieldNum("assets_total"),
+        getFieldNum("total_assets"),
+        getFieldNum("totalAssets")
+      ),
+      total_liabilities: firstDefined(
+        toNumberOrNull(balance?.liabilities_total),
+        toNumberOrNull(balance?.total_liabilities),
+        toNumberOrNull(balance?.totalLiabilities),
+        getFieldNum("liabilities_total"),
+        getFieldNum("total_liabilities"),
+        getFieldNum("totalLiabilities")
+      ),
+      equity: firstDefined(toNumberOrNull(balance?.equity), getFieldNum("equity")),
     };
   }
 
   // PAYSLIPS
   if (docType === "payslips") {
-    const s = agentic?.structured || {};
+    const s = coerceToObject(agentic?.structured) || agentic?.structured || {};
 
     const periodStart = s.pay_period_start || null;
     const periodEnd = s.pay_period_end || null;
-    const periodLabel =
-      periodStart && periodEnd ? `${periodStart} to ${periodEnd}` : null;
+    const periodLabel = periodStart && periodEnd ? `${periodStart} to ${periodEnd}` : null;
 
-    const grossRaw =
-      s.gross_pay ?? getField("gross_pay") ?? getField("Gross Pay") ?? null;
-    const netRaw = s.net_pay ?? getField("net_pay") ?? getField("Net Pay") ?? null;
-
-    const grossPay = toFiniteNumber(grossRaw);
-    const netPay = toFiniteNumber(netRaw);
+    const grossPay = firstDefined(toNumberOrNull(s.gross_pay), getFieldNum("gross_pay"), getFieldNum("Gross Pay"));
+    const netPay = firstDefined(toNumberOrNull(s.net_pay), getFieldNum("net_pay"), getFieldNum("Net Pay"));
 
     return {
       kind: "payslip",
-      employee_name:
-        s.employee_name ||
-        getField("employee_name") ||
-        getField("Employee Name") ||
-        getField("Employee") ||
-        null,
-      employer_name:
-        s.employer_name ||
-        getField("employer_name") ||
-        getField("Employer Name") ||
-        getField("Employer") ||
-        null,
+      employee_name: firstDefined(s.employee_name, getField("employee_name"), getField("Employee Name"), getField("Employee")) || null,
+      employer_name: firstDefined(s.employer_name, getField("employer_name"), getField("Employer Name"), getField("Employer")) || null,
       period_label: periodLabel || null,
       gross_pay: grossPay,
       net_pay: netPay,
-      currency: s.currency || getField("currency") || "ZAR",
+      currency: firstDefined(s.currency, getField("currency"), "ZAR"),
     };
   }
 
-  // ID DOCUMENTS
+  // ID DOCUMENTS (standardize: structured-first, then fields)
   if (docType === "id_documents") {
+    const s = coerceToObject(agentic?.structured) || agentic?.structured || {};
     return {
       kind: "id",
       first_names:
-        getField("First Name(s)") ||
-        getField("First Names") ||
-        getField("Given Names") ||
-        null,
-      surname: getField("Surname") || getField("Last Name") || null,
-      id_type: getField("ID Type") || null,
+        firstDefined(
+          s.first_names,
+          s.given_names,
+          getField("First Name(s)"),
+          getField("First Names"),
+          getField("Given Names")
+        ) || null,
+      surname: firstDefined(s.surname, s.last_name, getField("Surname"), getField("Last Name")) || null,
+      id_type: firstDefined(s.id_type, getField("ID Type")) || null,
       id_number:
-        getField("ID Number") ||
-        getField("Identity Number") ||
-        getField("Passport Number") ||
+        firstDefined(s.id_number, s.identity_number, s.passport_number, getField("ID Number"), getField("Identity Number"), getField("Passport Number")) ||
         null,
-      issuing_country:
-        getField("Issuing Country") ||
-        getField("Country") ||
-        getField("Nationality") ||
-        null,
-      date_of_birth: getField("Date of Birth") || getField("DOB") || null,
+      issuing_country: firstDefined(s.issuing_country, s.country, getField("Issuing Country"), getField("Country"), getField("Nationality")) || null,
+      date_of_birth: firstDefined(s.date_of_birth, s.dob, getField("Date of Birth"), getField("DOB")) || null,
     };
   }
 
   // PROOF OF ADDRESS
   if (docType === "proof_of_address") {
-    const s = agentic?.structured || {};
+    const s = coerceToObject(agentic?.structured) || agentic?.structured || {};
     const addressLines = Array.isArray(s.address_lines) ? s.address_lines : [];
 
     const line1 = addressLines[0] || null;
-    const line2 =
-      addressLines.length > 1 ? addressLines.slice(1).join(", ") : null;
+    const line2 = addressLines.length > 1 ? addressLines.slice(1).join(", ") : null;
 
     return {
       kind: "address",
       holder_name:
-        s.customer_name ||
-        getField("customer_name") ||
-        getField("Customer Name") ||
-        getField("Account Holder Name") ||
-        getField("Address Holder Name") ||
-        null,
+        firstDefined(
+          s.customer_name,
+          getField("customer_name"),
+          getField("Customer Name"),
+          getField("Account Holder Name"),
+          getField("Address Holder Name")
+        ) || null,
       holder_type: getField("Holder Type") || null,
-      address_line_1:
-        line1 ||
-        getField("address_line_1") ||
-        getField("Address Line 1") ||
-        getField("Address1") ||
-        null,
-      address_line_2:
-        line2 ||
-        getField("address_line_2") ||
-        getField("Address Line 2") ||
-        getField("Address2") ||
-        null,
+      address_line_1: firstDefined(line1, getField("address_line_1"), getField("Address Line 1"), getField("Address1")) || null,
+      address_line_2: firstDefined(line2, getField("address_line_2"), getField("Address Line 2"), getField("Address2")) || null,
       city: getField("City / Town") || getField("City") || null,
-      province:
-        getField("Province / State") ||
-        getField("Province") ||
-        getField("State") ||
-        null,
-      postal_code:
-        s.postal_code ||
-        getField("postal_code") ||
-        getField("Postal Code") ||
-        getField("Postcode") ||
-        null,
-      country: s.country || getField("Country") || null,
-      proof_entity_name:
-        s.issuer_name ||
-        getField("issuer_name") ||
-        getField("Proof Entity Name") ||
-        getField("Provider") ||
-        getField("Issuer") ||
-        null,
-      document_issue_date:
-        s.issue_date ||
-        getField("issue_date") ||
-        getField("Document Issue Date") ||
-        getField("Issue Date") ||
-        null,
+      province: getField("Province / State") || getField("Province") || getField("State") || null,
+      postal_code: firstDefined(s.postal_code, getField("postal_code"), getField("Postal Code"), getField("Postcode")) || null,
+      country: firstDefined(s.country, getField("Country")) || null,
+      proof_entity_name: firstDefined(s.issuer_name, getField("issuer_name"), getField("Proof Entity Name"), getField("Provider"), getField("Issuer")) || null,
+      document_issue_date: firstDefined(s.issue_date, getField("issue_date"), getField("Document Issue Date"), getField("Issue Date")) || null,
     };
   }
 
   return null;
+}
+
+function buildPrintableHtml({
+  objectKey,
+  docTypeLabel,
+  analysisMode,
+  riskScore,
+  riskBand,
+  confidencePct,
+  agenticSummary,
+  uiSummary,
+  uiRatios,
+}) {
+  const esc = (s) =>
+    String(s ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+
+  const row = (k, v) => `
+    <tr>
+      <td class="k">${esc(k)}</td>
+      <td class="v">${esc(v)}</td>
+    </tr>
+  `;
+
+  const lines = [];
+
+  lines.push(`<h1>OCR & AI Results Summary</h1>`);
+  lines.push(`<div class="meta"><div><b>Object</b>: ${esc(objectKey || "—")}</div></div>`);
+
+  lines.push(`<h2>Run</h2>`);
+  lines.push(`<table class="t">${row("Document Type", docTypeLabel || "—")}${row("Analysis Mode", analysisMode || "—")}</table>`);
+
+  lines.push(`<h2>Scores</h2>`);
+  lines.push(
+    `<table class="t">
+      ${row("Risk Score", typeof riskScore === "number" ? `${riskScore.toFixed(2)}${riskBand ? ` (${riskBand})` : ""}` : "—")}
+      ${row("Confidence", confidencePct != null ? `${confidencePct.toFixed(1)}%` : "—")}
+    </table>`
+  );
+
+  if (agenticSummary) {
+    lines.push(`<h2>AI Summary</h2>`);
+    lines.push(`<pre class="summary">${esc(agenticSummary)}</pre>`);
+  }
+
+  if (uiSummary?.kind === "financials") {
+    lines.push(`<h2>Financial Statement Summary</h2>`);
+    lines.push(
+      `<table class="t">
+        ${row("Entity", uiSummary.entity_name || "—")}
+        ${row("Reporting Period", `${uiSummary.period_start || "—"}${uiSummary.period_end ? ` to ${uiSummary.period_end}` : ""}`)}
+        ${row("Currency", uiSummary.currency || "—")}
+        ${row("Revenue", uiSummary.revenue != null ? formatNumber(uiSummary.revenue) : "—")}
+        ${row("EBITDA", uiSummary.ebitda != null ? formatNumber(uiSummary.ebitda) : "—")}
+        ${row("Net profit", uiSummary.net_profit != null ? formatNumber(uiSummary.net_profit) : "—")}
+        ${row("Total assets", uiSummary.total_assets != null ? formatNumber(uiSummary.total_assets) : "—")}
+        ${row("Total liabilities", uiSummary.total_liabilities != null ? formatNumber(uiSummary.total_liabilities) : "—")}
+        ${row("Equity", uiSummary.equity != null ? formatNumber(uiSummary.equity) : "—")}
+      </table>`
+    );
+
+    if (uiRatios?.kind === "financials") {
+      lines.push(`<h2>Key Ratios</h2>`);
+      lines.push(
+        `<table class="t">
+          ${row("Current ratio", uiRatios.currentRatio != null ? formatFixed(uiRatios.currentRatio, 2) : "—")}
+          ${row("Quick ratio", uiRatios.quickRatio != null ? formatFixed(uiRatios.quickRatio, 2) : "—")}
+          ${row("Debt to equity", uiRatios.debtToEquity != null ? formatFixed(uiRatios.debtToEquity, 2) : "—")}
+          ${row("Interest cover", uiRatios.interestCover != null ? formatFixed(uiRatios.interestCover, 2) : "—")}
+          ${row("Net margin", uiRatios.netMargin != null ? formatFixed(uiRatios.netMargin, 2) : "—")}
+          ${row("Return on assets", uiRatios.returnOnAssets != null ? formatFixed(uiRatios.returnOnAssets, 2) : "—")}
+          ${row("Debt service coverage", uiRatios.debtServiceCoverage != null ? formatFixed(uiRatios.debtServiceCoverage, 2) : "—")}
+          ${row("Cashflow coverage", uiRatios.cashflowCoverage != null ? formatFixed(uiRatios.cashflowCoverage, 2) : "—")}
+        </table>`
+      );
+    }
+  }
+
+  if (uiSummary?.kind === "bank") {
+    lines.push(`<h2>Bank Statement Summary</h2>`);
+    lines.push(
+      `<table class="t">
+        ${row("Account Holder", uiSummary.account_holder || "—")}
+        ${row("Statement Period", `${uiSummary.period_start || "—"}${uiSummary.period_end ? ` to ${uiSummary.period_end}` : ""}`)}
+        ${row("Currency", uiSummary.currency || "—")}
+        ${row("Opening Balance", uiSummary.opening_balance != null ? formatNumber(uiSummary.opening_balance) : "—")}
+        ${row("Closing Balance", uiSummary.closing_balance != null ? formatNumber(uiSummary.closing_balance) : "—")}
+        ${row("Total Credits", uiSummary.total_credits != null ? formatNumber(uiSummary.total_credits) : "—")}
+        ${row("Total Debits", uiSummary.total_debits != null ? formatNumber(uiSummary.total_debits) : "—")}
+      </table>`
+    );
+
+    if (uiRatios?.kind === "bank") {
+      lines.push(`<h2>Bank Cashflow Metrics</h2>`);
+      lines.push(
+        `<table class="t">
+          ${row("Net cash flow", uiRatios.netCashFlow != null ? formatNumber(uiRatios.netCashFlow) : "—")}
+          ${row("Inflow / outflow ratio", uiRatios.inflowToOutflow != null ? formatFixed(uiRatios.inflowToOutflow, 2) : "—")}
+          ${row("Closing vs opening balance", uiRatios.closingToOpening != null ? formatFixed(uiRatios.closingToOpening, 2) : "—")}
+        </table>`
+      );
+    }
+  }
+
+  if (uiSummary?.kind === "payslip") {
+    lines.push(`<h2>Payslip Summary</h2>`);
+    lines.push(
+      `<table class="t">
+        ${row("Employee", uiSummary.employee_name || "—")}
+        ${row("Employer", uiSummary.employer_name || "—")}
+        ${row("Period", uiSummary.period_label || "—")}
+        ${row("Currency", uiSummary.currency || "—")}
+        ${row("Gross pay", uiSummary.gross_pay != null ? formatNumber(uiSummary.gross_pay) : "—")}
+        ${row("Net pay", uiSummary.net_pay != null ? formatNumber(uiSummary.net_pay) : "—")}
+      </table>`
+    );
+  }
+
+  if (uiSummary?.kind === "id") {
+    lines.push(`<h2>ID / Passport Summary</h2>`);
+    lines.push(
+      `<table class="t">
+        ${row("First name(s)", uiSummary.first_names || "—")}
+        ${row("Surname", uiSummary.surname || "—")}
+        ${row("Date of birth", uiSummary.date_of_birth || "—")}
+        ${row("ID type", uiSummary.id_type || "—")}
+        ${row("ID / Passport number", uiSummary.id_number || "—")}
+        ${row("Issuing country", uiSummary.issuing_country || "—")}
+      </table>`
+    );
+  }
+
+  if (uiSummary?.kind === "address") {
+    const address = [
+      uiSummary.address_line_1,
+      uiSummary.address_line_2,
+      [uiSummary.city, uiSummary.province, uiSummary.postal_code].filter(Boolean).join(" "),
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    lines.push(`<h2>Proof of Address Summary</h2>`);
+    lines.push(
+      `<table class="t">
+        ${row("Address holder", uiSummary.holder_name || "—")}
+        ${row("Holder type", uiSummary.holder_type || "—")}
+        ${row("Country", uiSummary.country || "—")}
+        ${row("Provider / Issuer", uiSummary.proof_entity_name || "—")}
+        ${row("Issue date", uiSummary.document_issue_date || "—")}
+      </table>`
+    );
+    lines.push(`<h3>Address</h3>`);
+    lines.push(`<pre class="summary">${esc(address || "—")}</pre>`);
+  }
+
+  return `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>OCR & AI Results Summary</title>
+    <style>
+      body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 32px; color: #0f172a; }
+      h1 { margin: 0 0 8px 0; font-size: 20px; }
+      h2 { margin: 18px 0 8px 0; font-size: 14px; }
+      h3 { margin: 14px 0 6px 0; font-size: 12px; }
+      .meta { font-size: 12px; color: #334155; margin-bottom: 8px; }
+      .t { width: 100%; border-collapse: collapse; font-size: 12px; }
+      .t td { border: 1px solid #e2e8f0; padding: 8px; vertical-align: top; }
+      .k { width: 34%; font-weight: 600; background: #f8fafc; }
+      .summary { background: #0b1220; color: #e2e8f0; padding: 10px; border-radius: 6px; font-size: 11px; white-space: pre-wrap; }
+      @media print { body { margin: 14mm; } }
+    </style>
+  </head>
+  <body>
+    ${lines.join("\n")}
+    <script>
+      // Auto-open print dialog; user can "Save as PDF"
+      window.onload = () => { setTimeout(() => window.print(), 250); };
+    </script>
+  </body>
+</html>`;
 }
 
 export default function Results() {
@@ -719,10 +857,11 @@ export default function Results() {
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
 
+  // view toggle – "summary" (client) vs "agent"
   const [activeView, setActiveView] = useState("summary");
 
-  const functionUrl =
-    "https://5epugrqble4dg6pahfz63wx44a0caasj.lambda-url.us-east-1.on.aws/";
+  // Aggregator function URL
+  const functionUrl = "https://5epugrqble4dg6pahfz63wx44a0caasj.lambda-url.us-east-1.on.aws/";
 
   useEffect(() => {
     if (!objectKey) {
@@ -744,15 +883,11 @@ export default function Results() {
       if (cancelled) return;
 
       try {
-        const res = await fetch(
-          `${functionUrl}?objectKey=${encodeURIComponent(objectKey)}`
-        );
+        const res = await fetch(`${functionUrl}?objectKey=${encodeURIComponent(objectKey)}`);
 
         if (!res.ok) {
           attempt += 1;
-          console.warn(
-            `Result fetch not OK (status ${res.status}), attempt ${attempt}/${maxAttempts}`
-          );
+          console.warn(`Result fetch not OK (status ${res.status}), attempt ${attempt}/${maxAttempts}`);
 
           if (attempt < maxAttempts && !cancelled) {
             setTimeout(attemptFetch, delayMs);
@@ -760,8 +895,7 @@ export default function Results() {
             const text = await res.text().catch(() => "");
             setLoading(false);
             setError(
-              `We couldn't load the OCR result from secure storage (HTTP ${res.status}).` +
-                (text ? ` Details: ${text}` : "")
+              `We couldn't load the OCR result from secure storage (HTTP ${res.status}).` + (text ? ` Details: ${text}` : "")
             );
           }
           return;
@@ -777,10 +911,7 @@ export default function Results() {
           typeof data.statusAudit === "string"
             ? data.statusAudit
             : data.statusAudit && typeof data.statusAudit === "object"
-            ? data.statusAudit.pipeline_stage ||
-              data.statusAudit.pipelineStage ||
-              data.statusAudit.stage ||
-              null
+            ? data.statusAudit.pipeline_stage || data.statusAudit.pipelineStage || data.statusAudit.stage || null
             : null;
 
         const inProgress =
@@ -797,7 +928,7 @@ export default function Results() {
 
         setResult((prev) => {
           if (!prev) return data;
-          if (!inProgress) return data;
+          if (!inProgress) return data; // final → always take it
           const prevHasAny = !!prev.quick || !!prev.detailed;
           const nextHasAny = hasQuick || hasDetailed;
           return prevHasAny && !nextHasAny ? prev : data;
@@ -818,9 +949,7 @@ export default function Results() {
           setTimeout(attemptFetch, delayMs);
         } else if (!cancelled) {
           setLoading(false);
-          setError(
-            "We couldn't reach the results service. Please refresh in a moment or try the upload again."
-          );
+          setError("We couldn't reach the results service. Please refresh in a moment or try the upload again.");
         }
       }
     }
@@ -835,9 +964,7 @@ export default function Results() {
   async function handleDownloadJson() {
     if (!objectKey) return;
     try {
-      const res = await fetch(
-        `${functionUrl}?objectKey=${encodeURIComponent(objectKey)}`
-      );
+      const res = await fetch(`${functionUrl}?objectKey=${encodeURIComponent(objectKey)}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
@@ -854,150 +981,141 @@ export default function Results() {
     }
   }
 
+  /**
+   * “Download Summary (PDF)” implemented without extra dependencies:
+   * - Opens a print-friendly window
+   * - Automatically opens the print dialog
+   * - User selects “Save as PDF”
+   *
+   * This makes the button functional immediately without changing the backend.
+   */
   function handleDownloadPdf() {
-    alert(
-      "PDF export of the summary is not implemented yet. You can download the JSON for now."
-    );
+    try {
+      if (!result) {
+        alert("No result available yet. Please wait for the analysis to complete.");
+        return;
+      }
+
+      const { agentic } = deriveAgenticFromResult(result);
+      const fields = Array.isArray(result?.fields) ? result.fields : [];
+      const docTypeRaw = agentic?.docType ?? result?.docType ?? null;
+      const docType = normalizeDocType(docTypeRaw);
+      const docTypeLabel = (docType && DOC_TYPE_LABELS[docType]) || docTypeRaw || "—";
+
+      const uiSummary = buildUiSummary(docType, agentic, fields);
+      const uiRatios = buildUiRatios(docType, agentic);
+
+      const agenticSummary =
+        result?.detailed?.summary ??
+        result?.detailed?.result?.summary ??
+        result?.quick?.summary ??
+        agentic?.summary ??
+        result?.summary ??
+        null;
+
+      const riskScore = agentic?.risk_score?.score ?? result?.riskScore?.score ?? null;
+      const riskBand = agentic?.risk_score?.band ?? result?.riskScore?.band ?? null;
+
+      const quality = result?.quality || {};
+      const rawConfidence = typeof quality.confidence === "number" ? quality.confidence : null;
+      const confidencePct =
+        typeof rawConfidence === "number" ? (rawConfidence <= 1 ? rawConfidence * 100 : rawConfidence) : null;
+
+      const analysisModeRaw = agentic?.analysisMode || result?.analysisMode || null;
+      const analysisMode = analysisModeRaw || (result?.detailed ? "detailed" : result?.quick ? "quick" : null);
+
+      const html = buildPrintableHtml({
+        objectKey,
+        docTypeLabel,
+        analysisMode: analysisMode === "detailed" ? "Detailed" : analysisMode === "quick" ? "Quick" : analysisMode || "—",
+        riskScore: typeof riskScore === "number" ? riskScore : null,
+        riskBand,
+        confidencePct,
+        agenticSummary,
+        uiSummary,
+        uiRatios,
+      });
+
+      const w = window.open("", "_blank", "noopener,noreferrer");
+      if (!w) {
+        alert("Popup blocked. Please allow popups to download the PDF.");
+        return;
+      }
+      w.document.open();
+      w.document.write(html);
+      w.document.close();
+    } catch (err) {
+      console.error("Download PDF failed", err);
+      alert("Could not generate the PDF summary. Please try again.");
+    }
   }
 
+  // Agentic payload
   const { agentic } = deriveAgenticFromResult(result);
 
+  // High-level fields from stub / aggregator
   const docTypeRaw = agentic?.docType ?? result?.docType ?? null;
+  const docType = normalizeDocType(docTypeRaw);
 
-  const docType =
-    typeof docTypeRaw === "string"
-      ? (() => {
-          const k = docTypeRaw.trim().toLowerCase();
-          if (k === "payslip") return "payslips";
-          if (k === "id_document") return "id_documents";
-          return k;
-        })()
-      : null;
-
-  const docTypeLabel =
-    (docType && DOC_TYPE_LABELS[docType]) || docTypeRaw || "—";
-
+  const docTypeLabel = (docType && DOC_TYPE_LABELS[docType]) || docTypeRaw || "—";
   const fields = Array.isArray(result?.fields) ? result.fields : [];
 
   const pipelineStage =
     typeof result?.statusAudit === "string"
       ? result.statusAudit
       : result?.statusAudit && typeof result.statusAudit === "object"
-      ? result.statusAudit.pipeline_stage ||
-        result.statusAudit.pipelineStage ||
-        result.statusAudit.stage ||
-        null
+      ? result.statusAudit.pipeline_stage || result.statusAudit.pipelineStage || result.statusAudit.stage || null
       : null;
 
   const uiSummary = buildUiSummary(docType, agentic, fields);
+  const uiRatios = buildUiRatios(docType, agentic);
 
+  // Classification & risk
   const classification = agentic?.classification || null;
   const riskScore = agentic?.risk_score?.score ?? result?.riskScore?.score ?? null;
   const riskBand = agentic?.risk_score?.band ?? result?.riskScore?.band ?? null;
 
+  // Confidence: normalize 0–1 or 0–100 into a percent
   const quality = result?.quality || {};
-  const rawConfidence =
-    typeof quality.confidence === "number" ? quality.confidence : null;
-
-  const confidencePct =
-    typeof rawConfidence === "number"
-      ? rawConfidence <= 1
-        ? rawConfidence * 100
-        : rawConfidence
-      : null;
-
+  const rawConfidence = typeof quality.confidence === "number" ? quality.confidence : null;
+  const confidencePct = typeof rawConfidence === "number" ? (rawConfidence <= 1 ? rawConfidence * 100 : rawConfidence) : null;
   const qualityStatus = quality.status || null;
 
+  // Analysis mode from backend / agentic (with fallback)
   const analysisModeRaw = agentic?.analysisMode || result?.analysisMode || null;
-
-  const analysisMode =
-    analysisModeRaw ||
-    (result?.detailed ? "detailed" : result?.quick ? "quick" : null);
+  const analysisMode = analysisModeRaw || (result?.detailed ? "detailed" : result?.quick ? "quick" : null);
 
   const { issues, overallStatus, inProgress } = classifyIssues(result);
 
+  // Summary selection aligned to current backend contract:
   const agenticSummary =
-    result?.detailed?.result?.summary ??
     result?.detailed?.summary ??
+    result?.detailed?.result?.summary ??
     result?.quick?.summary ??
     agentic?.summary ??
     result?.summary ??
     null;
 
-  const ratios =
-    agentic?.ratios ||
-    agentic?.financial_ratios ||
-    agentic?.statement_ratios ||
-    null;
+  // Bank-statement ratios panel values
+  const bankNetCashFlow = uiRatios?.kind === "bank" ? uiRatios.netCashFlow : null;
+  const bankInflowToOutflow = uiRatios?.kind === "bank" ? uiRatios.inflowToOutflow : null;
+  const bankClosingToOpening = uiRatios?.kind === "bank" ? uiRatios.closingToOpening : null;
 
-  const bankRatios = docType === "bank_statements" ? ratios : null;
-  const financialRatios = docType === "financial_statements" ? ratios : null;
+  // Financial-statement ratios panel values
+  const currentRatio = uiRatios?.kind === "financials" ? uiRatios.currentRatio : null;
+  const quickRatio = uiRatios?.kind === "financials" ? uiRatios.quickRatio : null;
+  const debtToEquity = uiRatios?.kind === "financials" ? uiRatios.debtToEquity : null;
+  const interestCover = uiRatios?.kind === "financials" ? uiRatios.interestCover : null;
+  const netMargin = uiRatios?.kind === "financials" ? uiRatios.netMargin : null;
+  const returnOnAssets = uiRatios?.kind === "financials" ? uiRatios.returnOnAssets : null;
+  const debtServiceCoverage = uiRatios?.kind === "financials" ? uiRatios.debtServiceCoverage : null;
+  const cashflowCoverage = uiRatios?.kind === "financials" ? uiRatios.cashflowCoverage : null;
 
-  const cashflowSummary =
-    agentic?.cashflow_summary ||
-    agentic?.cash_flow_summary ||
-    agentic?.cashflow ||
-    null;
-
-  // Financial statement ratio convenience (support both key variants)
-  const currentRatio =
-    financialRatios?.current_ratio ??
-    financialRatios?.liquidity?.current_ratio ??
-    null;
-
-  const quickRatio =
-    financialRatios?.quick_ratio ??
-    financialRatios?.liquidity?.quick_ratio ??
-    null;
-
-  const debtToEquity =
-    financialRatios?.debt_to_equity ??
-    financialRatios?.debt_to_equity_ratio ??
-    financialRatios?.leverage?.debt_to_equity ??
-    null;
-
-  const interestCover =
-    financialRatios?.interest_cover ??
-    financialRatios?.coverage?.interest_cover ??
-    null;
-
-  const netMargin =
-    financialRatios?.net_margin ??
-    financialRatios?.profitability?.net_margin ??
-    null;
-
-  const returnOnAssets =
-    financialRatios?.return_on_assets ??
-    financialRatios?.profitability?.return_on_assets ??
-    null;
-
-  const debtServiceCoverage =
-    financialRatios?.debt_service_coverage ??
-    financialRatios?.debt_service_coverage_ratio ??
-    financialRatios?.dscr ??
-    financialRatios?.coverage?.debt_service_coverage ??
-    null;
-
-  const cashflowCoverage =
-    financialRatios?.cashflow_coverage ??
-    financialRatios?.cash_flow_coverage_ratio ??
-    financialRatios?.coverage?.cashflow_coverage ??
-    null;
-
-  // Bank-statement specific ratios
-  const bankNetCashFlow = bankRatios?.net_cash_flow ?? null;
-  const bankInflowToOutflow = bankRatios?.inflow_to_outflow_ratio ?? null;
-  const bankClosingToOpening =
-    bankRatios?.closing_to_opening_balance_ratio ?? null;
-
-  const genericScores =
-    agentic?.scores && typeof agentic.scores === "object" ? agentic.scores : null;
+  // Optional generic scores block
+  const genericScores = agentic?.scores && typeof agentic.scores === "object" ? agentic.scores : null;
 
   return (
-    <div
-      className="min-h-screen text-slate-900"
-      style={{ background: "rgb(var(--surface))" }}
-    >
+    <div className="min-h-screen text-slate-900" style={{ background: "rgb(var(--surface))" }}>
       <SiteHeader />
 
       <main className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
@@ -1008,8 +1126,7 @@ export default function Results() {
               OCR &amp; AI Results
             </h1>
             <p className="text-sm text-slate-600 mt-1">
-              Review OCR output, AI-parsed structure, and any issues detected
-              for this document.
+              Review OCR output, AI-parsed structure, and any issues detected for this document.
             </p>
           </div>
         </div>
@@ -1041,16 +1158,14 @@ export default function Results() {
 
           {!loading && !error && result && (
             <>
-              {/* View toggle: Client vs Agent */}
+              {/* View toggle */}
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div className="inline-flex rounded-full bg-slate-100 p-1 text-xs">
                   <button
                     type="button"
                     onClick={() => setActiveView("summary")}
                     className={`px-3 py-1 rounded-full transition ${
-                      activeView === "summary"
-                        ? "bg-white shadow-sm text-slate-900"
-                        : "text-slate-600"
+                      activeView === "summary" ? "bg-white shadow-sm text-slate-900" : "text-slate-600"
                     }`}
                   >
                     Client view
@@ -1059,9 +1174,7 @@ export default function Results() {
                     type="button"
                     onClick={() => setActiveView("agent")}
                     className={`px-3 py-1 rounded-full transition ${
-                      activeView === "agent"
-                        ? "bg-white shadow-sm text-slate-900"
-                        : "text-slate-600"
+                      activeView === "agent" ? "bg-white shadow-sm text-slate-900" : "text-slate-600"
                     }`}
                   >
                     Agent view
@@ -1069,9 +1182,7 @@ export default function Results() {
                 </div>
               </div>
 
-              {/* ─────────────────────────────
-                  CLIENT / SUMMARY VIEW
-                  ───────────────────────────── */}
+              {/* ───────────────────────────── CLIENT / SUMMARY VIEW ───────────────────────────── */}
               {activeView === "summary" && (
                 <>
                   {/* Run status / issues */}
@@ -1079,45 +1190,27 @@ export default function Results() {
                     <div className="flex flex-wrap items-center gap-3 mb-2">
                       <div className="font-medium text-sm">Run status</div>
                       {formatStatusBadge(overallStatus)}
-                      {pipelineStage && (
-                        <span className="text-xs text-slate-500">
-                          (Pipeline stage: {pipelineStage})
-                        </span>
-                      )}
-                      {qualityStatus && !inProgress && (
-                        <span className="text-xs text-slate-500">
-                          • Quality status: {qualityStatus}
-                        </span>
-                      )}
+                      {pipelineStage && <span className="text-xs text-slate-500">(Pipeline stage: {pipelineStage})</span>}
+                      {qualityStatus && !inProgress && <span className="text-xs text-slate-500">• Quality status: {qualityStatus}</span>}
                     </div>
 
                     {inProgress && (
                       <p className="text-sm text-slate-700">
-                        The document has been uploaded and is queued for OCR and
-                        AI analysis. Results will appear here once processing
-                        completes.
+                        The document has been uploaded and is queued for OCR and AI analysis. Results will appear here once processing completes.
                       </p>
                     )}
 
                     {!inProgress && issues.length === 0 && (
-                      <p className="text-sm text-slate-700">
-                        All processing stages completed without any detected
-                        issues.
-                      </p>
+                      <p className="text-sm text-slate-700">All processing stages completed without any detected issues.</p>
                     )}
 
                     {!inProgress && issues.length > 0 && (
                       <>
                         <ul className="space-y-2 text-sm">
                           {issues.map((issue, idx) => (
-                            <li
-                              key={idx}
-                              className="border-t border-slate-200 pt-2 first:border-t-0 first:pt-0"
-                            >
+                            <li key={idx} className="border-t border-slate-200 pt-2 first:border-t-0 first:pt-0">
                               <div className="flex flex-wrap items-center gap-2">
-                                <span className="font-medium">
-                                  {issue.stage}
-                                </span>
+                                <span className="font-medium">{issue.stage}</span>
                                 {issue.level === "error" && (
                                   <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-red-100 text-red-800">
                                     Error
@@ -1139,17 +1232,13 @@ export default function Results() {
                                   </span>
                                 )}
                               </div>
-                              <p className="mt-1 text-slate-700">
-                                {issue.userMessage}
-                              </p>
+                              <p className="mt-1 text-slate-700">{issue.userMessage}</p>
                             </li>
                           ))}
                         </ul>
 
                         <details className="mt-3 text-xs text-slate-600">
-                          <summary className="cursor-pointer underline underline-offset-2">
-                            Technical details (for support teams)
-                          </summary>
+                          <summary className="cursor-pointer underline underline-offset-2">Technical details (for support teams)</summary>
                           <pre className="mt-2 max-h-48 overflow-auto rounded bg-slate-900 text-slate-100 p-2 text-[11px]">
                             {JSON.stringify(issues, null, 2)}
                           </pre>
@@ -1162,59 +1251,33 @@ export default function Results() {
                   {agenticSummary && !inProgress && (
                     <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
                       <h2 className="text-sm font-semibold mb-2">AI summary</h2>
-                      <p className="text-sm text-slate-800 whitespace-pre-wrap">
-                        {agenticSummary}
-                      </p>
+                      <p className="text-sm text-slate-800 whitespace-pre-wrap">{agenticSummary}</p>
                     </div>
                   )}
 
                   {/* Summary cards */}
                   <div className="grid gap-4 md:grid-cols-4 mb-6">
                     <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
-                      <div className="text-xs uppercase tracking-wide opacity-70">
-                        Risk Score
-                      </div>
+                      <div className="text-xs uppercase tracking-wide opacity-70">Risk Score</div>
                       <div className="mt-1 text-2xl font-semibold">
-                        {typeof riskScore === "number"
-                          ? riskScore.toFixed(2)
-                          : "—"}
+                        {typeof riskScore === "number" ? riskScore.toFixed(2) : "—"}
                         {riskBand && typeof riskScore === "number" && (
-                          <span className="ml-2 text-sm font-normal uppercase tracking-wide text-slate-600">
-                            ({riskBand})
-                          </span>
+                          <span className="ml-2 text-sm font-normal uppercase tracking-wide text-slate-600">({riskBand})</span>
                         )}
                       </div>
                     </div>
                     <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
-                      <div className="text-xs uppercase tracking-wide opacity-70">
-                        Confidence
-                      </div>
-                      <div className="mt-1 text-2xl font-semibold">
-                        {confidencePct != null
-                          ? confidencePct.toFixed(1) + "%"
-                          : "—"}
-                      </div>
+                      <div className="text-xs uppercase tracking-wide opacity-70">Confidence</div>
+                      <div className="mt-1 text-2xl font-semibold">{confidencePct != null ? confidencePct.toFixed(1) + "%" : "—"}</div>
                     </div>
                     <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
-                      <div className="text-xs uppercase tracking-wide opacity-70">
-                        Document Type
-                      </div>
-                      <div className="mt-1 text-2xl font-semibold">
-                        {docTypeLabel}
-                      </div>
+                      <div className="text-xs uppercase tracking-wide opacity-70">Document Type</div>
+                      <div className="mt-1 text-2xl font-semibold">{docTypeLabel}</div>
                     </div>
                     <div className="rounded-lg border border-[rgb(var(--border))] p-4 bg-white">
-                      <div className="text-xs uppercase tracking-wide opacity-70">
-                        Analysis Mode
-                      </div>
+                      <div className="text-xs uppercase tracking-wide opacity-70">Analysis Mode</div>
                       <div className="mt-1 text-2xl font-semibold">
-                        {analysisMode === "detailed"
-                          ? "Detailed"
-                          : analysisMode === "quick"
-                          ? "Quick"
-                          : inProgress
-                          ? "Processing"
-                          : "—"}
+                        {analysisMode === "detailed" ? "Detailed" : analysisMode === "quick" ? "Quick" : inProgress ? "Processing" : "—"}
                       </div>
                     </div>
                   </div>
@@ -1224,12 +1287,10 @@ export default function Results() {
                     <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
                       <h2 className="text-sm font-semibold mb-3">
                         {uiSummary.kind === "bank" && "Bank statement summary"}
-                        {uiSummary.kind === "financials" &&
-                          "Financial statement summary"}
+                        {uiSummary.kind === "financials" && "Financial statement summary"}
                         {uiSummary.kind === "payslip" && "Payslip summary"}
                         {uiSummary.kind === "id" && "ID / Passport summary"}
-                        {uiSummary.kind === "address" &&
-                          "Proof of address summary"}
+                        {uiSummary.kind === "address" && "Proof of address summary"}
                         {!uiSummary.kind && "Document summary"}
                       </h2>
 
@@ -1238,66 +1299,37 @@ export default function Results() {
                         <>
                           <div className="grid gap-4 md:grid-cols-3 text-sm">
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Account Holder
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Account Holder</div>
+                              <div className="font-medium">{uiSummary.account_holder || "—"}</div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">Statement Period</div>
                               <div className="font-medium">
-                                {uiSummary.account_holder || "—"}
+                                {uiSummary.period_start || "—"} {uiSummary.period_end ? `to ${uiSummary.period_end}` : ""}
                               </div>
                             </div>
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Statement Period
-                              </div>
-                              <div className="font-medium">
-                                {uiSummary.period_start || "—"}{" "}
-                                {uiSummary.period_end
-                                  ? `to ${uiSummary.period_end}`
-                                  : ""}
-                              </div>
-                            </div>
-                            <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Currency
-                              </div>
-                              <div className="font-medium">
-                                {uiSummary.currency || "—"}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Currency</div>
+                              <div className="font-medium">{uiSummary.currency || "—"}</div>
                             </div>
                           </div>
 
                           <div className="mt-4 grid gap-4 md:grid-cols-4 text-sm">
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Opening Balance
-                              </div>
-                              <div className="font-medium">
-                                {fmtNum(uiSummary.opening_balance)}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Opening Balance</div>
+                              <div className="font-medium">{uiSummary.opening_balance != null ? formatNumber(uiSummary.opening_balance) : "—"}</div>
                             </div>
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Closing Balance
-                              </div>
-                              <div className="font-medium">
-                                {fmtNum(uiSummary.closing_balance)}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Closing Balance</div>
+                              <div className="font-medium">{uiSummary.closing_balance != null ? formatNumber(uiSummary.closing_balance) : "—"}</div>
                             </div>
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Total Credits
-                              </div>
-                              <div className="font-medium">
-                                {fmtNum(uiSummary.total_credits)}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Total Credits</div>
+                              <div className="font-medium">{uiSummary.total_credits != null ? formatNumber(uiSummary.total_credits) : "—"}</div>
                             </div>
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Total Debits
-                              </div>
-                              <div className="font-medium">
-                                {fmtNum(uiSummary.total_debits)}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Total Debits</div>
+                              <div className="font-medium">{uiSummary.total_debits != null ? formatNumber(uiSummary.total_debits) : "—"}</div>
                             </div>
                           </div>
                         </>
@@ -1308,85 +1340,48 @@ export default function Results() {
                         <>
                           <div className="grid gap-4 md:grid-cols-3 text-sm">
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Entity
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Entity</div>
+                              <div className="font-medium">{uiSummary.entity_name || "—"}</div>
+                            </div>
+                            <div>
+                              <div className="text-slate-500 text-xs uppercase">Reporting Period</div>
                               <div className="font-medium">
-                                {uiSummary.entity_name || "—"}
+                                {uiSummary.period_start || "—"} {uiSummary.period_end ? `to ${uiSummary.period_end}` : ""}
                               </div>
                             </div>
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Reporting Period
-                              </div>
-                              <div className="font-medium">
-                                {uiSummary.period_start || "—"}{" "}
-                                {uiSummary.period_end
-                                  ? `to ${uiSummary.period_end}`
-                                  : ""}
-                              </div>
-                            </div>
-                            <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Currency
-                              </div>
-                              <div className="font-medium">
-                                {uiSummary.currency || "—"}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Currency</div>
+                              <div className="font-medium">{uiSummary.currency || "—"}</div>
                             </div>
                           </div>
 
                           <div className="mt-4 grid gap-4 md:grid-cols-3 text-sm">
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Revenue
-                              </div>
-                              <div className="font-medium">
-                                {fmtNum(uiSummary.revenue)}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Revenue</div>
+                              <div className="font-medium">{uiSummary.revenue != null ? formatNumber(uiSummary.revenue) : "—"}</div>
                             </div>
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                EBITDA
-                              </div>
-                              <div className="font-medium">
-                                {fmtNum(uiSummary.ebitda)}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">EBITDA</div>
+                              <div className="font-medium">{uiSummary.ebitda != null ? formatNumber(uiSummary.ebitda) : "—"}</div>
                             </div>
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Net profit
-                              </div>
-                              <div className="font-medium">
-                                {fmtNum(uiSummary.net_profit)}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Net profit</div>
+                              <div className="font-medium">{uiSummary.net_profit != null ? formatNumber(uiSummary.net_profit) : "—"}</div>
                             </div>
                           </div>
 
                           <div className="mt-4 grid gap-4 md:grid-cols-3 text-sm">
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Total assets
-                              </div>
-                              <div className="font-medium">
-                                {fmtNum(uiSummary.total_assets)}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Total assets</div>
+                              <div className="font-medium">{uiSummary.total_assets != null ? formatNumber(uiSummary.total_assets) : "—"}</div>
                             </div>
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Total liabilities
-                              </div>
-                              <div className="font-medium">
-                                {fmtNum(uiSummary.total_liabilities)}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Total liabilities</div>
+                              <div className="font-medium">{uiSummary.total_liabilities != null ? formatNumber(uiSummary.total_liabilities) : "—"}</div>
                             </div>
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Equity
-                              </div>
-                              <div className="font-medium">
-                                {fmtNum(uiSummary.equity)}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Equity</div>
+                              <div className="font-medium">{uiSummary.equity != null ? formatNumber(uiSummary.equity) : "—"}</div>
                             </div>
                           </div>
                         </>
@@ -1397,47 +1392,27 @@ export default function Results() {
                         <>
                           <div className="grid gap-4 md:grid-cols-3 text-sm">
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Employee
-                              </div>
-                              <div className="font-medium">
-                                {uiSummary.employee_name || "—"}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Employee</div>
+                              <div className="font-medium">{uiSummary.employee_name || "—"}</div>
                             </div>
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Employer
-                              </div>
-                              <div className="font-medium">
-                                {uiSummary.employer_name || "—"}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Employer</div>
+                              <div className="font-medium">{uiSummary.employer_name || "—"}</div>
                             </div>
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Period
-                              </div>
-                              <div className="font-medium">
-                                {uiSummary.period_label || "—"}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Period</div>
+                              <div className="font-medium">{uiSummary.period_label || "—"}</div>
                             </div>
                           </div>
 
                           <div className="mt-4 grid gap-4 md:grid-cols-2 text-sm">
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Gross pay
-                              </div>
-                              <div className="font-medium">
-                                {fmtNum(uiSummary.gross_pay)}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Gross pay</div>
+                              <div className="font-medium">{uiSummary.gross_pay != null ? formatNumber(uiSummary.gross_pay) : "—"}</div>
                             </div>
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Net pay
-                              </div>
-                              <div className="font-medium">
-                                {fmtNum(uiSummary.net_pay)}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Net pay</div>
+                              <div className="font-medium">{uiSummary.net_pay != null ? formatNumber(uiSummary.net_pay) : "—"}</div>
                             </div>
                           </div>
                         </>
@@ -1448,55 +1423,31 @@ export default function Results() {
                         <>
                           <div className="grid gap-4 md:grid-cols-3 text-sm">
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                First name(s)
-                              </div>
-                              <div className="font-medium">
-                                {uiSummary.first_names || "—"}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">First name(s)</div>
+                              <div className="font-medium">{uiSummary.first_names || "—"}</div>
                             </div>
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Surname
-                              </div>
-                              <div className="font-medium">
-                                {uiSummary.surname || "—"}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Surname</div>
+                              <div className="font-medium">{uiSummary.surname || "—"}</div>
                             </div>
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Date of birth
-                              </div>
-                              <div className="font-medium">
-                                {uiSummary.date_of_birth || "—"}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Date of birth</div>
+                              <div className="font-medium">{uiSummary.date_of_birth || "—"}</div>
                             </div>
                           </div>
 
                           <div className="mt-4 grid gap-4 md:grid-cols-3 text-sm">
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                ID type
-                              </div>
-                              <div className="font-medium">
-                                {uiSummary.id_type || "—"}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">ID type</div>
+                              <div className="font-medium">{uiSummary.id_type || "—"}</div>
                             </div>
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                ID / Passport number
-                              </div>
-                              <div className="font-medium">
-                                {uiSummary.id_number || "—"}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">ID / Passport number</div>
+                              <div className="font-medium">{uiSummary.id_number || "—"}</div>
                             </div>
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Issuing country
-                              </div>
-                              <div className="font-medium">
-                                {uiSummary.issuing_country || "—"}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Issuing country</div>
+                              <div className="font-medium">{uiSummary.issuing_country || "—"}</div>
                             </div>
                           </div>
                         </>
@@ -1507,69 +1458,38 @@ export default function Results() {
                         <>
                           <div className="grid gap-4 md:grid-cols-3 text-sm">
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Address holder
-                              </div>
-                              <div className="font-medium">
-                                {uiSummary.holder_name || "—"}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Address holder</div>
+                              <div className="font-medium">{uiSummary.holder_name || "—"}</div>
                             </div>
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Holder type
-                              </div>
-                              <div className="font-medium">
-                                {uiSummary.holder_type || "—"}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Holder type</div>
+                              <div className="font-medium">{uiSummary.holder_type || "—"}</div>
                             </div>
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Country
-                              </div>
-                              <div className="font-medium">
-                                {uiSummary.country || "—"}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Country</div>
+                              <div className="font-medium">{uiSummary.country || "—"}</div>
                             </div>
                           </div>
 
                           <div className="mt-4 grid gap-4 md:grid-cols-3 text-sm">
                             <div className="md:col-span-2">
-                              <div className="text-slate-500 text-xs uppercase">
-                                Address
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Address</div>
                               <div className="font-medium whitespace-pre-line">
                                 {uiSummary.address_line_1 || "—"}
-                                {uiSummary.address_line_2
-                                  ? `\n${uiSummary.address_line_2}`
-                                  : ""}
-                                {(uiSummary.city ||
-                                  uiSummary.province ||
-                                  uiSummary.postal_code) && "\n"}
+                                {uiSummary.address_line_2 ? `\n${uiSummary.address_line_2}` : ""}
+                                {(uiSummary.city || uiSummary.province || uiSummary.postal_code) && "\n"}
                                 {uiSummary.city || ""}
-                                {uiSummary.city && uiSummary.province
-                                  ? ", "
-                                  : ""}
+                                {uiSummary.city && uiSummary.province ? ", " : ""}
                                 {uiSummary.province || ""}
-                                {(uiSummary.city || uiSummary.province) &&
-                                uiSummary.postal_code
-                                  ? " "
-                                  : ""}
+                                {(uiSummary.city || uiSummary.province) && uiSummary.postal_code ? " " : ""}
                                 {uiSummary.postal_code || ""}
                               </div>
                             </div>
                             <div>
-                              <div className="text-slate-500 text-xs uppercase">
-                                Provider / Issuer
-                              </div>
-                              <div className="font-medium">
-                                {uiSummary.proof_entity_name || "—"}
-                              </div>
-                              <div className="mt-2 text-slate-500 text-xs uppercase">
-                                Issue date
-                              </div>
-                              <div className="font-medium">
-                                {uiSummary.document_issue_date || "—"}
-                              </div>
+                              <div className="text-slate-500 text-xs uppercase">Provider / Issuer</div>
+                              <div className="font-medium">{uiSummary.proof_entity_name || "—"}</div>
+                              <div className="mt-2 text-slate-500 text-xs uppercase">Issue date</div>
+                              <div className="font-medium">{uiSummary.document_issue_date || "—"}</div>
                             </div>
                           </div>
                         </>
@@ -1578,154 +1498,84 @@ export default function Results() {
                   )}
 
                   {/* Bank-statement ratios panel */}
-                  {bankRatios && !inProgress && docType === "bank_statements" && (
+                  {uiRatios?.kind === "bank" && !inProgress && docType === "bank_statements" && (
                     <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-                      <h2 className="text-sm font-semibold mb-3">
-                        Bank statement cashflow metrics
-                      </h2>
+                      <h2 className="text-sm font-semibold mb-3">Bank statement cashflow metrics</h2>
                       <div className="grid gap-4 md:grid-cols-3 text-sm">
                         <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Net cash flow
-                          </div>
-                          <div className="font-medium">
-                            {fmtNum(bankNetCashFlow)}
-                          </div>
+                          <div className="text-slate-500 text-xs uppercase">Net cash flow</div>
+                          <div className="font-medium">{bankNetCashFlow != null ? formatNumber(bankNetCashFlow) : "—"}</div>
                         </div>
                         <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Inflow / outflow ratio
-                          </div>
-                          <div className="font-medium">
-                            {fmtFixed(bankInflowToOutflow, 2)}
-                          </div>
+                          <div className="text-slate-500 text-xs uppercase">Inflow / outflow ratio</div>
+                          <div className="font-medium">{bankInflowToOutflow != null ? formatFixed(bankInflowToOutflow, 2) : "—"}</div>
                         </div>
                         <div>
-                          <div className="text-slate-500 text-xs uppercase">
-                            Closing vs opening balance
-                          </div>
-                          <div className="font-medium">
-                            {fmtFixed(bankClosingToOpening, 2)}
-                          </div>
+                          <div className="text-slate-500 text-xs uppercase">Closing vs opening balance</div>
+                          <div className="font-medium">{bankClosingToOpening != null ? formatFixed(bankClosingToOpening, 2) : "—"}</div>
                         </div>
                       </div>
                     </div>
                   )}
 
                   {/* Financial-statement ratios panel */}
-                  {financialRatios &&
-                    !inProgress &&
-                    docType === "financial_statements" && (
-                      <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-                        <h2 className="text-sm font-semibold mb-3">
-                          Key ratios (from statements)
-                        </h2>
-                        <div className="grid gap-4 md:grid-cols-4 text-sm">
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Current ratio
-                            </div>
-                            <div className="font-medium">
-                              {fmtFixed(currentRatio, 2)}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Quick ratio
-                            </div>
-                            <div className="font-medium">
-                              {fmtFixed(quickRatio, 2)}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Debt to equity
-                            </div>
-                            <div className="font-medium">
-                              {fmtFixed(debtToEquity, 2)}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Interest cover
-                            </div>
-                            <div className="font-medium">
-                              {fmtFixed(interestCover, 2)}
-                            </div>
-                          </div>
+                  {uiRatios?.kind === "financials" && !inProgress && docType === "financial_statements" && (
+                    <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
+                      <h2 className="text-sm font-semibold mb-3">Key ratios (from statements)</h2>
+                      <div className="grid gap-4 md:grid-cols-4 text-sm">
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">Current ratio</div>
+                          <div className="font-medium">{currentRatio != null ? formatFixed(currentRatio, 2) : "—"}</div>
                         </div>
-
-                        <div className="mt-4 grid gap-4 md:grid-cols-4 text-sm">
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Net margin
-                            </div>
-                            <div className="font-medium">
-                              {fmtFixed(netMargin, 2)}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Return on assets
-                            </div>
-                            <div className="font-medium">
-                              {fmtFixed(returnOnAssets, 2)}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Debt service coverage
-                            </div>
-                            <div className="font-medium">
-                              {fmtFixed(debtServiceCoverage, 2)}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Cashflow coverage
-                            </div>
-                            <div className="font-medium">
-                              {fmtFixed(cashflowCoverage, 2)}
-                            </div>
-                          </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">Quick ratio</div>
+                          <div className="font-medium">{quickRatio != null ? formatFixed(quickRatio, 2) : "—"}</div>
                         </div>
-
-                        {cashflowSummary && (
-                          <details className="mt-3 text-xs text-slate-600">
-                            <summary className="cursor-pointer underline underline-offset-2">
-                              Cashflow summary (technical)
-                            </summary>
-                            <pre className="mt-2 max-h-48 overflow-auto rounded bg-slate-900 text-slate-100 p-2 text-[11px]">
-                              {JSON.stringify(cashflowSummary, null, 2)}
-                            </pre>
-                          </details>
-                        )}
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">Debt to equity</div>
+                          <div className="font-medium">{debtToEquity != null ? formatFixed(debtToEquity, 2) : "—"}</div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">Interest cover</div>
+                          <div className="font-medium">{interestCover != null ? formatFixed(interestCover, 2) : "—"}</div>
+                        </div>
                       </div>
-                    )}
 
-                  {/* Raw parsed fields table from stub */}
+                      <div className="mt-4 grid gap-4 md:grid-cols-4 text-sm">
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">Net margin</div>
+                          <div className="font-medium">{netMargin != null ? formatFixed(netMargin, 2) : "—"}</div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">Return on assets</div>
+                          <div className="font-medium">{returnOnAssets != null ? formatFixed(returnOnAssets, 2) : "—"}</div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">Debt service coverage</div>
+                          <div className="font-medium">{debtServiceCoverage != null ? formatFixed(debtServiceCoverage, 2) : "—"}</div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">Cashflow coverage</div>
+                          <div className="font-medium">{cashflowCoverage != null ? formatFixed(cashflowCoverage, 2) : "—"}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Raw parsed fields table */}
                   <div className="rounded-lg border border-[rgb(var(--border))] overflow-x-auto bg-white">
                     <table className="min-w-full text-sm">
                       <thead className="bg-slate-50">
                         <tr>
-                          <th className="text-left p-3 border-b border-[rgb(var(--border))]">
-                            Field
-                          </th>
-                          <th className="text-left p-3 border-b border-[rgb(var(--border))]">
-                            Value
-                          </th>
-                          <th className="text-left p-3 border-b border-[rgb(var(--border))]">
-                            Confidence
-                          </th>
+                          <th className="text-left p-3 border-b border-[rgb(var(--border))]">Field</th>
+                          <th className="text-left p-3 border-b border-[rgb(var(--border))]">Value</th>
+                          <th className="text-left p-3 border-b border-[rgb(var(--border))]">Confidence</th>
                         </tr>
                       </thead>
                       <tbody>
                         {fields.length === 0 && (
                           <tr>
-                            <td
-                              colSpan={3}
-                              className="p-3 border-b border-[rgb(var(--border))] text-center opacity-70"
-                            >
+                            <td colSpan={3} className="p-3 border-b border-[rgb(var(--border))] text-center opacity-70">
                               {inProgress
                                 ? "Structured fields will appear here once analysis completes."
                                 : "No structured fields found. Check the raw JSON download for more details."}
@@ -1734,16 +1584,10 @@ export default function Results() {
                         )}
                         {fields.map((f, idx) => (
                           <tr key={idx} className="odd:bg-slate-50/50">
+                            <td className="p-3 border-b border-[rgb(var(--border))]">{f.name}</td>
+                            <td className="p-3 border-b border-[rgb(var(--border))] whitespace-pre-wrap">{f.value}</td>
                             <td className="p-3 border-b border-[rgb(var(--border))]">
-                              {f.name}
-                            </td>
-                            <td className="p-3 border-b border-[rgb(var(--border))] whitespace-pre-wrap">
-                              {f.value}
-                            </td>
-                            <td className="p-3 border-b border-[rgb(var(--border))]">
-                              {typeof f.confidence === "number"
-                                ? (f.confidence * 100).toFixed(1) + "%"
-                                : f.confidence ?? "—"}
+                              {typeof f.confidence === "number" ? (f.confidence * 100).toFixed(1) + "%" : f.confidence ?? "—"}
                             </td>
                           </tr>
                         ))}
@@ -1753,74 +1597,37 @@ export default function Results() {
                 </>
               )}
 
-              {/* ─────────────────────────────
-                  AGENT VIEW – SCORE-ONLY
-                  ───────────────────────────── */}
+              {/* ───────────────────────────── AGENT VIEW ───────────────────────────── */}
               {activeView === "agent" && (
                 <>
                   <div className="mb-4 rounded-lg border border-[rgb(var(--border))] bg-slate-50 px-4 py-3 text-sm">
                     <div className="flex flex-wrap items-center gap-3">
                       <span className="font-medium">Run status</span>
                       {formatStatusBadge(overallStatus)}
-                      {pipelineStage && (
-                        <span className="text-xs text-slate-500">
-                          Stage: {pipelineStage}
-                        </span>
-                      )}
-                      {qualityStatus && !inProgress && (
-                        <span className="text-xs text-slate-500">
-                          • Quality: {qualityStatus}
-                        </span>
-                      )}
+                      {pipelineStage && <span className="text-xs text-slate-500">Stage: {pipelineStage}</span>}
+                      {qualityStatus && !inProgress && <span className="text-xs text-slate-500">• Quality: {qualityStatus}</span>}
                     </div>
                   </div>
 
                   <div className="mb-4 grid gap-4 md:grid-cols-4 text-sm">
                     <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-                      <div className="text-slate-500 text-xs uppercase">
-                        Risk score
-                      </div>
-                      <div className="mt-1 text-2xl font-semibold">
-                        {typeof riskScore === "number"
-                          ? riskScore.toFixed(2)
-                          : "—"}
-                      </div>
+                      <div className="text-slate-500 text-xs uppercase">Risk score</div>
+                      <div className="mt-1 text-2xl font-semibold">{typeof riskScore === "number" ? riskScore.toFixed(2) : "—"}</div>
+                      <div className="mt-1 text-xs text-slate-600">Band: {riskBand || "—"}</div>
+                    </div>
+                    <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
+                      <div className="text-slate-500 text-xs uppercase">Confidence</div>
+                      <div className="mt-1 text-2xl font-semibold">{confidencePct != null ? confidencePct.toFixed(1) + "%" : "—"}</div>
+                    </div>
+                    <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
+                      <div className="text-slate-500 text-xs uppercase">Document</div>
+                      <div className="mt-1 text-lg font-semibold">{docTypeLabel}</div>
                       <div className="mt-1 text-xs text-slate-600">
-                        Band: {riskBand || "—"}
+                        Mode: {analysisMode === "detailed" ? "Detailed" : analysisMode === "quick" ? "Quick" : inProgress ? "Processing" : "—"}
                       </div>
                     </div>
                     <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-                      <div className="text-slate-500 text-xs uppercase">
-                        Confidence
-                      </div>
-                      <div className="mt-1 text-2xl font-semibold">
-                        {confidencePct != null
-                          ? confidencePct.toFixed(1) + "%"
-                          : "—"}
-                      </div>
-                    </div>
-                    <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-                      <div className="text-slate-500 text-xs uppercase">
-                        Document
-                      </div>
-                      <div className="mt-1 text-lg font-semibold">
-                        {docTypeLabel}
-                      </div>
-                      <div className="mt-1 text-xs text-slate-600">
-                        Mode:{" "}
-                        {analysisMode === "detailed"
-                          ? "Detailed"
-                          : analysisMode === "quick"
-                          ? "Quick"
-                          : inProgress
-                          ? "Processing"
-                          : "—"}
-                      </div>
-                    </div>
-                    <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-                      <div className="text-slate-500 text-xs uppercase">
-                        Period
-                      </div>
+                      <div className="text-slate-500 text-xs uppercase">Period</div>
                       <div className="mt-1 text-sm font-medium">
                         {uiSummary?.period_start || "—"}
                         {uiSummary?.period_end ? ` → ${uiSummary.period_end}` : ""}
@@ -1837,24 +1644,16 @@ export default function Results() {
                         <table className="min-w-full text-xs">
                           <thead className="bg-slate-50">
                             <tr>
-                              <th className="text-left p-2 border-b border-[rgb(var(--border))]">
-                                Metric
-                              </th>
-                              <th className="text-left p-2 border-b border-[rgb(var(--border))]">
-                                Value
-                              </th>
+                              <th className="text-left p-2 border-b border-[rgb(var(--border))]">Metric</th>
+                              <th className="text-left p-2 border-b border-[rgb(var(--border))]">Value</th>
                             </tr>
                           </thead>
                           <tbody>
                             {Object.entries(genericScores).map(([key, value]) => (
                               <tr key={key} className="odd:bg-slate-50/50">
+                                <td className="p-2 border-b border-[rgb(var(--border))]">{key}</td>
                                 <td className="p-2 border-b border-[rgb(var(--border))]">
-                                  {key}
-                                </td>
-                                <td className="p-2 border-b border-[rgb(var(--border))]">
-                                  {typeof value === "number"
-                                    ? value.toFixed(4)
-                                    : String(value)}
+                                  {typeof value === "number" ? value.toFixed(4) : String(value)}
                                 </td>
                               </tr>
                             ))}
@@ -1877,7 +1676,7 @@ export default function Results() {
                 </>
               )}
 
-              {/* Downloads / navigation actions – always visible */}
+              {/* Downloads / navigation actions */}
               <div className="mt-6 flex flex-wrap gap-3">
                 <button
                   type="button"
@@ -1921,4 +1720,5 @@ export default function Results() {
     </div>
   );
 }
+
 

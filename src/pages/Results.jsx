@@ -475,63 +475,50 @@ function buildPrintableHtml({ objectKey, docTypeLabel, analysisMode, riskScore, 
     lines.push(`<pre class="summary">${esc(agenticSummary)}</pre>`);
   }
 
-  // Keep it lightweight; we don’t need every section for PDF right now.
-  // Expand later if you want parity with the UI.
-{uiSummary?.kind === "financials" && !inProgress && (
-  <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-    <h2 className="text-sm font-semibold mb-3">Financial statement summary</h2>
+// Financial statements (PDF)
+if (uiSummary?.kind === "financials") {
+  lines.push(`<h2>Financial Statement Summary</h2>`);
+  lines.push(
+    `<table class="t">
+      ${row("Entity", uiSummary.entity_name || "—")}
+      ${row(
+        "Reporting Period",
+        `${uiSummary.period_start || "—"}${uiSummary.period_end ? ` to ${uiSummary.period_end}` : ""}`
+      )}
+      ${row("Currency", uiSummary.currency || "—")}
+      ${row("Revenue", uiSummary.revenue != null ? formatNumber(uiSummary.revenue) : "—")}
+      ${row("EBITDA", uiSummary.ebitda != null ? formatNumber(uiSummary.ebitda) : "—")}
+      ${row("Net profit", uiSummary.net_profit != null ? formatNumber(uiSummary.net_profit) : "—")}
+      ${row("Total assets", uiSummary.total_assets != null ? formatNumber(uiSummary.total_assets) : "—")}
+      ${row("Total liabilities", uiSummary.total_liabilities != null ? formatNumber(uiSummary.total_liabilities) : "—")}
+      ${row("Equity", uiSummary.equity != null ? formatNumber(uiSummary.equity) : "—")}
+    </table>`
+  );
 
-    <div className="grid gap-4 md:grid-cols-3 text-sm">
-      <div>
-        <div className="text-slate-500 text-xs uppercase">Entity</div>
-        <div className="font-medium">{uiSummary.entity_name || "—"}</div>
-      </div>
-      <div>
-        <div className="text-slate-500 text-xs uppercase">Reporting Period</div>
-        <div className="font-medium">
-          {uiSummary.period_start || "—"} {uiSummary.period_end ? `to ${uiSummary.period_end}` : ""}
-        </div>
-      </div>
-      <div>
-        <div className="text-slate-500 text-xs uppercase">Currency</div>
-        <div className="font-medium">{uiSummary.currency || "—"}</div>
-      </div>
-    </div>
+  if (uiRatios?.kind === "financials") {
+    lines.push(`<h2>Key Ratios</h2>`);
+    lines.push(
+      `<table class="t">
+        ${row("Current ratio", uiRatios.currentRatio != null ? formatFixed(uiRatios.currentRatio, 2) : "—")}
+        ${row("Quick ratio", uiRatios.quickRatio != null ? formatFixed(uiRatios.quickRatio, 2) : "—")}
+        ${row("Debt to equity", uiRatios.debtToEquity != null ? formatFixed(uiRatios.debtToEquity, 2) : "—")}
+        ${row("Interest cover", uiRatios.interestCover != null ? formatFixed(uiRatios.interestCover, 2) : "—")}
+        ${row("Net margin", uiRatios.netMargin != null ? formatFixed(uiRatios.netMargin, 2) : "—")}
+        ${row("Return on assets", uiRatios.returnOnAssets != null ? formatFixed(uiRatios.returnOnAssets, 2) : "—")}
+        ${row("Debt service coverage", uiRatios.debtServiceCoverage != null ? formatFixed(uiRatios.debtServiceCoverage, 2) : "—")}
+        ${row("Cashflow coverage", uiRatios.cashflowCoverage != null ? formatFixed(uiRatios.cashflowCoverage, 2) : "—")}
+      </table>`
+    );
+  }
+}
 
-    <div className="mt-4 grid gap-4 md:grid-cols-3 text-sm">
-      <div>
-        <div className="text-slate-500 text-xs uppercase">Revenue</div>
-        <div className="font-medium">{uiSummary.revenue != null ? formatNumber(uiSummary.revenue) : "—"}</div>
-      </div>
-      <div>
-        <div className="text-slate-500 text-xs uppercase">EBITDA</div>
-        <div className="font-medium">{uiSummary.ebitda != null ? formatNumber(uiSummary.ebitda) : "—"}</div>
-      </div>
-      <div>
-        <div className="text-slate-500 text-xs uppercase">Net profit</div>
-        <div className="font-medium">{uiSummary.net_profit != null ? formatNumber(uiSummary.net_profit) : "—"}</div>
-      </div>
-    </div>
 
-    <div className="mt-4 grid gap-4 md:grid-cols-3 text-sm">
-      <div>
-        <div className="text-slate-500 text-xs uppercase">Total assets</div>
-        <div className="font-medium">{uiSummary.total_assets != null ? formatNumber(uiSummary.total_assets) : "—"}</div>
-      </div>
-      <div>
-        <div className="text-slate-500 text-xs uppercase">Total liabilities</div>
-        <div className="font-medium">
-          {uiSummary.total_liabilities != null ? formatNumber(uiSummary.total_liabilities) : "—"}
-        </div>
-      </div>
-      <div>
-        <div className="text-slate-500 text-xs uppercase">Equity</div>
-        <div className="font-medium">{uiSummary.equity != null ? formatNumber(uiSummary.equity) : "—"}</div>
-      </div>
-    </div>
-  </div>
-)}
 
+
+
+
+
+   
 
     if (uiRatios?.kind === "financials") {
       lines.push(`<h2>Key Ratios</h2>`);

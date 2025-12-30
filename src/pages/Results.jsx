@@ -1,3 +1,81 @@
+function deriveAgenticFromResult(result) {
+  if (!result) {
+    return { agentic: null, rawAgentic: null, detailedEnvelope: null };
+  }
+
+  const detailedEnvelope = result.detailed || null;
+
+  const asObj = (v) => {
+    if (!v) return null;
+    if (typeof v === "object") return v;
+    if (typeof v === "string") {
+      try {
+        const parsed = JSON.parse(v);
+        return parsed && typeof parsed === "object" ? parsed : null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
+
+  // Prefer explicit top-level agentic if present
+  const topAgentic = asObj(result.agentic);
+  if (topAgentic) {
+    return { agentic: topAgentic, rawAgentic: topAgentic, detailedEnvelope };
+  }
+
+  /**
+   * IMPORTANT:
+   * Your current aggregator returns "detailed" as the actual payload:
+   *   detailed: { summary, structured, ratios, risk_score, ... }
+   * (not wrapped in detailed.result).
+   *
+   * So we must treat detailedEnvelope itself as a candidate.
+   */
+  const candidates = [
+    detailedEnvelope, // <-- NEW: direct detailed payload
+    detailedEnvelope?.result, // common: { summary, structured, ratios, ... }
+    detailedEnvelope?.result?.result, // double-wrapped
+    detailedEnvelope?.agentic, // common: detailed.agentic
+    detailedEnvelope?.agentic?.result, // common: detailed.agentic.result
+
+    // Legacy / defensive
+    result?.quick,
+    result?.quick?.result,
+    result?.quick?.structured,
+    result?.result,
+    result?.result?.result,
+  ]
+    .map(asObj)
+    .filter(Boolean);
+
+  let rawAgentic = candidates[0] || null;
+
+  if (!rawAgentic) {
+    return { agentic: null, rawAgentic: null, detailedEnvelope };
+  }
+
+  // If it's a wrapper like { docType, analysisMode, result: {...} }, merge it
+  let agentic = rawAgentic;
+
+  if (agentic && typeof agentic === "object" && agentic.result && typeof agentic.result === "object") {
+    agentic = { ...agentic, ...agentic.result };
+    delete agentic.result;
+  }
+
+  // Ensure docType/analysisMode/quality are present if we have the envelope
+  if (detailedEnvelope && typeof detailedEnvelope === "object") {
+    agentic = {
+      docType: detailedEnvelope.docType || result.docType || agentic.docType,
+      analysisMode: detailedEnvelope.analysisMode || result.analysisMode || agentic.analysisMode,
+      quality: detailedEnvelope.quality || result.quality || agentic.quality,
+      ...agentic,
+    };
+  }
+
+  return { agentic, rawAgentic, detailedEnvelope };
+}
 // src/pages/Results.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -134,14 +212,23 @@ function deriveAgenticFromResult(result) {
     return { agentic: topAgentic, rawAgentic: topAgentic, detailedEnvelope };
   }
 
-  // Candidate locations for the detailed payload
+  /**
+   * IMPORTANT:
+   * Your current aggregator returns "detailed" as the actual payload:
+   *   detailed: { summary, structured, ratios, risk_score, ... }
+   * (not wrapped in detailed.result).
+   *
+   * So we must treat detailedEnvelope itself as a candidate.
+   */
   const candidates = [
-    detailedEnvelope?.result,
-    detailedEnvelope?.result?.result,
-    detailedEnvelope?.agentic,
-    detailedEnvelope?.agentic?.result,
-    result?.detailed?.result,
-    result?.detailed?.result?.result,
+    detailedEnvelope, // <-- NEW: direct detailed payload
+    detailedEnvelope?.result, // common: { summary, structured, ratios, ... }
+    detailedEnvelope?.result?.result, // double-wrapped
+    detailedEnvelope?.agentic, // common: detailed.agentic
+    detailedEnvelope?.agentic?.result, // common: detailed.agentic.result
+
+    // Legacy / defensive
+    result?.quick,
     result?.quick?.result,
     result?.quick?.structured,
     result?.result,
@@ -156,7 +243,7 @@ function deriveAgenticFromResult(result) {
     return { agentic: null, rawAgentic: null, detailedEnvelope };
   }
 
-  // If it's a wrapper like { docType, analysisMode, result: {...} }, merge it so we don't lose wrapper fields
+  // If it's a wrapper like { docType, analysisMode, result: {...} }, merge it
   let agentic = rawAgentic;
 
   if (agentic && typeof agentic === "object" && agentic.result && typeof agentic.result === "object") {
@@ -164,7 +251,7 @@ function deriveAgenticFromResult(result) {
     delete agentic.result;
   }
 
-  // If we came from detailedEnvelope, ensure docType/analysisMode are present
+  // Ensure docType/analysisMode/quality are present if we have the envelope
   if (detailedEnvelope && typeof detailedEnvelope === "object") {
     agentic = {
       docType: detailedEnvelope.docType || result.docType || agentic.docType,
@@ -176,6 +263,7 @@ function deriveAgenticFromResult(result) {
 
   return { agentic, rawAgentic, detailedEnvelope };
 }
+
 
 // ---- Helpers to interpret errors & run status ----
 

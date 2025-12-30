@@ -357,32 +357,37 @@ function buildUiSummary(docType, agentic, fields = []) {
     };
   }
 
-  if (docType === "financial_statements") {
-    const s = coerceToObject(agentic?.structured) || agentic?.structured || {};
+if (docType === "financial_statements") {
+  const s = coerceToObject(agentic?.structured) || agentic?.structured || {};
 
-    const income = s?.income_statement || {};
-    const balance = s?.balance_sheet || {};
+  const income = s?.income_statement || {};
+  const balance = s?.balance_sheet || {};
 
-    return {
-      kind: "financials",
-      entity_name: firstDefined(s.entity_name, getField("entity_name")) || null,
-      period_start: firstDefined(s.reporting_period_start, getField("reporting_period_start")) || null,
-      period_end: firstDefined(s.reporting_period_end, getField("reporting_period_end")) || null,
-      currency: firstDefined(s.currency, getField("currency")) || null,
+  return {
+    kind: "financials",
 
-      revenue: firstDefined(toNumberOrNull(income.revenue), getFieldNum("revenue")),
-      ebitda: firstDefined(toNumberOrNull(income.ebitda), getFieldNum("ebitda")),
-      net_profit: firstDefined(
-        toNumberOrNull(income.profit_after_tax),
-        toNumberOrNull(income.net_income),
-        getFieldNum("profit_after_tax"),
-        getFieldNum("net_income")
-      ),
-      total_assets: firstDefined(toNumberOrNull(balance.assets_total), getFieldNum("assets_total")),
-      total_liabilities: firstDefined(toNumberOrNull(balance.liabilities_total), getFieldNum("liabilities_total")),
-      equity: firstDefined(toNumberOrNull(balance.equity), getFieldNum("equity")),
-    };
-  }
+    entity_name: firstDefined(s.entity_name, getField("entity_name")) || null,
+    period_start: firstDefined(s.reporting_period_start, getField("reporting_period_start")) || null,
+    period_end: firstDefined(s.reporting_period_end, getField("reporting_period_end")) || null,
+    currency: firstDefined(s.currency, getField("currency")) || null,
+
+    // Income statement
+    revenue: firstDefined(toNumberOrNull(income.revenue), getFieldNum("revenue")),
+    ebitda: firstDefined(toNumberOrNull(income.ebitda), getFieldNum("ebitda")),
+    net_profit: firstDefined(
+      toNumberOrNull(income.profit_after_tax),
+      toNumberOrNull(income.net_income),
+      getFieldNum("profit_after_tax"),
+      getFieldNum("net_income")
+    ),
+
+    // Balance sheet
+    total_assets: firstDefined(toNumberOrNull(balance.assets_total), getFieldNum("assets_total")),
+    total_liabilities: firstDefined(toNumberOrNull(balance.liabilities_total), getFieldNum("liabilities_total")),
+    equity: firstDefined(toNumberOrNull(balance.equity), getFieldNum("equity")),
+  };
+}
+
 
   if (docType === "payslips") {
     const s = coerceToObject(agentic?.structured) || agentic?.structured || {};

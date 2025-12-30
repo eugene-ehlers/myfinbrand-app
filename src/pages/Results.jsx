@@ -869,6 +869,10 @@ export default function Results() {
 
   // Agentic payload: unified view across old and new contracts
   const { agentic } = deriveAgenticFromResult(result);
+  console.log("agentic structured income_statement:", agentic?.structured?.income_statement);
+  console.log("agentic ebitda:", agentic?.structured?.income_statement?.ebitda);
+  console.log("uiSummary ebitda:", uiSummary?.ebitda, "type:", typeof uiSummary?.ebitda);
+
 
   // High-level fields from the stub / aggregator
   const docTypeRaw = agentic?.docType ?? result?.docType ?? null;

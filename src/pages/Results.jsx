@@ -108,14 +108,34 @@ function deriveAgenticFromResult(result) {
     return { agentic: topAgentic, rawAgentic: topAgentic, detailedEnvelope };
   }
 
+  // Detect when `result.detailed` itself is the agentic payload (your current financial_statements shape)
+  const detailedAsAgentic = asObj(detailedEnvelope);
+  const detailedLooksLikeAgentic =
+    detailedAsAgentic &&
+    typeof detailedAsAgentic === "object" &&
+    // typical agentic payload keys
+    (typeof detailedAsAgentic.summary === "string" ||
+      typeof detailedAsAgentic.status === "string" ||
+      typeof detailedAsAgentic.mode === "string" ||
+      typeof detailedAsAgentic.lambda_version === "string" ||
+      typeof detailedAsAgentic.structured === "object" ||
+      typeof detailedAsAgentic.ratios === "object" ||
+      typeof detailedAsAgentic.risk_score === "object");
+
   // Candidate locations for the detailed S3 payload (these vary by aggregator implementations)
   const candidates = [
+    // IMPORTANT: accept detailed itself when it already contains the payload
+    detailedLooksLikeAgentic ? detailedAsAgentic : null,
+
+    // common envelope: { docType, analysisMode, quality, result: {...} }
     detailedEnvelope?.result,
     detailedEnvelope?.result?.result,
+
+    // other variants
     detailedEnvelope?.agentic,
     detailedEnvelope?.agentic?.result,
-    result?.detailed?.result,
-    result?.detailed?.result?.result,
+
+    // legacy
     result?.quick?.result,
     result?.quick?.structured,
     result?.result,
@@ -124,7 +144,7 @@ function deriveAgenticFromResult(result) {
     .map(asObj)
     .filter(Boolean);
 
-  let rawAgentic = candidates[0] || null;
+  const rawAgentic = candidates[0] || null;
 
   if (!rawAgentic) {
     return { agentic: null, rawAgentic: null, detailedEnvelope };
@@ -142,8 +162,15 @@ function deriveAgenticFromResult(result) {
     delete agentic.result;
   }
 
-  // If we came from detailedEnvelope, ensure docType/analysisMode are present (helpful for UI routing)
-  if (detailedEnvelope && typeof detailedEnvelope === "object") {
+  // If we came from a detailed envelope that has metadata, preserve it
+  if (
+    detailedEnvelope &&
+    typeof detailedEnvelope === "object" &&
+    // only apply envelope metadata if it actually looks like an envelope
+    ("docType" in detailedEnvelope ||
+      "analysisMode" in detailedEnvelope ||
+      "quality" in detailedEnvelope)
+  ) {
     agentic = {
       docType: detailedEnvelope.docType || result.docType || agentic.docType,
       analysisMode:
@@ -157,6 +184,7 @@ function deriveAgenticFromResult(result) {
 
   return { agentic, rawAgentic, detailedEnvelope };
 }
+
 
 // ---- Helpers to interpret errors & run status ----
 

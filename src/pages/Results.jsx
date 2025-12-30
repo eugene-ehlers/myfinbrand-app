@@ -179,6 +179,21 @@ function classifyIssues(result) {
   const qualityDecision = quality.decision || null; // for future expansion
   const qualityReasons = Array.isArray(quality.reasons) ? quality.reasons : [];
 
+  function toFiniteNumber(v) {
+  if (v == null) return null;
+    const n =
+      typeof v === "number"
+        ? v
+        : Number(String(v).replace(/,/g, "").trim());
+    return Number.isFinite(n) ? n : null;
+  }
+  
+  function fmtNum(v, locale = "en-ZA") {
+    const n = toFiniteNumber(v);
+    return n == null ? "—" : n.toLocaleString(locale);
+  }
+
+
   // ───────────────────────────────────────────────
   // 1) PIPELINE IN-PROGRESS / QUEUED STATE
   // ───────────────────────────────────────────────

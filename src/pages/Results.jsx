@@ -818,9 +818,11 @@ export default function Results() {
         }
       }, 250);
 
-    } catch {
-      alert("Could not generate the PDF summary. Please try again.");
-    }
+      } catch (err) {
+        console.error("Download PDF failed", err);
+        alert("Could not generate the PDF summary. Please try again.");
+      }
+
   }
 
   const { agentic } = deriveAgenticFromResult(result);

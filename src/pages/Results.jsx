@@ -785,14 +785,39 @@ export default function Results() {
         uiRatios,
       });
 
-      const w = window.open("", "_blank", "noopener,noreferrer");
-      if (!w) {
-        alert("Popup blocked. Please allow popups to download the PDF.");
+      // Avoid popups: render into a hidden iframe and trigger print from there
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "fixed";
+      iframe.style.right = "0";
+      iframe.style.bottom = "0";
+      iframe.style.width = "0";
+      iframe.style.height = "0";
+      iframe.style.border = "0";
+      iframe.style.visibility = "hidden";
+      document.body.appendChild(iframe);
+      
+      const doc = iframe.contentWindow?.document;
+      if (!doc) {
+        iframe.remove();
+        alert("Could not generate the PDF summary. Please try again.");
         return;
       }
-      w.document.open();
-      w.document.write(html);
-      w.document.close();
+      
+      doc.open();
+      doc.write(html);
+      doc.close();
+      
+      // Give the browser a moment to layout then print
+      setTimeout(() => {
+        try {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+        } finally {
+          // Cleanup after print dialog opens
+          setTimeout(() => iframe.remove(), 1000);
+        }
+      }, 250);
+
     } catch {
       alert("Could not generate the PDF summary. Please try again.");
     }

@@ -38,6 +38,35 @@ function coerceToObject(maybeObjOrJsonString) {
 }
 
 /**
+ * Number formatting helpers.
+ * Rule:
+ * - show "—" only for null/undefined/non-finite
+ * - show 0 if the value is 0
+ */
+function toFiniteNumber(v) {
+  if (v == null) return null;
+  if (typeof v === "number") return Number.isFinite(v) ? v : null;
+
+  // strings like "1 200 000" or "1,200,000"
+  const s = String(v).trim();
+  if (!s) return null;
+
+  const normalized = s.replace(/,/g, "").replace(/\s+/g, "");
+  const n = Number(normalized);
+  return Number.isFinite(n) ? n : null;
+}
+
+function fmtNum(v, locale = "en-ZA") {
+  const n = toFiniteNumber(v);
+  return n == null ? "—" : n.toLocaleString(locale);
+}
+
+function fmtFixed(v, digits = 2) {
+  const n = toFiniteNumber(v);
+  return n == null ? "—" : Number(n).toFixed(digits);
+}
+
+/**
  * Derive a unified "agentic" payload from the backend result.
  *
  * Supports multiple shapes:
@@ -52,87 +81,82 @@ function coerceToObject(maybeObjOrJsonString) {
  * - legacy: result.quick.result
  * - legacy: result.quick.structured
  */
-
-
-  function deriveAgenticFromResult(result) {
-    if (!result) {
-      return { agentic: null, rawAgentic: null, detailedEnvelope: null };
-    }
-  
-    const detailedEnvelope = result.detailed || null;
-  
-    const asObj = (v) => {
-      if (!v) return null;
-      if (typeof v === "object") return v;
-      if (typeof v === "string") {
-        try {
-          const parsed = JSON.parse(v);
-          return parsed && typeof parsed === "object" ? parsed : null;
-        } catch {
-          return null;
-        }
-      }
-      return null;
-    };
-  
-    // Prefer explicit top-level agentic if present
-    const topAgentic = asObj(result.agentic);
-    if (topAgentic) {
-      return { agentic: topAgentic, rawAgentic: topAgentic, detailedEnvelope };
-    }
-  
-    // Candidate locations for the detailed S3 payload (these vary by aggregator implementations)
-    const candidates = [
-      detailedEnvelope,          // IMPORTANT: your current live payload is here
-      detailedEnvelope?.result,
-      detailedEnvelope?.result?.result,
-      detailedEnvelope?.agentic,
-      detailedEnvelope?.agentic?.result,
-      result?.detailed?.result,
-      result?.detailed?.result?.result,
-      result?.quick?.result,
-      result?.quick?.structured,
-      result?.result,
-      result?.result?.result,
-    ]
-      .map(asObj)
-      .filter(Boolean);
-  
-    // Pick first viable candidate
-    let rawAgentic = candidates[0] || null;
-  
-    if (!rawAgentic) {
-      return { agentic: null, rawAgentic: null, detailedEnvelope };
-    }
-  
-    // If it's a wrapper like { docType, analysisMode, result: {...} }, merge it so we don't lose wrapper fields
-    let agentic = rawAgentic;
-  
-    if (
-      agentic &&
-      typeof agentic === "object" &&
-      agentic.result &&
-      typeof agentic.result === "object"
-    ) {
-      agentic = { ...agentic, ...agentic.result };
-      delete agentic.result;
-    }
-  
-    // If we came from detailedEnvelope, ensure docType/analysisMode are present (helpful for UI routing)
-    if (detailedEnvelope && typeof detailedEnvelope === "object") {
-      agentic = {
-        docType: detailedEnvelope.docType || result.docType || agentic.docType,
-        analysisMode:
-          detailedEnvelope.analysisMode || result.analysisMode || agentic.analysisMode,
-        quality: detailedEnvelope.quality || result.quality || agentic.quality,
-        ...agentic,
-      };
-    }
-  
-    return { agentic, rawAgentic, detailedEnvelope };
+function deriveAgenticFromResult(result) {
+  if (!result) {
+    return { agentic: null, rawAgentic: null, detailedEnvelope: null };
   }
 
+  const detailedEnvelope = result.detailed || null;
 
+  const asObj = (v) => {
+    if (!v) return null;
+    if (typeof v === "object") return v;
+    if (typeof v === "string") {
+      try {
+        const parsed = JSON.parse(v);
+        return parsed && typeof parsed === "object" ? parsed : null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
+
+  // Prefer explicit top-level agentic if present
+  const topAgentic = asObj(result.agentic);
+  if (topAgentic) {
+    return { agentic: topAgentic, rawAgentic: topAgentic, detailedEnvelope };
+  }
+
+  // Candidate locations for the detailed S3 payload (these vary by aggregator implementations)
+  const candidates = [
+    detailedEnvelope?.result,
+    detailedEnvelope?.result?.result,
+    detailedEnvelope?.agentic,
+    detailedEnvelope?.agentic?.result,
+    result?.detailed?.result,
+    result?.detailed?.result?.result,
+    result?.quick?.result,
+    result?.quick?.structured,
+    result?.result,
+    result?.result?.result,
+  ]
+    .map(asObj)
+    .filter(Boolean);
+
+  let rawAgentic = candidates[0] || null;
+
+  if (!rawAgentic) {
+    return { agentic: null, rawAgentic: null, detailedEnvelope };
+  }
+
+  // Unwrap if it's a wrapper like { result: {...} }
+  let agentic = rawAgentic;
+  if (
+    agentic &&
+    typeof agentic === "object" &&
+    agentic.result &&
+    typeof agentic.result === "object"
+  ) {
+    agentic = { ...agentic, ...agentic.result };
+    delete agentic.result;
+  }
+
+  // If we came from detailedEnvelope, ensure docType/analysisMode are present (helpful for UI routing)
+  if (detailedEnvelope && typeof detailedEnvelope === "object") {
+    agentic = {
+      docType: detailedEnvelope.docType || result.docType || agentic.docType,
+      analysisMode:
+        detailedEnvelope.analysisMode ||
+        result.analysisMode ||
+        agentic.analysisMode,
+      quality: detailedEnvelope.quality || result.quality || agentic.quality,
+      ...agentic,
+    };
+  }
+
+  return { agentic, rawAgentic, detailedEnvelope };
+}
 
 // ---- Helpers to interpret errors & run status ----
 
@@ -176,29 +200,13 @@ function classifyIssues(result) {
 
   const quality = result.quality || {};
   const qualityStatus = quality.status || null;
-  const qualityDecision = quality.decision || null; // for future expansion
+  const qualityDecision = quality.decision || null;
   const qualityReasons = Array.isArray(quality.reasons) ? quality.reasons : [];
-
-  function toFiniteNumber(v) {
-  if (v == null) return null;
-    const n =
-      typeof v === "number"
-        ? v
-        : Number(String(v).replace(/,/g, "").trim());
-    return Number.isFinite(n) ? n : null;
-  }
-  
-  function fmtNum(v, locale = "en-ZA") {
-    const n = toFiniteNumber(v);
-    return n == null ? "—" : n.toLocaleString(locale);
-  }
-
 
   // ───────────────────────────────────────────────
   // 1) PIPELINE IN-PROGRESS / QUEUED STATE
   // ───────────────────────────────────────────────
   const isInProgress =
-    // If we have no final payload yet, we are still processing — even if stage is missing/unknown
     (!hasAnyFinalResult &&
       (pipelineStage == null ||
         pipelineStage === "uploaded" ||
@@ -207,7 +215,6 @@ function classifyIssues(result) {
         pipelineStage === "quick_ai_queued" ||
         pipelineStage === "detailed_ai_completed")) ||
     (!hasAnyFinalResult && qualityStatus === "pending") ||
-    // defensive: stage says "completed" but detailed payload not present yet (avoid false "completed" UI)
     (pipelineStage === "detailed_ai_completed" && !hasDetailed);
 
   if (isInProgress) {
@@ -376,9 +383,9 @@ function formatStatusBadge(status) {
   }
   return (
     <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-slate-100 text-slate-700">
-        Status unknown
-      </span>
-    );
+      Status unknown
+    </span>
+  );
 }
 
 // map backend docType → nice label
@@ -396,13 +403,11 @@ function buildUiSummary(docType, agentic, fields = []) {
   if (!agentic && !fields.length) return null;
 
   const getField = (name) =>
-    fields.find(
-      (f) => f.name && f.name.toLowerCase() === name.toLowerCase()
-    )?.value ?? null;
+    fields.find((f) => f.name && f.name.toLowerCase() === name.toLowerCase())
+      ?.value ?? null;
 
   // BANK STATEMENTS
   if (docType === "bank_statements") {
-    // New contract: agentic.structured.statement_summary + .transactions
     const stmt =
       agentic?.structured?.statement_summary ||
       agentic?.statement_summary ||
@@ -418,7 +423,6 @@ function buildUiSummary(docType, agentic, fields = []) {
     let totalCredits = null;
     let totalDebits = null;
 
-    // Prefer backend totals if present
     if (
       typeof stmt.total_credits === "number" ||
       typeof stmt.total_debits === "number"
@@ -428,16 +432,10 @@ function buildUiSummary(docType, agentic, fields = []) {
       totalDebits =
         typeof stmt.total_debits === "number" ? stmt.total_debits : null;
     } else if (txs.length) {
-      // Fallback: compute from signed amounts
       let credits = 0;
       let debits = 0;
       for (const tx of txs) {
-        const rawAmount = tx.amount;
-        const amount =
-          typeof rawAmount === "number"
-            ? rawAmount
-            : parseFloat(rawAmount ?? 0) || 0;
-
+        const amount = toFiniteNumber(tx.amount) ?? 0;
         if (amount >= 0) credits += amount;
         else debits += Math.abs(amount);
       }
@@ -447,8 +445,6 @@ function buildUiSummary(docType, agentic, fields = []) {
 
     return {
       kind: "bank",
-
-      // Prefer current structured contract keys first, then legacy keys, then fields[] fallback
       account_holder:
         stmt.account_holder_name ||
         stmt.account_holder ||
@@ -456,129 +452,110 @@ function buildUiSummary(docType, agentic, fields = []) {
         stmt.account_name_normalised ||
         getField("account_holder_name") ||
         null,
-
       period_start:
         stmt.statement_period_start ||
         stmt.statement_start_date ||
         stmt.period_start ||
         getField("statement_period_start") ||
         null,
-
       period_end:
         stmt.statement_period_end ||
         stmt.statement_end_date ||
         stmt.period_end ||
         getField("statement_period_end") ||
         null,
-
-      // Normalize numeric values (strings -> numbers)
       opening_balance:
         stmt.opening_balance != null
-          ? Number(stmt.opening_balance)
+          ? toFiniteNumber(stmt.opening_balance)
           : getField("opening_balance") != null
-          ? Number(getField("opening_balance"))
+          ? toFiniteNumber(getField("opening_balance"))
           : null,
-
       closing_balance:
         stmt.closing_balance != null
-          ? Number(stmt.closing_balance)
+          ? toFiniteNumber(stmt.closing_balance)
           : getField("closing_balance") != null
-          ? Number(getField("closing_balance"))
+          ? toFiniteNumber(getField("closing_balance"))
           : null,
-
-      total_credits: totalCredits != null ? Number(totalCredits) : null,
-      total_debits: totalDebits != null ? Number(totalDebits) : null,
-
+      total_credits: totalCredits != null ? toFiniteNumber(totalCredits) : null,
+      total_debits: totalDebits != null ? toFiniteNumber(totalDebits) : null,
       currency: stmt.currency || getField("currency") || "ZAR",
     };
   }
 
-    // FINANCIAL STATEMENTS
-    if (docType === "financial_statements") {
-      const getFieldNum = (name) => {
-        const v = getField(name);
-        if (v == null) return null;
-        const n = typeof v === "number" ? v : Number(String(v).replace(/,/g, ""));
-        return Number.isFinite(n) ? n : null;
-      };
-  
-      // Try to normalise structured payload; some backends return it as a string
-      const s = coerceToObject(agentic?.structured) || agentic?.structured || {};
-  
-      // Support older nesting: structured.financials.*
-      const fin = coerceToObject(s?.financials) || s?.financials || null;
-  
-      // Support also “income_statement” accidentally being placed at agentic root (seen in some legacy contracts)
-      const income =
-        s?.income_statement ||
-        fin?.income_statement ||
-        agentic?.income_statement ||
-        agentic?.financials?.income_statement ||
-        {};
-  
-      const balance =
-        s?.balance_sheet ||
-        fin?.balance_sheet ||
-        agentic?.balance_sheet ||
-        agentic?.financials?.balance_sheet ||
-        {};
-  
-      return {
-        kind: "financials",
-        entity_name: s?.entity_name || agentic?.entity_name || getField("entity_name") || "UNKNOWN",
-        period_start:
-          s?.reporting_period_start ||
-          s?.period_start ||
-          agentic?.reporting_period_start ||
-          agentic?.period_start ||
-          getField("reporting_period_start") ||
-          getField("period_start") ||
-          null,
-        period_end:
-          s?.reporting_period_end ||
-          s?.period_end ||
-          agentic?.reporting_period_end ||
-          agentic?.period_end ||
-          getField("reporting_period_end") ||
-          getField("period_end") ||
-          null,
-        currency: s?.currency || agentic?.currency || getField("currency") || "ZAR",
-  
-        revenue: income?.revenue ?? getFieldNum("revenue") ?? null,
-        ebitda: income?.ebitda ?? getFieldNum("ebitda") ?? null,
-  
-        // Your backend uses profit_after_tax
-        net_profit:
-          income?.profit_after_tax ??
-          income?.net_profit ??
-          income?.netIncome ??
-          income?.net_income ??
-          getFieldNum("profit_after_tax") ??
-          getFieldNum("net_profit") ??
-          getFieldNum("net_income") ??
-          null,
-  
-        total_assets:
-          balance?.assets_total ??
-          balance?.total_assets ??
-          balance?.totalAssets ??
-          getFieldNum("assets_total") ??
-          getFieldNum("total_assets") ??
-          getFieldNum("totalAssets") ??
-          null,
-  
-        total_liabilities:
-          balance?.liabilities_total ??
-          balance?.total_liabilities ??
-          balance?.totalLiabilities ??
-          getFieldNum("liabilities_total") ??
-          getFieldNum("total_liabilities") ??
-          getFieldNum("totalLiabilities") ??
-          null,
-  
-        equity: balance?.equity ?? getFieldNum("equity") ?? null,
-      };
-    }
+  // FINANCIAL STATEMENTS
+  if (docType === "financial_statements") {
+    const s = coerceToObject(agentic?.structured) || agentic?.structured || {};
+    const fin = coerceToObject(s?.financials) || s?.financials || null;
+
+    const income =
+      s?.income_statement ||
+      fin?.income_statement ||
+      agentic?.income_statement ||
+      agentic?.financials?.income_statement ||
+      {};
+
+    const balance =
+      s?.balance_sheet ||
+      fin?.balance_sheet ||
+      agentic?.balance_sheet ||
+      agentic?.financials?.balance_sheet ||
+      {};
+
+    return {
+      kind: "financials",
+      entity_name:
+        s?.entity_name || agentic?.entity_name || getField("entity_name") || "UNKNOWN",
+      period_start:
+        s?.reporting_period_start ||
+        s?.period_start ||
+        agentic?.reporting_period_start ||
+        agentic?.period_start ||
+        getField("reporting_period_start") ||
+        getField("period_start") ||
+        null,
+      period_end:
+        s?.reporting_period_end ||
+        s?.period_end ||
+        agentic?.reporting_period_end ||
+        agentic?.period_end ||
+        getField("reporting_period_end") ||
+        getField("period_end") ||
+        null,
+      currency: s?.currency || agentic?.currency || getField("currency") || "ZAR",
+
+      revenue: income?.revenue ?? toFiniteNumber(getField("revenue")),
+      ebitda: income?.ebitda ?? toFiniteNumber(getField("ebitda")),
+      net_profit:
+        income?.profit_after_tax ??
+        income?.net_profit ??
+        income?.netIncome ??
+        income?.net_income ??
+        toFiniteNumber(getField("profit_after_tax")) ??
+        toFiniteNumber(getField("net_profit")) ??
+        toFiniteNumber(getField("net_income")) ??
+        null,
+
+      total_assets:
+        balance?.assets_total ??
+        balance?.total_assets ??
+        balance?.totalAssets ??
+        toFiniteNumber(getField("assets_total")) ??
+        toFiniteNumber(getField("total_assets")) ??
+        toFiniteNumber(getField("totalAssets")) ??
+        null,
+
+      total_liabilities:
+        balance?.liabilities_total ??
+        balance?.total_liabilities ??
+        balance?.totalLiabilities ??
+        toFiniteNumber(getField("liabilities_total")) ??
+        toFiniteNumber(getField("total_liabilities")) ??
+        toFiniteNumber(getField("totalLiabilities")) ??
+        null,
+
+      equity: balance?.equity ?? toFiniteNumber(getField("equity")) ?? null,
+    };
+  }
 
   // PAYSLIPS
   if (docType === "payslips") {
@@ -591,19 +568,10 @@ function buildUiSummary(docType, agentic, fields = []) {
 
     const grossRaw =
       s.gross_pay ?? getField("gross_pay") ?? getField("Gross Pay") ?? null;
+    const netRaw = s.net_pay ?? getField("net_pay") ?? getField("Net Pay") ?? null;
 
-    const netRaw =
-      s.net_pay ?? getField("net_pay") ?? getField("Net Pay") ?? null;
-
-    const grossPay =
-      grossRaw == null
-        ? null
-        : typeof grossRaw === "number"
-        ? grossRaw
-        : Number(grossRaw);
-
-    const netPay =
-      netRaw == null ? null : typeof netRaw === "number" ? netRaw : Number(netRaw);
+    const grossPay = toFiniteNumber(grossRaw);
+    const netPay = toFiniteNumber(netRaw);
 
     return {
       kind: "payslip",
@@ -620,8 +588,8 @@ function buildUiSummary(docType, agentic, fields = []) {
         getField("Employer") ||
         null,
       period_label: periodLabel || null,
-      gross_pay: Number.isFinite(grossPay) ? grossPay : null,
-      net_pay: Number.isFinite(netPay) ? netPay : null,
+      gross_pay: grossPay,
+      net_pay: netPay,
       currency: s.currency || getField("currency") || "ZAR",
     };
   }
@@ -662,8 +630,6 @@ function buildUiSummary(docType, agentic, fields = []) {
 
     return {
       kind: "address",
-
-      // Your backend uses structured.customer_name for POA
       holder_name:
         s.customer_name ||
         getField("customer_name") ||
@@ -671,43 +637,32 @@ function buildUiSummary(docType, agentic, fields = []) {
         getField("Account Holder Name") ||
         getField("Address Holder Name") ||
         null,
-
-      // Not currently provided in structured payload (fine to remain field-only)
       holder_type: getField("Holder Type") || null,
-
-      // Prefer address_lines from structured, then fall back to fields
       address_line_1:
         line1 ||
         getField("address_line_1") ||
         getField("Address Line 1") ||
         getField("Address1") ||
         null,
-
       address_line_2:
         line2 ||
         getField("address_line_2") ||
         getField("Address Line 2") ||
         getField("Address2") ||
         null,
-
-      // Your structured payload doesn't split city/province today; keep as field fallbacks
       city: getField("City / Town") || getField("City") || null,
       province:
         getField("Province / State") ||
         getField("Province") ||
         getField("State") ||
         null,
-
       postal_code:
         s.postal_code ||
         getField("postal_code") ||
         getField("Postal Code") ||
         getField("Postcode") ||
         null,
-
       country: s.country || getField("Country") || null,
-
-      // issuer_name + issue_date are in structured
       proof_entity_name:
         s.issuer_name ||
         getField("issuer_name") ||
@@ -715,7 +670,6 @@ function buildUiSummary(docType, agentic, fields = []) {
         getField("Provider") ||
         getField("Issuer") ||
         null,
-
       document_issue_date:
         s.issue_date ||
         getField("issue_date") ||
@@ -737,10 +691,8 @@ export default function Results() {
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
 
-  // NEW: view toggle – "summary" (client) vs "agent"
   const [activeView, setActiveView] = useState("summary");
 
-  // NEW AGGREGATOR FUNCTION URL
   const functionUrl =
     "https://5epugrqble4dg6pahfz63wx44a0caasj.lambda-url.us-east-1.on.aws/";
 
@@ -815,11 +767,9 @@ export default function Results() {
           (!hasQuick && !hasDetailed && qualityStatus === "pending") ||
           (pipelineStage === "detailed_ai_completed" && !hasDetailed);
 
-        // Only overwrite the UI with partial results if we don't already have something better
         setResult((prev) => {
           if (!prev) return data;
-          if (!inProgress) return data; // final → always take it
-          // in progress → keep previous if it already has quick/detailed to avoid flicker
+          if (!inProgress) return data;
           const prevHasAny = !!prev.quick || !!prev.detailed;
           const nextHasAny = hasQuick || hasDetailed;
           return prevHasAny && !nextHasAny ? prev : data;
@@ -882,17 +832,10 @@ export default function Results() {
     );
   }
 
-  // Agentic payload: unified view across old and new contracts
   const { agentic } = deriveAgenticFromResult(result);
-  console.log("agentic structured income_statement:", agentic?.structured?.income_statement);
-  console.log("agentic ebitda:", agentic?.structured?.income_statement?.ebitda);
-  console.log("uiSummary ebitda:", uiSummary?.ebitda, "type:", typeof uiSummary?.ebitda);
 
-
-  // High-level fields from the stub / aggregator
   const docTypeRaw = agentic?.docType ?? result?.docType ?? null;
 
-  // Normalize docType so UI logic is stable even if backend returns "Payslip" / "payslip"
   const docType =
     typeof docTypeRaw === "string"
       ? (() => {
@@ -903,8 +846,11 @@ export default function Results() {
         })()
       : null;
 
-  const docTypeLabel = (docType && DOC_TYPE_LABELS[docType]) || docTypeRaw || "—";
+  const docTypeLabel =
+    (docType && DOC_TYPE_LABELS[docType]) || docTypeRaw || "—";
+
   const fields = Array.isArray(result?.fields) ? result.fields : [];
+
   const pipelineStage =
     typeof result?.statusAudit === "string"
       ? result.statusAudit
@@ -915,29 +861,15 @@ export default function Results() {
         null
       : null;
 
-  // Build a UI summary based on docType + agentic content + fields
   const uiSummary = buildUiSummary(docType, agentic, fields);
 
-  // Classification & risk (where present)
   const classification = agentic?.classification || null;
-  const riskScore =
-    agentic?.risk_score?.score ?? 
-    result?.riskScore?.score ?? 
-    null;
-  const riskBand =
-    agentic?.risk_score?.band ??
-    result?.riskScore?.band ??
-    null;
+  const riskScore = agentic?.risk_score?.score ?? result?.riskScore?.score ?? null;
+  const riskBand = agentic?.risk_score?.band ?? result?.riskScore?.band ?? null;
 
-
-
-  // Confidence: normalize 0–1 or 0–100 into a percent
   const quality = result?.quality || {};
   const rawConfidence =
-    typeof quality.confidence === "number" ? quality.confidence
-      : typeof agentic?.classification?.confidence === "number" ? agentic.classification.confidence
-      : typeof result?.detailed?.classification?.confidence === "number" ? result.detailed.classification.confidence
-      : null;
+    typeof quality.confidence === "number" ? quality.confidence : null;
 
   const confidencePct =
     typeof rawConfidence === "number"
@@ -948,7 +880,6 @@ export default function Results() {
 
   const qualityStatus = quality.status || null;
 
-  // Analysis mode from backend / agentic (with fallback)
   const analysisModeRaw = agentic?.analysisMode || result?.analysisMode || null;
 
   const analysisMode =
@@ -957,10 +888,6 @@ export default function Results() {
 
   const { issues, overallStatus, inProgress } = classifyIssues(result);
 
-  // Summary selection aligned to current backend contract:
-  // - detailed: result.detailed.result.summary or result.detailed.summary
-  // - quick: result.quick.summary
-  // - fallbacks for any legacy paths
   const agenticSummary =
     result?.detailed?.result?.summary ??
     result?.detailed?.summary ??
@@ -969,12 +896,10 @@ export default function Results() {
     result?.summary ??
     null;
 
-  // Ratios & cashflow summaries
   const ratios =
     agentic?.ratios ||
     agentic?.financial_ratios ||
     agentic?.statement_ratios ||
-    result?.detailed?.ratios ||
     null;
 
   const bankRatios = docType === "bank_statements" ? ratios : null;
@@ -986,43 +911,48 @@ export default function Results() {
     agentic?.cashflow ||
     null;
 
-  // Financial statement ratio convenience
+  // Financial statement ratio convenience (support both key variants)
   const currentRatio =
     financialRatios?.current_ratio ??
     financialRatios?.liquidity?.current_ratio ??
     null;
+
   const quickRatio =
     financialRatios?.quick_ratio ??
     financialRatios?.liquidity?.quick_ratio ??
     null;
+
   const debtToEquity =
     financialRatios?.debt_to_equity ??
     financialRatios?.debt_to_equity_ratio ??
     financialRatios?.leverage?.debt_to_equity ??
     null;
+
   const interestCover =
     financialRatios?.interest_cover ??
     financialRatios?.coverage?.interest_cover ??
     null;
+
   const netMargin =
     financialRatios?.net_margin ??
     financialRatios?.profitability?.net_margin ??
     null;
+
   const returnOnAssets =
     financialRatios?.return_on_assets ??
     financialRatios?.profitability?.return_on_assets ??
     null;
+
   const debtServiceCoverage =
     financialRatios?.debt_service_coverage ??
     financialRatios?.debt_service_coverage_ratio ??
     financialRatios?.dscr ??
-    financialRatios?.dscr_ratio ??
     financialRatios?.coverage?.debt_service_coverage ??
     null;
+
   const cashflowCoverage =
     financialRatios?.cashflow_coverage ??
     financialRatios?.cash_flow_coverage_ratio ??
-    financialRatios?.cash_flow_coverage ??
     financialRatios?.coverage?.cashflow_coverage ??
     null;
 
@@ -1032,11 +962,8 @@ export default function Results() {
   const bankClosingToOpening =
     bankRatios?.closing_to_opening_balance_ratio ?? null;
 
-  // Optional generic scores block, if contracts expose it
   const genericScores =
-    agentic?.scores && typeof agentic.scores === "object"
-      ? agentic.scores
-      : null;
+    agentic?.scores && typeof agentic.scores === "object" ? agentic.scores : null;
 
   return (
     <div
@@ -1317,11 +1244,7 @@ export default function Results() {
                                 Opening Balance
                               </div>
                               <div className="font-medium">
-                                {uiSummary.opening_balance != null
-                                  ? uiSummary.opening_balance.toLocaleString(
-                                      "en-ZA"
-                                    )
-                                  : "—"}
+                                {fmtNum(uiSummary.opening_balance)}
                               </div>
                             </div>
                             <div>
@@ -1329,11 +1252,7 @@ export default function Results() {
                                 Closing Balance
                               </div>
                               <div className="font-medium">
-                                {uiSummary.closing_balance != null
-                                  ? uiSummary.closing_balance.toLocaleString(
-                                      "en-ZA"
-                                    )
-                                  : "—"}
+                                {fmtNum(uiSummary.closing_balance)}
                               </div>
                             </div>
                             <div>
@@ -1341,11 +1260,7 @@ export default function Results() {
                                 Total Credits
                               </div>
                               <div className="font-medium">
-                                {uiSummary.total_credits != null
-                                  ? uiSummary.total_credits.toLocaleString(
-                                      "en-ZA"
-                                    )
-                                  : "—"}
+                                {fmtNum(uiSummary.total_credits)}
                               </div>
                             </div>
                             <div>
@@ -1353,11 +1268,7 @@ export default function Results() {
                                 Total Debits
                               </div>
                               <div className="font-medium">
-                                {uiSummary.total_debits != null
-                                  ? uiSummary.total_debits.toLocaleString(
-                                      "en-ZA"
-                                    )
-                                  : "—"}
+                                {fmtNum(uiSummary.total_debits)}
                               </div>
                             </div>
                           </div>
@@ -1403,9 +1314,7 @@ export default function Results() {
                                 Revenue
                               </div>
                               <div className="font-medium">
-                                {uiSummary.revenue != null
-                                  ? uiSummary.revenue.toLocaleString("en-ZA")
-                                  : "-"}
+                                {fmtNum(uiSummary.revenue)}
                               </div>
                             </div>
                             <div>
@@ -1413,9 +1322,7 @@ export default function Results() {
                                 EBITDA
                               </div>
                               <div className="font-medium">
-                                {uiSummary.ebitda != null
-                                  ? uiSummary.ebitda.toLocaleString("en-ZA")
-                                  : "-"}
+                                {fmtNum(uiSummary.ebitda)}
                               </div>
                             </div>
                             <div>
@@ -1423,9 +1330,7 @@ export default function Results() {
                                 Net profit
                               </div>
                               <div className="font-medium">
-                                {uiSummary.net_profit != null
-                                  ? uiSummary.net_profit.toLocaleString("en-ZA")
-                                  : "-"}
+                                {fmtNum(uiSummary.net_profit)}
                               </div>
                             </div>
                           </div>
@@ -1436,11 +1341,7 @@ export default function Results() {
                                 Total assets
                               </div>
                               <div className="font-medium">
-                                {uiSummary.total_assets != null
-                                  ? uiSummary.total_assets.toLocaleString(
-                                      "en-ZA"
-                                    )
-                                  : "-"}
+                                {fmtNum(uiSummary.total_assets)}
                               </div>
                             </div>
                             <div>
@@ -1448,11 +1349,7 @@ export default function Results() {
                                 Total liabilities
                               </div>
                               <div className="font-medium">
-                                {uiSummary.total_liabilities != null
-                                  ? uiSummary.total_liabilities.toLocaleString(
-                                      "en-ZA"
-                                    )
-                                  : "-"}
+                                {fmtNum(uiSummary.total_liabilities)}
                               </div>
                             </div>
                             <div>
@@ -1460,9 +1357,7 @@ export default function Results() {
                                 Equity
                               </div>
                               <div className="font-medium">
-                                {uiSummary.equity != null
-                                  ? uiSummary.equity.toLocaleString("en-ZA")
-                                  : "-"}
+                                {fmtNum(uiSummary.equity)}
                               </div>
                             </div>
                           </div>
@@ -1505,9 +1400,7 @@ export default function Results() {
                                 Gross pay
                               </div>
                               <div className="font-medium">
-                                {uiSummary.gross_pay != null
-                                  ? uiSummary.gross_pay.toLocaleString("en-ZA")
-                                  : "—"}
+                                {fmtNum(uiSummary.gross_pay)}
                               </div>
                             </div>
                             <div>
@@ -1515,9 +1408,7 @@ export default function Results() {
                                 Net pay
                               </div>
                               <div className="font-medium">
-                                {uiSummary.net_pay != null
-                                  ? uiSummary.net_pay.toLocaleString("en-ZA")
-                                  : "—"}
+                                {fmtNum(uiSummary.net_pay)}
                               </div>
                             </div>
                           </div>
@@ -1658,131 +1549,40 @@ export default function Results() {
                     </div>
                   )}
 
-                  {/* Simple income / expense view for personal bank statements */}
-                  {classification &&
-                    classification.income_summary &&
-                    classification.expense_summary &&
-                    !inProgress && (
-                      <div className="mb-6 grid gap-4 md:grid-cols-2">
-                        <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-                          <h2 className="text-sm font-semibold mb-3">
-                            Income (Personal)
-                          </h2>
-                          <div className="text-2xl font-semibold mb-1">
-                            {classification.income_summary.total_income != null
-                              ? classification.income_summary.total_income.toLocaleString(
-                                  "en-ZA"
-                                )
-                              : "—"}
-                          </div>
-                          <p className="text-xs text-slate-600 mb-2">
-                            Income frequency:&nbsp;
-                            <span className="font-medium">
-                              {classification.income_summary.frequency ||
-                                classification.income_summary
-                                  .income_frequency ||
-                                classification.income_frequency ||
-                                "—"}
-                            </span>
-                          </p>
-                          <p className="text-xs text-slate-600 mb-2">
-                            Breakdown (where detectable):
-                          </p>
-                          <div className="text-xs text-slate-700 space-y-1">
-                            <div>
-                              Salary:{" "}
-                              {classification.income_summary.salary?.toLocaleString(
-                                "en-ZA"
-                              ) || 0}
-                            </div>
-                            <div>
-                              Other recurring / third-party:{" "}
-                              {classification.income_summary.third_party_income?.toLocaleString(
-                                "en-ZA"
-                              ) || 0}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-                          <h2 className="text-sm font-semibold mb-3">
-                            Expenses (Budget Categories)
-                          </h2>
-                          <div className="text-2xl font-semibold mb-1">
-                            {classification.expense_summary.total_expenses != null
-                              ? classification.expense_summary.total_expenses.toLocaleString(
-                                  "en-ZA"
-                                )
-                              : "—"}
-                          </div>
-                          <p className="text-xs text-slate-600 mb-2">
-                            Examples from this statement:
-                          </p>
-                          <div className="text-xs text-slate-700 space-y-1">
-                            <div>
-                              Housing:{" "}
-                              {classification.expense_summary.housing?.toLocaleString(
-                                "en-ZA"
-                              ) || 0}
-                            </div>
-                            <div>
-                              Food &amp; Groceries:{" "}
-                              {classification.expense_summary.food_groceries?.toLocaleString(
-                                "en-ZA"
-                              ) || 0}
-                            </div>
-                            <div>
-                              Transport:{" "}
-                              {classification.expense_summary.transport?.toLocaleString(
-                                "en-ZA"
-                              ) || 0}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
                   {/* Bank-statement ratios panel */}
-                  {bankRatios &&
-                    !inProgress &&
-                    docType === "bank_statements" && (
-                      <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
-                        <h2 className="text-sm font-semibold mb-3">
-                          Bank statement cashflow metrics
-                        </h2>
-                        <div className="grid gap-4 md:grid-cols-3 text-sm">
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Net cash flow
-                            </div>
-                            <div className="font-medium">
-                              {bankNetCashFlow != null
-                                ? bankNetCashFlow.toLocaleString("en-ZA")
-                                : "—"}
-                            </div>
+                  {bankRatios && !inProgress && docType === "bank_statements" && (
+                    <div className="mb-6 rounded-lg border border-[rgb(var(--border))] bg-white p-4">
+                      <h2 className="text-sm font-semibold mb-3">
+                        Bank statement cashflow metrics
+                      </h2>
+                      <div className="grid gap-4 md:grid-cols-3 text-sm">
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Net cash flow
                           </div>
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Inflow / outflow ratio
-                            </div>
-                            <div className="font-medium">
-                              {bankInflowToOutflow != null
-                                ? Number(bankInflowToOutflow).toFixed(2)
-                                : "—"}
-                            </div>
+                          <div className="font-medium">
+                            {fmtNum(bankNetCashFlow)}
                           </div>
-                          <div>
-                            <div className="text-slate-500 text-xs uppercase">
-                              Closing vs opening balance
-                            </div>
-                            <div className="font-medium">
-                              {bankClosingToOpening != null
-                                ? Number(bankClosingToOpening).toFixed(2)
-                                : "—"}
-                            </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Inflow / outflow ratio
+                          </div>
+                          <div className="font-medium">
+                            {fmtFixed(bankInflowToOutflow, 2)}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 text-xs uppercase">
+                            Closing vs opening balance
+                          </div>
+                          <div className="font-medium">
+                            {fmtFixed(bankClosingToOpening, 2)}
                           </div>
                         </div>
                       </div>
-                    )}
+                    </div>
+                  )}
 
                   {/* Financial-statement ratios panel */}
                   {financialRatios &&
@@ -1798,9 +1598,7 @@ export default function Results() {
                               Current ratio
                             </div>
                             <div className="font-medium">
-                              {currentRatio != null
-                                ? Number(currentRatio).toFixed(2)
-                                : "—"}
+                              {fmtFixed(currentRatio, 2)}
                             </div>
                           </div>
                           <div>
@@ -1808,9 +1606,7 @@ export default function Results() {
                               Quick ratio
                             </div>
                             <div className="font-medium">
-                              {quickRatio != null
-                                ? Number(quickRatio).toFixed(2)
-                                : "—"}
+                              {fmtFixed(quickRatio, 2)}
                             </div>
                           </div>
                           <div>
@@ -1818,9 +1614,7 @@ export default function Results() {
                               Debt to equity
                             </div>
                             <div className="font-medium">
-                              {debtToEquity != null
-                                ? Number(debtToEquity).toFixed(2)
-                                : "-"}
+                              {fmtFixed(debtToEquity, 2)}
                             </div>
                           </div>
                           <div>
@@ -1828,9 +1622,7 @@ export default function Results() {
                               Interest cover
                             </div>
                             <div className="font-medium">
-                              {interestCover != null
-                                ? Number(interestCover).toFixed(2)
-                                : "-"}
+                              {fmtFixed(interestCover, 2)}
                             </div>
                           </div>
                         </div>
@@ -1841,9 +1633,7 @@ export default function Results() {
                               Net margin
                             </div>
                             <div className="font-medium">
-                              {netMargin != null
-                                ? Number(netMargin).toFixed(2)
-                                : "-"}
+                              {fmtFixed(netMargin, 2)}
                             </div>
                           </div>
                           <div>
@@ -1851,9 +1641,7 @@ export default function Results() {
                               Return on assets
                             </div>
                             <div className="font-medium">
-                              {returnOnAssets != null
-                                ? Number(returnOnAssets).toFixed(2)
-                                : "-"}
+                              {fmtFixed(returnOnAssets, 2)}
                             </div>
                           </div>
                           <div>
@@ -1861,9 +1649,7 @@ export default function Results() {
                               Debt service coverage
                             </div>
                             <div className="font-medium">
-                              {debtServiceCoverage != null
-                                ? Number(debtServiceCoverage).toFixed(2)
-                                : "-"}
+                              {fmtFixed(debtServiceCoverage, 2)}
                             </div>
                           </div>
                           <div>
@@ -1871,9 +1657,7 @@ export default function Results() {
                               Cashflow coverage
                             </div>
                             <div className="font-medium">
-                              {cashflowCoverage != null
-                                ? Number(cashflowCoverage).toFixed(2)
-                                : "-"}
+                              {fmtFixed(cashflowCoverage, 2)}
                             </div>
                           </div>
                         </div>
@@ -1946,7 +1730,6 @@ export default function Results() {
                   ───────────────────────────── */}
               {activeView === "agent" && (
                 <>
-                  {/* Run status / pipeline */}
                   <div className="mb-4 rounded-lg border border-[rgb(var(--border))] bg-slate-50 px-4 py-3 text-sm">
                     <div className="flex flex-wrap items-center gap-3">
                       <span className="font-medium">Run status</span>
@@ -1964,7 +1747,6 @@ export default function Results() {
                     </div>
                   </div>
 
-                  {/* Core scores */}
                   <div className="mb-4 grid gap-4 md:grid-cols-4 text-sm">
                     <div className="rounded-lg border border-[rgb(var(--border))] bg-white p-4">
                       <div className="text-slate-500 text-xs uppercase">
@@ -2018,7 +1800,6 @@ export default function Results() {
                     </div>
                   </div>
 
-                  {/* Generic scores table (if contracts expose scores[]) */}
                   {genericScores && !inProgress && (
                     <div className="mb-4 rounded-lg border border-[rgb(var(--border))] bg-white p-4 text-sm">
                       <div className="flex items-center justify-between mb-3">
@@ -2055,7 +1836,6 @@ export default function Results() {
                     </div>
                   )}
 
-                  {/* For agents: quick access to raw JSON */}
                   <div className="mt-4 flex flex-wrap gap-3">
                     <button
                       type="button"
@@ -2113,3 +1893,4 @@ export default function Results() {
     </div>
   );
 }
+

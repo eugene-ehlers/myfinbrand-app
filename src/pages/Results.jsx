@@ -1801,7 +1801,7 @@ export default function Results() {
                             <div className="font-medium">
                               {debtToEquity != null
                                 ? Number(debtToEquity).toFixed(2)
-                                : "—"}
+                                : "-"}
                             </div>
                           </div>
                           <div>
@@ -1811,7 +1811,7 @@ export default function Results() {
                             <div className="font-medium">
                               {interestCover != null
                                 ? Number(interestCover).toFixed(2)
-                                : "—"}
+                                : "-"}
                             </div>
                           </div>
                         </div>
@@ -1824,7 +1824,7 @@ export default function Results() {
                             <div className="font-medium">
                               {netMargin != null
                                 ? Number(netMargin).toFixed(2)
-                                : "—"}
+                                : "-"}
                             </div>
                           </div>
                           <div>
@@ -1834,7 +1834,7 @@ export default function Results() {
                             <div className="font-medium">
                               {returnOnAssets != null
                                 ? Number(returnOnAssets).toFixed(2)
-                                : "—"}
+                                : "-"}
                             </div>
                           </div>
                           <div>
@@ -1844,7 +1844,7 @@ export default function Results() {
                             <div className="font-medium">
                               {debtServiceCoverage != null
                                 ? Number(debtServiceCoverage).toFixed(2)
-                                : "—"}
+                                : "-"}
                             </div>
                           </div>
                           <div>
@@ -1854,7 +1854,7 @@ export default function Results() {
                             <div className="font-medium">
                               {cashflowCoverage != null
                                 ? Number(cashflowCoverage).toFixed(2)
-                                : "—"}
+                                : "-"}
                             </div>
                           </div>
                         </div>

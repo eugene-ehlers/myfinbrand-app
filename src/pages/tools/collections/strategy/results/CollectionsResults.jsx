@@ -2,8 +2,9 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { CheckCircle2, Download, AlertCircle } from "lucide-react";
-import SiteHeader from "../components/layout/SiteHeader.jsx";
-import SiteFooter from "../components/layout/SiteFooter.jsx";
+import SiteHeader from "../../../../../components/layout/SiteHeader.jsx";
+import SiteFooter from "../../../../../components/layout/SiteFooter.jsx";
+
 
 // Lambda URL that returns pre-signed GET URLs for the result files
 const RESULTS_URL_FUNCTION =

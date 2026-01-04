@@ -12,8 +12,9 @@ import {
   ShieldAlert,
   ArrowRight,
 } from "lucide-react";
-import SiteHeader from "../../components/layout/SiteHeader.jsx";
-import SiteFooter from "../../components/layout/SiteFooter.jsx";
+import SiteHeader from "../../../components/layout/SiteHeader.jsx";
+import SiteFooter from "../../../components/layout/SiteFooter.jsx";
+
 
 const CARDS = [
   {

@@ -1,8 +1,9 @@
 // src/pages/CollectionsStrategy.jsx
 import React, { useState } from "react";
 import { Settings2, Save, AlertCircle, CheckCircle2 } from "lucide-react";
-import SiteHeader from "../components/layout/SiteHeader.jsx";
-import SiteFooter from "../components/layout/SiteFooter.jsx";
+import SiteHeader from "../../../../../components/layout/SiteHeader.jsx";
+import SiteFooter from "../../../../../components/layout/SiteFooter.jsx";
+
 
 const FIELD_OPTIONS = [
   { value: "ptp_score", label: "Propensity to Pay (PTP)" },

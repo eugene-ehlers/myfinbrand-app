@@ -9,6 +9,7 @@ import SiteFooter from "../../../../../../components/layout/SiteFooter.jsx";
  * Route: /tools/collections/scorecards/:scorecardKey/upload
  *
  * - Displays required inputs + sample format
+ * - Displays non-technical description (what it does + typical uses)
  * - Uploads file via presigned POST
  * - Redirects to /tools/collections/scorecards/:scorecardKey/outcome?objectKey=...
  */
@@ -16,6 +17,14 @@ import SiteFooter from "../../../../../../components/layout/SiteFooter.jsx";
 const SCORECARD_CONFIG = {
   behaviour: {
     title: "Behaviour Scorecard",
+    businessOverview:
+      "This scorecard estimates how an account is trending based on recent repayment behaviour and delinquency signals. It helps you prioritise which accounts need attention first and which can be managed with lighter-touch actions.",
+    typicalUses: [
+      "Prioritise agent time toward higher-risk accounts.",
+      "Identify early warning signals before roll-rates worsen.",
+      "Trigger proactive reminders for accounts starting to slip.",
+      "Create risk tiers for reporting and operational queueing.",
+    ],
     description:
       "Calculate behaviour_score and behaviour_score_band using delinquency and recent repayment behaviour inputs.",
     requiredColumns: [
@@ -57,6 +66,14 @@ const SCORECARD_CONFIG = {
 
   affordability: {
     title: "Affordability Scorecard",
+    businessOverview:
+      "This scorecard estimates whether a customer has the financial capacity to repay based on income and expense indicators. It supports repayment plan decisions and helps avoid unaffordable treatments.",
+    typicalUses: [
+      "Segment customers into affordable vs. strained repayment capacity.",
+      "Support hardship workflows and repayment plan decisions.",
+      "Adjust treatment intensity to reduce customer harm and complaints.",
+      "Align offers to what customers can realistically pay.",
+    ],
     description:
       "Calculate affordability_score and affordability_score_band using income/expense proxies and obligation indicators.",
     requiredColumns: [
@@ -94,6 +111,14 @@ const SCORECARD_CONFIG = {
 
   ptp: {
     title: "Propensity to Pay (PTP) Scorecard",
+    businessOverview:
+      "This scorecard estimates the likelihood a customer will pay in the near term. It helps you focus effort where it is most likely to convert into payment, reducing cost-to-collect.",
+    typicalUses: [
+      "Prioritise outreach to accounts most likely to pay soon.",
+      "Reduce cost-to-collect by lowering effort on low-likelihood segments.",
+      "Forecast short-term recoveries and expected cashflow.",
+      "Select soft vs. hard treatments based on payment likelihood.",
+    ],
     description:
       "Calculate ptp_score and ptp_band using payment engagement and promise-to-pay performance signals.",
     requiredColumns: [
@@ -131,6 +156,14 @@ const SCORECARD_CONFIG = {
 
   contactability: {
     title: "Contactability Scorecard",
+    businessOverview:
+      "This scorecard estimates how reachable a customer is and suggests a primary channel (for example SMS or email). It helps improve contact rates and avoid wasted attempts.",
+    typicalUses: [
+      "Select the best channel per customer (SMS, email, dialler).",
+      "Reduce waste by avoiding unreachable contact paths.",
+      "Increase right-party contact and conversion to payment.",
+      "Support channel routing rules in collections operations.",
+    ],
     description:
       "Calculate contactability_score and preferred_channel using available contact details.",
     requiredColumns: ["customer_id", "loan_id", "phone", "email"],
@@ -143,12 +176,25 @@ const SCORECARD_CONFIG = {
         email: "c001@test.com",
       },
       { customer_id: "C002", loan_id: "L002", phone: "0722222222", email: "" },
-      { customer_id: "C003", loan_id: "L003", phone: "", email: "c003@test.com" },
+      {
+        customer_id: "C003",
+        loan_id: "L003",
+        phone: "",
+        email: "c003@test.com",
+      },
     ],
   },
 
   vulnerability: {
     title: "Vulnerability Scorecard",
+    businessOverview:
+      "This scorecard flags potentially vulnerable customers and indicates which channels should be restricted. It supports compliant collections by guiding safer contact approaches for vulnerable cases.",
+    typicalUses: [
+      "Apply restricted-channel rules for vulnerable customers.",
+      "Route vulnerable cases to specialist teams or softer treatments.",
+      "Support governance and auditability for policy and regulators.",
+      "Reduce complaints by preventing inappropriate contact tactics.",
+    ],
     description:
       "Calculate vulnerable_flag and restricted_channels based on vulnerability indicators and policy rules.",
     requiredColumns: ["customer_id", "loan_id", "vulnerability_indicator"],
@@ -354,93 +400,18 @@ export default function CollectionsScorecardRunner() {
           <p className="text-sm text-slate-600 mt-1">{cfg.description}</p>
         </div>
 
-        const SCORECARD_CONFIG = {
-            behaviour: {
-              title: "Behaviour Scorecard",
-              businessOverview:
-                "This scorecard estimates how likely an account is to deteriorate (or stabilise) based on recent repayment behaviour and delinquency signals. It helps you prioritise which accounts need attention first.",
-              typicalUses: [
-                "Prioritise agent time toward higher-risk accounts.",
-                "Identify early warning signals in portfolios before roll-rates worsen.",
-                "Trigger proactive reminders for accounts that are starting to slip.",
-                "Create risk tiers for reporting and operational queueing.",
-              ],
-              description:
-                "Calculate behaviour_score and behaviour_score_band using delinquency and recent repayment behaviour inputs.",
-              requiredColumns: [/* ... */],
-              outputColumns: [/* ... */],
-              sampleRows: [/* ... */],
-            },
-          
-            affordability: {
-              title: "Affordability Scorecard",
-              businessOverview:
-                "This scorecard estimates whether a customer has sufficient repayment capacity, based on income and expense indicators. It helps you select appropriate hardship approaches and avoid unaffordable contact paths.",
-              typicalUses: [
-                "Segment customers into affordable vs. strained repayment capacity.",
-                "Support hardship workflows and repayment plan decisions.",
-                "Adjust treatment intensity to reduce customer harm and complaints.",
-                "Improve right-party resolution by matching offers to capacity.",
-              ],
-              description:
-                "Calculate affordability_score and affordability_score_band using income/expense proxies and obligation indicators.",
-              requiredColumns: [/* ... */],
-              outputColumns: [/* ... */],
-              sampleRows: [/* ... */],
-            },
-          
-            ptp: {
-              title: "Propensity to Pay (PTP) Scorecard",
-              businessOverview:
-                "This scorecard estimates the likelihood a customer will pay in the near term. It helps you choose the right effort level and timing, so you spend less on accounts unlikely to respond now.",
-              typicalUses: [
-                "Prioritise outreach to accounts most likely to pay soon.",
-                "Reduce cost-to-collect by lowering effort on low-PTP segments.",
-                "Forecast short-term recoveries and expected cashflow.",
-                "Select treatments (soft vs hard) based on likelihood to pay.",
-              ],
-              description:
-                "Calculate ptp_score and ptp_band using payment engagement and promise-to-pay performance signals.",
-              requiredColumns: [/* ... */],
-              outputColumns: [/* ... */],
-              sampleRows: [/* ... */],
-            },
-          
-            contactability: {
-              title: "Contactability Scorecard",
-              businessOverview:
-                "This scorecard estimates how reachable a customer is and recommends a primary contact channel. It helps you improve contact rates and avoid wasting attempts on invalid channels.",
-              typicalUses: [
-                "Select the best channel (SMS, email, dialler) per customer.",
-                "Reduce dialler waste by avoiding unreachable numbers.",
-                "Improve compliance by respecting opt-outs and preferences.",
-                "Increase right-party contact and conversion to payment.",
-              ],
-              description:
-                "Calculate contactability_score and preferred_channel using available contact details.",
-              requiredColumns: [/* ... */],
-              outputColumns: [/* ... */],
-              sampleRows: [/* ... */],
-            },
-          
-            vulnerability: {
-              title: "Vulnerability Scorecard",
-              businessOverview:
-                "This scorecard flags potentially vulnerable customers and indicates which channels should be restricted. It helps you operate compliantly and reduce customer harm by applying safer contact approaches.",
-              typicalUses: [
-                "Apply restricted channel rules for vulnerable customers.",
-                "Route vulnerable cases to specialist teams or softer treatments.",
-                "Demonstrate governance and auditability for regulators.",
-                "Reduce complaints by preventing inappropriate contact tactics.",
-              ],
-              description:
-                "Calculate vulnerable_flag and restricted_channels based on vulnerability indicators and policy rules.",
-              requiredColumns: [/* ... */],
-              outputColumns: [/* ... */],
-              sampleRows: [/* ... */],
-            },
-          };
+        {/* Business overview + typical uses (non-technical) */}
+        <div className="rounded-3xl border bg-white p-6 shadow-sm space-y-3">
+          <div className="text-sm font-semibold">What this scorecard does</div>
+          <p className="text-sm text-slate-700">{cfg.businessOverview}</p>
 
+          <div className="pt-1 text-sm font-semibold">Typical uses</div>
+          <ul className="text-sm text-slate-700 list-disc pl-5 space-y-1">
+            {(cfg.typicalUses || []).map((u) => (
+              <li key={u}>{u}</li>
+            ))}
+          </ul>
+        </div>
 
         {/* Requirements */}
         <div className="rounded-3xl border bg-white p-6 shadow-sm space-y-4">

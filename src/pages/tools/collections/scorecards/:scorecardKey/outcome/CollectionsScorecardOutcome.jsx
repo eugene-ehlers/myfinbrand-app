@@ -14,8 +14,8 @@ import SiteFooter from "../../../../../../components/layout/SiteFooter.jsx";
  * - Provide a "Download output" button (and optional "Download errors").
  *
  * Backend expectations:
- * - You need a Lambda URL (or API endpoint) that returns pre-signed GET URLs for scorecard outputs.
- * - This page calls it via POST with { objectKey, scorecardKey }.
+ * - Endpoint returns pre-signed GET URLs for scorecard outputs.
+ * - Called via POST with { objectKey, scorecardKey }.
  *
  * Recommended response shape:
  * {
@@ -23,9 +23,6 @@ import SiteFooter from "../../../../../../components/layout/SiteFooter.jsx";
  *   errorsUrl: "https://..." (optional),
  *   summary: { rowsIn, rowsOut, rowsRejected } (optional)
  * }
- *
- * NOTE:
- * - If your existing results Lambda (used by CollectionsResults.jsx) is different, set SCORECARD_RESULTS_URL_FUNCTION accordingly.
  */
 
 const SCORECARD_RESULTS_URL_FUNCTION =
@@ -99,7 +96,8 @@ export default function CollectionsScorecardOutcome() {
         // - Accept: { url } or { output } as outputUrl equivalents
         const normalized = {
           outputUrl: payload.outputUrl || payload.url || payload.output || null,
-          errorsUrl: payload.errorsUrl || payload.errorUrl || payload.errors || null,
+          errorsUrl:
+            payload.errorsUrl || payload.errorUrl || payload.errors || null,
           summary: payload.summary || null,
         };
 
@@ -184,24 +182,27 @@ export default function CollectionsScorecardOutcome() {
           </div>
         </div>
 
-        {/* Success panel */}
-        <div className="rounded-3xl border border-green-200 bg-green-50 px-4 py-4 text-sm text-green-800 flex gap-3 items-start">
-          <CheckCircle2 className="h-5 w-5 mt-0.5 flex-shrink-0" />
-          <div>
-            <div className="font-semibold">Scorecard run completed</div>
-            <div className="mt-1 text-xs md:text-sm text-green-900">
-              Output was written to your S3 bucket under{" "}
-              <span className="font-mono">results/collections/…</span>. Secure
-              pre-signed links are generated on demand from this page.
-            </div>
-            {objectKey && (
-              <div className="mt-2 text-[11px] text-green-900">
-                <span className="font-semibold">Input object key: </span>
-                <span className="font-mono break-all">{objectKey}</span>
+        {/* Recommendation applied:
+            Only show the green "completed" panel when output is actually ready. */}
+        {outputReady && (
+          <div className="rounded-3xl border border-green-200 bg-green-50 px-4 py-4 text-sm text-green-800 flex gap-3 items-start">
+            <CheckCircle2 className="h-5 w-5 mt-0.5 flex-shrink-0" />
+            <div>
+              <div className="font-semibold">Scorecard run completed</div>
+              <div className="mt-1 text-xs md:text-sm text-green-900">
+                Output was written to your S3 bucket under{" "}
+                <span className="font-mono">results/collections/…</span>. Secure
+                pre-signed links are generated on demand from this page.
               </div>
-            )}
+              {objectKey && (
+                <div className="mt-2 text-[11px] text-green-900">
+                  <span className="font-semibold">Input object key: </span>
+                  <span className="font-mono break-all">{objectKey}</span>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {renderStatus()}
 
@@ -312,4 +313,3 @@ export default function CollectionsScorecardOutcome() {
     </div>
   );
 }
-

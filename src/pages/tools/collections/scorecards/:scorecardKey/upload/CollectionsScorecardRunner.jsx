@@ -6,19 +6,11 @@ import SiteHeader from "../../../../../components/layout/SiteHeader.jsx";
 import SiteFooter from "../../../../../components/layout/SiteFooter.jsx";
 
 /**
- * Collections Scorecard Runner
  * Route: /tools/collections/scorecards/:scorecardKey/upload
  *
- * This page:
- * - Shows required columns + sample input
- * - Accepts CSV/XLSX/TXT/DOCX uploads
- * - Calls a presign endpoint, uploads to S3
+ * - Displays required inputs + sample format
+ * - Uploads file via presigned POST
  * - Redirects to /tools/collections/scorecards/:scorecardKey/outcome?objectKey=...
- *
- * Backend requirement:
- * - collectionsFunctionUrl must support:
- *   { pipeline: "scorecard_run", scorecard: "<scorecardKey>", ... }
- * and return { url, fields, objectKey }
  */
 
 const SCORECARD_CONFIG = {
@@ -67,37 +59,12 @@ const SCORECARD_CONFIG = {
     title: "Affordability Scorecard",
     description:
       "Calculate affordability_score and affordability_score_band using income/expense proxies and obligation indicators.",
-    requiredColumns: [
-      "customer_id",
-      "loan_id",
-      // NOTE: Replace these with your real affordability spec once confirmed
-      "net_income",
-      "monthly_expenses",
-      "instalment_amount",
-    ],
+    requiredColumns: ["customer_id", "loan_id", "net_income", "monthly_expenses", "instalment_amount"],
     outputColumns: ["affordability_score", "affordability_score_band"],
     sampleRows: [
-      {
-        customer_id: "C001",
-        loan_id: "L001",
-        net_income: 25000,
-        monthly_expenses: 18000,
-        instalment_amount: 1500,
-      },
-      {
-        customer_id: "C002",
-        loan_id: "L002",
-        net_income: 18000,
-        monthly_expenses: 16500,
-        instalment_amount: 2200,
-      },
-      {
-        customer_id: "C003",
-        loan_id: "L003",
-        net_income: 12000,
-        monthly_expenses: 11500,
-        instalment_amount: 1800,
-      },
+      { customer_id: "C001", loan_id: "L001", net_income: 25000, monthly_expenses: 18000, instalment_amount: 1500 },
+      { customer_id: "C002", loan_id: "L002", net_income: 18000, monthly_expenses: 16500, instalment_amount: 2200 },
+      { customer_id: "C003", loan_id: "L003", net_income: 12000, monthly_expenses: 11500, instalment_amount: 1800 },
     ],
   },
 
@@ -105,36 +72,12 @@ const SCORECARD_CONFIG = {
     title: "Propensity to Pay (PTP) Scorecard",
     description:
       "Calculate ptp_score and ptp_band using payment engagement and promise-to-pay performance signals.",
-    requiredColumns: [
-      "customer_id",
-      "loan_id",
-      "last_payment_days_ago",
-      "promise_to_pay_kept_3m",
-      "missed_payments_3m",
-    ],
+    requiredColumns: ["customer_id", "loan_id", "last_payment_days_ago", "promise_to_pay_kept_3m", "missed_payments_3m"],
     outputColumns: ["ptp_score", "ptp_band"],
     sampleRows: [
-      {
-        customer_id: "C001",
-        loan_id: "L001",
-        last_payment_days_ago: 7,
-        promise_to_pay_kept_3m: 1,
-        missed_payments_3m: 0,
-      },
-      {
-        customer_id: "C002",
-        loan_id: "L002",
-        last_payment_days_ago: 20,
-        promise_to_pay_kept_3m: 0,
-        missed_payments_3m: 1,
-      },
-      {
-        customer_id: "C003",
-        loan_id: "L003",
-        last_payment_days_ago: 70,
-        promise_to_pay_kept_3m: 0,
-        missed_payments_3m: 3,
-      },
+      { customer_id: "C001", loan_id: "L001", last_payment_days_ago: 7, promise_to_pay_kept_3m: 1, missed_payments_3m: 0 },
+      { customer_id: "C002", loan_id: "L002", last_payment_days_ago: 20, promise_to_pay_kept_3m: 0, missed_payments_3m: 1 },
+      { customer_id: "C003", loan_id: "L003", last_payment_days_ago: 70, promise_to_pay_kept_3m: 0, missed_payments_3m: 3 },
     ],
   },
 
@@ -145,24 +88,9 @@ const SCORECARD_CONFIG = {
     requiredColumns: ["customer_id", "loan_id", "phone", "email"],
     outputColumns: ["contactability_score", "preferred_channel"],
     sampleRows: [
-      {
-        customer_id: "C001",
-        loan_id: "L001",
-        phone: "0711111111",
-        email: "c001@test.com",
-      },
-      {
-        customer_id: "C002",
-        loan_id: "L002",
-        phone: "0722222222",
-        email: "",
-      },
-      {
-        customer_id: "C003",
-        loan_id: "L003",
-        phone: "",
-        email: "c003@test.com",
-      },
+      { customer_id: "C001", loan_id: "L001", phone: "0711111111", email: "c001@test.com" },
+      { customer_id: "C002", loan_id: "L002", phone: "0722222222", email: "" },
+      { customer_id: "C003", loan_id: "L003", phone: "", email: "c003@test.com" },
     ],
   },
 
@@ -170,29 +98,12 @@ const SCORECARD_CONFIG = {
     title: "Vulnerability Scorecard",
     description:
       "Calculate vulnerable_flag and restricted_channels based on vulnerability indicators and policy rules.",
-    requiredColumns: [
-      "customer_id",
-      "loan_id",
-      // NOTE: Replace with your real indicator names once confirmed
-      "vulnerability_indicator",
-    ],
+    requiredColumns: ["customer_id", "loan_id", "vulnerability_indicator"],
     outputColumns: ["vulnerable_flag", "restricted_channels"],
     sampleRows: [
-      {
-        customer_id: "C001",
-        loan_id: "L001",
-        vulnerability_indicator: "N",
-      },
-      {
-        customer_id: "C002",
-        loan_id: "L002",
-        vulnerability_indicator: "Y",
-      },
-      {
-        customer_id: "C003",
-        loan_id: "L003",
-        vulnerability_indicator: "N",
-      },
+      { customer_id: "C001", loan_id: "L001", vulnerability_indicator: "N" },
+      { customer_id: "C002", loan_id: "L002", vulnerability_indicator: "Y" },
+      { customer_id: "C003", loan_id: "L003", vulnerability_indicator: "N" },
     ],
   },
 };
@@ -200,7 +111,6 @@ const SCORECARD_CONFIG = {
 export default function CollectionsScorecardRunner() {
   const navigate = useNavigate();
   const { scorecardKey } = useParams();
-
   const cfg = SCORECARD_CONFIG[scorecardKey];
 
   const [caseName, setCaseName] = useState("");
@@ -209,7 +119,7 @@ export default function CollectionsScorecardRunner() {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState(null); // { type: 'info'|'success'|'error', message }
 
-  // TODO: Replace with your presign Lambda URL (can be same one used by CollectionsUpload if it supports scorecard_run)
+  // TODO: Replace with your presign Lambda URL (can be same as CollectionsUpload if it supports scorecard_run)
   const collectionsFunctionUrl =
     "https://xddchlet6fj2qqncrr7y5fopva0tvxsb.lambda-url.us-east-1.on.aws/";
 
@@ -280,7 +190,6 @@ export default function CollectionsScorecardRunner() {
     setStatus({ type: "info", message: "Requesting secure upload slot…" });
 
     try {
-      // 1) Get presigned POST from backend
       const presignRes = await fetch(collectionsFunctionUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -306,7 +215,6 @@ export default function CollectionsScorecardRunner() {
 
       const { url, fields, objectKey } = await presignRes.json();
 
-      // 2) Upload to S3 using presigned POST
       setStatus({ type: "info", message: "Uploading file to secure storage…" });
 
       const form = new FormData();
@@ -323,7 +231,6 @@ export default function CollectionsScorecardRunner() {
 
         setFile(null);
 
-        // Navigate to outcome page (you said this exists structurally)
         navigate(
           `/tools/collections/scorecards/${encodeURIComponent(
             scorecardKey
@@ -336,6 +243,7 @@ export default function CollectionsScorecardRunner() {
           type: "error",
           message: `Upload failed (status ${s3Res.status}).`,
         });
+        if (text) console.error(text);
       }
     } catch (err) {
       console.error(err);
@@ -350,10 +258,7 @@ export default function CollectionsScorecardRunner() {
 
   if (!cfg) {
     return (
-      <div
-        className="min-h-screen text-slate-900"
-        style={{ background: "rgb(var(--surface))" }}
-      >
+      <div className="min-h-screen text-slate-900" style={{ background: "rgb(var(--surface))" }}>
         <SiteHeader />
         <main className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
           <div className="rounded-3xl border bg-white p-6 shadow-sm">
@@ -376,10 +281,7 @@ export default function CollectionsScorecardRunner() {
   }
 
   return (
-    <div
-      className="min-h-screen text-slate-900"
-      style={{ background: "rgb(var(--surface))" }}
-    >
+    <div className="min-h-screen text-slate-900" style={{ background: "rgb(var(--surface))" }}>
       <SiteHeader />
 
       <main className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14 space-y-6">
@@ -397,34 +299,25 @@ export default function CollectionsScorecardRunner() {
           <div>
             <div className="text-sm font-semibold">Required input format</div>
             <p className="text-xs text-slate-500 mt-1">
-              CSV/XLSX is recommended. TXT/DOCX must be tabular with a header row matching
-              the required columns.
+              CSV/XLSX is recommended. TXT/DOCX must be tabular with a header row matching the required columns.
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="rounded-2xl border bg-slate-50 p-4">
-              <div className="text-xs font-semibold text-slate-700">
-                Required columns
-              </div>
+              <div className="text-xs font-semibold text-slate-700">Required columns</div>
               <ul className="mt-2 text-xs text-slate-600 list-disc pl-5 space-y-1">
                 {cfg.requiredColumns.map((c) => (
-                  <li key={c} className="font-mono">
-                    {c}
-                  </li>
+                  <li key={c} className="font-mono">{c}</li>
                 ))}
               </ul>
             </div>
 
             <div className="rounded-2xl border bg-slate-50 p-4">
-              <div className="text-xs font-semibold text-slate-700">
-                Output columns added
-              </div>
+              <div className="text-xs font-semibold text-slate-700">Output columns added</div>
               <ul className="mt-2 text-xs text-slate-600 list-disc pl-5 space-y-1">
                 {cfg.outputColumns.map((c) => (
-                  <li key={c} className="font-mono">
-                    {c}
-                  </li>
+                  <li key={c} className="font-mono">{c}</li>
                 ))}
               </ul>
             </div>
@@ -432,9 +325,7 @@ export default function CollectionsScorecardRunner() {
 
           {/* Sample */}
           <div>
-            <div className="text-xs font-semibold text-slate-700 mb-2">
-              Sample input (first rows)
-            </div>
+            <div className="text-xs font-semibold text-slate-700 mb-2">Sample input (first rows)</div>
             <div className="overflow-x-auto rounded-2xl border">
               <table className="min-w-full text-xs">
                 <thead className="bg-slate-100 text-slate-600">
@@ -461,8 +352,7 @@ export default function CollectionsScorecardRunner() {
             </div>
 
             <p className="mt-2 text-[11px] text-slate-400">
-              The sample is illustrative. Your backend should validate presence and type/format
-              of required columns before running the scorecard.
+              Your backend should validate the presence and type/format of required columns before running the scorecard.
             </p>
           </div>
         </div>
@@ -483,4 +373,95 @@ export default function CollectionsScorecardRunner() {
                 className="border rounded-xl px-3 py-2.5 bg-[rgb(var(--surface))] border-[rgb(var(--border))] focus:outline-none focus:ring-2 focus:ring-slate-300 text-sm"
                 placeholder={`e.g., SCORECARD_${scorecardKey.toUpperCase()}_TEST_2026_01`}
               />
+              <p className="text-xs text-slate-500">Used to group outputs for this run.</p>
+            </div>
 
+            <div className="grid gap-2">
+              <label className="font-medium text-sm">Mode</label>
+              <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setStrategyMode("simulation")}
+                  className={`flex-1 px-3 py-1.5 rounded-lg ${
+                    strategyMode === "simulation" ? "bg-white shadow-sm font-semibold" : "text-slate-600"
+                  }`}
+                >
+                  Simulation
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStrategyMode("production")}
+                  className={`flex-1 px-3 py-1.5 rounded-lg ${
+                    strategyMode === "production" ? "bg-white shadow-sm font-semibold" : "text-slate-600"
+                  }`}
+                >
+                  Production
+                </button>
+              </div>
+              <p className="text-xs text-slate-500">
+                Simulation produces downloadable outputs only. Production can be used if you later integrate results into downstream systems.
+              </p>
+            </div>
+
+            <div className="grid gap-2">
+              <label htmlFor="file" className="font-medium text-sm">
+                Upload file (CSV / Excel / TXT / DOCX)
+              </label>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 cursor-pointer text-sm">
+                  <Upload className="h-4 w-4" />
+                  <span>Select file</span>
+                  <input
+                    id="file"
+                    name="file"
+                    type="file"
+                    accept=".csv,.xlsx,.txt,.docx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                </label>
+
+                {file && (
+                  <div className="flex items-center gap-2 text-xs text-slate-600">
+                    <FileText className="h-4 w-4" />
+                    <span className="font-medium">{file.name}</span>
+                  </div>
+                )}
+              </div>
+
+              <p className="text-xs text-slate-500">
+                CSV/XLSX recommended. TXT/DOCX must be tabular with a header row matching required columns.
+              </p>
+            </div>
+
+            {renderStatus()}
+
+            <div className="pt-2 flex flex-wrap gap-3">
+              <button
+                type="submit"
+                className="btn-primary rounded-xl px-5 py-2.5 text-sm font-medium disabled:opacity-50 inline-flex items-center gap-2"
+                disabled={busy || !file}
+              >
+                {busy ? "Uploading…" : "Process scorecard"}
+              </button>
+
+              <button
+                type="button"
+                className="text-xs text-slate-600"
+                onClick={() => navigate("/tools/collections")}
+              >
+                ← Back to Collections tools
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Single status panel at the bottom (optional; keep it for visibility) */}
+        {status ? renderStatus() : null}
+      </main>
+
+      <SiteFooter />
+    </div>
+  );
+}

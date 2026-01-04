@@ -5,7 +5,6 @@ import { Upload, FileText, AlertCircle, CheckCircle2 } from "lucide-react";
 import SiteHeader from "../../../../../../components/layout/SiteHeader.jsx";
 import SiteFooter from "../../../../../../components/layout/SiteFooter.jsx";
 
-
 /**
  * Route: /tools/collections/scorecards/:scorecardKey/upload
  *
@@ -60,12 +59,36 @@ const SCORECARD_CONFIG = {
     title: "Affordability Scorecard",
     description:
       "Calculate affordability_score and affordability_score_band using income/expense proxies and obligation indicators.",
-    requiredColumns: ["customer_id", "loan_id", "net_income", "monthly_expenses", "instalment_amount"],
+    requiredColumns: [
+      "customer_id",
+      "loan_id",
+      "net_income",
+      "monthly_expenses",
+      "instalment_amount",
+    ],
     outputColumns: ["affordability_score", "affordability_score_band"],
     sampleRows: [
-      { customer_id: "C001", loan_id: "L001", net_income: 25000, monthly_expenses: 18000, instalment_amount: 1500 },
-      { customer_id: "C002", loan_id: "L002", net_income: 18000, monthly_expenses: 16500, instalment_amount: 2200 },
-      { customer_id: "C003", loan_id: "L003", net_income: 12000, monthly_expenses: 11500, instalment_amount: 1800 },
+      {
+        customer_id: "C001",
+        loan_id: "L001",
+        net_income: 25000,
+        monthly_expenses: 18000,
+        instalment_amount: 1500,
+      },
+      {
+        customer_id: "C002",
+        loan_id: "L002",
+        net_income: 18000,
+        monthly_expenses: 16500,
+        instalment_amount: 2200,
+      },
+      {
+        customer_id: "C003",
+        loan_id: "L003",
+        net_income: 12000,
+        monthly_expenses: 11500,
+        instalment_amount: 1800,
+      },
     ],
   },
 
@@ -73,12 +96,36 @@ const SCORECARD_CONFIG = {
     title: "Propensity to Pay (PTP) Scorecard",
     description:
       "Calculate ptp_score and ptp_band using payment engagement and promise-to-pay performance signals.",
-    requiredColumns: ["customer_id", "loan_id", "last_payment_days_ago", "promise_to_pay_kept_3m", "missed_payments_3m"],
+    requiredColumns: [
+      "customer_id",
+      "loan_id",
+      "last_payment_days_ago",
+      "promise_to_pay_kept_3m",
+      "missed_payments_3m",
+    ],
     outputColumns: ["ptp_score", "ptp_band"],
     sampleRows: [
-      { customer_id: "C001", loan_id: "L001", last_payment_days_ago: 7, promise_to_pay_kept_3m: 1, missed_payments_3m: 0 },
-      { customer_id: "C002", loan_id: "L002", last_payment_days_ago: 20, promise_to_pay_kept_3m: 0, missed_payments_3m: 1 },
-      { customer_id: "C003", loan_id: "L003", last_payment_days_ago: 70, promise_to_pay_kept_3m: 0, missed_payments_3m: 3 },
+      {
+        customer_id: "C001",
+        loan_id: "L001",
+        last_payment_days_ago: 7,
+        promise_to_pay_kept_3m: 1,
+        missed_payments_3m: 0,
+      },
+      {
+        customer_id: "C002",
+        loan_id: "L002",
+        last_payment_days_ago: 20,
+        promise_to_pay_kept_3m: 0,
+        missed_payments_3m: 1,
+      },
+      {
+        customer_id: "C003",
+        loan_id: "L003",
+        last_payment_days_ago: 70,
+        promise_to_pay_kept_3m: 0,
+        missed_payments_3m: 3,
+      },
     ],
   },
 
@@ -89,7 +136,12 @@ const SCORECARD_CONFIG = {
     requiredColumns: ["customer_id", "loan_id", "phone", "email"],
     outputColumns: ["contactability_score", "preferred_channel"],
     sampleRows: [
-      { customer_id: "C001", loan_id: "L001", phone: "0711111111", email: "c001@test.com" },
+      {
+        customer_id: "C001",
+        loan_id: "L001",
+        phone: "0711111111",
+        email: "c001@test.com",
+      },
       { customer_id: "C002", loan_id: "L002", phone: "0722222222", email: "" },
       { customer_id: "C003", loan_id: "L003", phone: "", email: "c003@test.com" },
     ],
@@ -259,13 +311,17 @@ export default function CollectionsScorecardRunner() {
 
   if (!cfg) {
     return (
-      <div className="min-h-screen text-slate-900" style={{ background: "rgb(var(--surface))" }}>
+      <div
+        className="min-h-screen text-slate-900"
+        style={{ background: "rgb(var(--surface))" }}
+      >
         <SiteHeader />
         <main className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
           <div className="rounded-3xl border bg-white p-6 shadow-sm">
             <div className="text-base font-semibold">Unknown scorecard</div>
             <p className="mt-2 text-sm text-slate-600">
-              Return to the Collections Tools dashboard and select a valid scorecard.
+              Return to the Collections Tools dashboard and select a valid
+              scorecard.
             </p>
             <button
               type="button"
@@ -282,7 +338,10 @@ export default function CollectionsScorecardRunner() {
   }
 
   return (
-    <div className="min-h-screen text-slate-900" style={{ background: "rgb(var(--surface))" }}>
+    <div
+      className="min-h-screen text-slate-900"
+      style={{ background: "rgb(var(--surface))" }}
+    >
       <SiteHeader />
 
       <main className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14 space-y-6">
@@ -300,25 +359,34 @@ export default function CollectionsScorecardRunner() {
           <div>
             <div className="text-sm font-semibold">Required input format</div>
             <p className="text-xs text-slate-500 mt-1">
-              CSV/XLSX is recommended. TXT/DOCX must be tabular with a header row matching the required columns.
+              CSV/XLSX is recommended. TXT/DOCX must be tabular with a header row
+              matching the required columns.
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div className="rounded-2xl border bg-slate-50 p-4">
-              <div className="text-xs font-semibold text-slate-700">Required columns</div>
+              <div className="text-xs font-semibold text-slate-700">
+                Required columns
+              </div>
               <ul className="mt-2 text-xs text-slate-600 list-disc pl-5 space-y-1">
                 {cfg.requiredColumns.map((c) => (
-                  <li key={c} className="font-mono">{c}</li>
+                  <li key={c} className="font-mono">
+                    {c}
+                  </li>
                 ))}
               </ul>
             </div>
 
             <div className="rounded-2xl border bg-slate-50 p-4">
-              <div className="text-xs font-semibold text-slate-700">Output columns added</div>
+              <div className="text-xs font-semibold text-slate-700">
+                Output columns added
+              </div>
               <ul className="mt-2 text-xs text-slate-600 list-disc pl-5 space-y-1">
                 {cfg.outputColumns.map((c) => (
-                  <li key={c} className="font-mono">{c}</li>
+                  <li key={c} className="font-mono">
+                    {c}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -326,13 +394,18 @@ export default function CollectionsScorecardRunner() {
 
           {/* Sample */}
           <div>
-            <div className="text-xs font-semibold text-slate-700 mb-2">Sample input (first rows)</div>
+            <div className="text-xs font-semibold text-slate-700 mb-2">
+              Sample input (first rows)
+            </div>
             <div className="overflow-x-auto rounded-2xl border">
               <table className="min-w-full text-xs">
                 <thead className="bg-slate-100 text-slate-600">
                   <tr>
                     {sampleHeaders.map((h) => (
-                      <th key={h} className="px-3 py-2 text-left font-semibold">
+                      <th
+                        key={h}
+                        className="px-3 py-2 text-left font-semibold"
+                      >
                         {h}
                       </th>
                     ))}
@@ -353,7 +426,8 @@ export default function CollectionsScorecardRunner() {
             </div>
 
             <p className="mt-2 text-[11px] text-slate-400">
-              Your backend should validate the presence and type/format of required columns before running the scorecard.
+              Your backend should validate the presence and type/format of
+              required columns before running the scorecard.
             </p>
           </div>
         </div>
@@ -374,7 +448,9 @@ export default function CollectionsScorecardRunner() {
                 className="border rounded-xl px-3 py-2.5 bg-[rgb(var(--surface))] border-[rgb(var(--border))] focus:outline-none focus:ring-2 focus:ring-slate-300 text-sm"
                 placeholder={`e.g., SCORECARD_${scorecardKey.toUpperCase()}_TEST_2026_01`}
               />
-              <p className="text-xs text-slate-500">Used to group outputs for this run.</p>
+              <p className="text-xs text-slate-500">
+                Used to group outputs for this run.
+              </p>
             </div>
 
             <div className="grid gap-2">
@@ -384,7 +460,9 @@ export default function CollectionsScorecardRunner() {
                   type="button"
                   onClick={() => setStrategyMode("simulation")}
                   className={`flex-1 px-3 py-1.5 rounded-lg ${
-                    strategyMode === "simulation" ? "bg-white shadow-sm font-semibold" : "text-slate-600"
+                    strategyMode === "simulation"
+                      ? "bg-white shadow-sm font-semibold"
+                      : "text-slate-600"
                   }`}
                 >
                   Simulation
@@ -393,14 +471,17 @@ export default function CollectionsScorecardRunner() {
                   type="button"
                   onClick={() => setStrategyMode("production")}
                   className={`flex-1 px-3 py-1.5 rounded-lg ${
-                    strategyMode === "production" ? "bg-white shadow-sm font-semibold" : "text-slate-600"
+                    strategyMode === "production"
+                      ? "bg-white shadow-sm font-semibold"
+                      : "text-slate-600"
                   }`}
                 >
                   Production
                 </button>
               </div>
               <p className="text-xs text-slate-500">
-                Simulation produces downloadable outputs only. Production can be used if you later integrate results into downstream systems.
+                Simulation produces downloadable outputs only. Production can be
+                used if you later integrate results into downstream systems.
               </p>
             </div>
 
@@ -432,7 +513,8 @@ export default function CollectionsScorecardRunner() {
               </div>
 
               <p className="text-xs text-slate-500">
-                CSV/XLSX recommended. TXT/DOCX must be tabular with a header row matching required columns.
+                CSV/XLSX recommended. TXT/DOCX must be tabular with a header row
+                matching required columns.
               </p>
             </div>
 
@@ -457,9 +539,6 @@ export default function CollectionsScorecardRunner() {
             </div>
           </form>
         </div>
-
-        {/* Single status panel at the bottom (optional; keep it for visibility) */}
-        {status ? renderStatus() : null}
       </main>
 
       <SiteFooter />

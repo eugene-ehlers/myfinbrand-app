@@ -8,8 +8,9 @@ import {
   AlertCircle,
   CheckCircle2,
 } from "lucide-react";
-import SiteHeader from "../components/layout/SiteHeader.jsx";
-import SiteFooter from "../components/layout/SiteFooter.jsx";
+import SiteHeader from "../../../../../components/layout/SiteHeader.jsx";
+import SiteFooter from "../../../../../components/layout/SiteFooter.jsx";
+
 
 export default function Collections_Upload() {
   const navigate = useNavigate();

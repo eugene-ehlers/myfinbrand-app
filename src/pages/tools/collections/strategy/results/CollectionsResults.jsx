@@ -1,14 +1,17 @@
 // src/pages/CollectionsResults.jsx
 import React, { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
-import { CheckCircle2, Download, AlertCircle } from "lucide-react";
+import { CheckCircle2, Download, AlertCircle, Send } from "lucide-react";
 import SiteHeader from "../../../../../components/layout/SiteHeader.jsx";
 import SiteFooter from "../../../../../components/layout/SiteFooter.jsx";
-
 
 // Lambda URL that returns pre-signed GET URLs for the result files
 const RESULTS_URL_FUNCTION =
   "https://3mxonnyr3li26y3drvcx2bw64q0akzky.lambda-url.us-east-1.on.aws/";
+
+// Lambda URL that dispatches a result CSV into SQS (EMAIL/SMS)
+const DISPATCH_URL_FUNCTION =
+  "https://3peqqexk56h35tkc635fkvfigq0bdsnd.lambda-url.us-east-1.on.aws/";
 
 function useQuery() {
   const { search } = useLocation();
@@ -24,6 +27,9 @@ export default function CollectionsResults() {
     type: "info",
     message: "Fetching download links for results…",
   });
+
+  const [dispatchStatus, setDispatchStatus] = useState(null);
+  const [dispatchBusy, setDispatchBusy] = useState(false);
 
   useEffect(() => {
     async function fetchUrls() {
@@ -105,12 +111,141 @@ export default function CollectionsResults() {
     );
   }
 
+  function renderDispatchStatus() {
+    if (!dispatchStatus) return null;
+
+    if (dispatchStatus.type === "success") {
+      return (
+        <div className="mt-3 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-xs md:text-sm text-green-800 flex gap-2">
+          <CheckCircle2 className="h-4 w-4 mt-0.5" />
+          <span>{dispatchStatus.message}</span>
+        </div>
+      );
+    }
+
+    if (dispatchStatus.type === "error") {
+      return (
+        <div className="mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs md:text-sm text-red-800 flex gap-2">
+          <AlertCircle className="h-4 w-4 mt-0.5" />
+          <span>{dispatchStatus.message}</span>
+        </div>
+      );
+    }
+
+    // info
+    return (
+      <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs md:text-sm text-slate-800 flex gap-2">
+        <AlertCircle className="h-4 w-4 mt-0.5" />
+        <span>{dispatchStatus.message}</span>
+      </div>
+    );
+  }
+
+  // Prefer explicit keys from the results URL function if present.
+  // Fallback to deriving them from the presigned URLs (best-effort).
+  function extractS3KeyFromPresignedUrl(presignedUrl) {
+    try {
+      if (!presignedUrl) return null;
+      const u = new URL(presignedUrl);
+      let key = u.pathname || "";
+      // typical: /my-bucket/path/to/file.csv
+      key = key.replace(/^\/+/, "");
+      const parts = key.split("/");
+      if (parts.length <= 1) return null;
+      parts.shift(); // drop bucket
+      return parts.join("/");
+    } catch {
+      return null;
+    }
+  }
+
+  const smsKey =
+    urls?.smsKey ||
+    extractS3KeyFromPresignedUrl(urls?.smsUrl) ||
+    null;
+
+  const emailKey =
+    urls?.emailKey ||
+    extractS3KeyFromPresignedUrl(urls?.emailUrl) ||
+    null;
+
+  async function dispatchFile(channel, resultKey) {
+    if (!resultKey) {
+      setDispatchStatus({
+        type: "error",
+        message: `No ${channel} resultKey available. Ensure the strategy output file exists and that the results-link function returns it.`,
+      });
+      return;
+    }
+
+    try {
+      setDispatchBusy(true);
+      setDispatchStatus({
+        type: "info",
+        message: `Dispatching ${channel} file for execution…`,
+      });
+
+      const res = await fetch(DISPATCH_URL_FUNCTION, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ channel, resultKey }),
+      });
+
+      const text = await res.text();
+      if (!res.ok) {
+        console.error("Dispatch failed", res.status, text);
+        setDispatchStatus({
+          type: "error",
+          message: `Dispatch failed (HTTP ${res.status}). ${text}`,
+        });
+        return;
+      }
+
+      let data = null;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        // If the function returns plain text, still show it.
+      }
+
+      if (data?.ok) {
+        const rows = typeof data.rows === "number" ? data.rows : "?";
+        const enq = typeof data.enqueued === "number" ? data.enqueued : "?";
+        const skipped = typeof data.skipped === "number" ? data.skipped : "?";
+
+        setDispatchStatus({
+          type: "success",
+          message:
+            data.note ||
+            `${channel} dispatch completed. Rows: ${rows}, enqueued: ${enq}, skipped: ${skipped}.`,
+        });
+      } else {
+        setDispatchStatus({
+          type: "error",
+          message: `Dispatch response did not indicate success. ${text}`,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      setDispatchStatus({
+        type: "error",
+        message:
+          "Unexpected error while dispatching. Please retry and check the dispatcher Lambda logs.",
+      });
+    } finally {
+      setDispatchBusy(false);
+    }
+  }
+
   const downloadsReady =
     urls &&
     urls.smsUrl &&
     urls.emailUrl &&
     urls.diallerUrl &&
     urls.suppressedUrl;
+
+  const canDispatchEmail = Boolean(downloadsReady && emailKey);
+  const canDispatchSms = Boolean(downloadsReady && smsKey);
 
   return (
     <div
@@ -157,6 +292,50 @@ export default function CollectionsResults() {
         </div>
 
         {renderStatus()}
+
+        {/* Dispatch card */}
+        <div className="rounded-3xl border bg-white p-6 shadow-sm text-sm space-y-4">
+          <h2 className="text-base md:text-lg font-semibold mb-1">
+            Execute channel files
+          </h2>
+          <p className="text-xs text-slate-500 mb-3">
+            This will read the selected output CSV from S3 and enqueue one
+            message per row for delivery (EMAIL to SES, SMS to SNS).
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              type="button"
+              className="btn-primary inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed"
+              disabled={!canDispatchEmail || dispatchBusy}
+              onClick={() => dispatchFile("EMAIL", emailKey)}
+              title={!emailKey ? "Email result key not available" : undefined}
+            >
+              <Send className="h-4 w-4 mr-2" />
+              {dispatchBusy ? "Dispatching…" : "Execute Email file"}
+            </button>
+
+            <button
+              type="button"
+              className="btn-primary inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed"
+              disabled={!canDispatchSms || dispatchBusy}
+              onClick={() => dispatchFile("SMS", smsKey)}
+              title={!smsKey ? "SMS result key not available" : undefined}
+            >
+              <Send className="h-4 w-4 mr-2" />
+              {dispatchBusy ? "Dispatching…" : "Execute SMS file"}
+            </button>
+          </div>
+
+          {renderDispatchStatus()}
+
+          <p className="text-[11px] text-slate-400 mt-3">
+            For production, this endpoint should be authenticated/authorized and
+            rate-limited (Function URL auth, API Gateway, Cognito, WAF), and you
+            should persist dispatch audit events (who dispatched, when, which
+            file, counts).
+          </p>
+        </div>
 
         {/* Download card */}
         <div className="rounded-3xl border bg-white p-6 shadow-sm text-sm space-y-4">
@@ -259,4 +438,3 @@ export default function CollectionsResults() {
     </div>
   );
 }
-

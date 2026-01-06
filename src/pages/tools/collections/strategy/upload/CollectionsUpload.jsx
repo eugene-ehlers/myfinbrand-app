@@ -1,16 +1,9 @@
 // src/pages/CollectionsUpload.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Upload,
-  FileText,
-  Settings2,
-  AlertCircle,
-  CheckCircle2,
-} from "lucide-react";
+import { Upload, FileText, Settings2, AlertCircle, CheckCircle2 } from "lucide-react";
 import SiteHeader from "../../../../../components/layout/SiteHeader.jsx";
 import SiteFooter from "../../../../../components/layout/SiteFooter.jsx";
-
 
 export default function Collections_Upload() {
   const navigate = useNavigate();
@@ -29,7 +22,7 @@ export default function Collections_Upload() {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState(null); // { type: 'info' | 'success' | 'error', message: string }
 
-  // TODO: replace with your Collections Lambda URL
+  // TODO: replace with your Collections Lambda URL (CollectionsGeneratePresignedPost-dev)
   const collectionsFunctionUrl =
     "https://xddchlet6fj2qqncrr7y5fopva0tvxsb.lambda-url.us-east-1.on.aws/";
 
@@ -48,7 +41,9 @@ export default function Collections_Upload() {
   async function startUpload(e) {
     e?.preventDefault?.();
 
-    if (!caseName.trim()) {
+    const batch = caseName.trim();
+
+    if (!batch) {
       setStatus({
         type: "error",
         message: "Please enter a case name for this collections batch.",
@@ -93,7 +88,12 @@ export default function Collections_Upload() {
             file.type ||
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
           originalFilename: file.name,
-          caseName: caseName.trim(),
+
+          // IMPORTANT: send both fields to avoid client/version mismatches
+          // Lambda accepts: batchName OR caseName
+          caseName: batch,
+          batchName: batch,
+
           portfolioType,
           strategyMode, // e.g. simulation vs production
           runOptions: selectedRunOptions,
@@ -101,7 +101,14 @@ export default function Collections_Upload() {
       });
 
       if (!presignRes.ok) {
-        console.error("Presign failed", presignRes.status);
+        let errBody = "";
+        try {
+          errBody = await presignRes.text();
+        } catch (_) {
+          // ignore
+        }
+
+        console.error("Presign failed", presignRes.status, errBody);
         setStatus({
           type: "error",
           message: `Presign failed for collections upload (HTTP ${presignRes.status}).`,
@@ -133,9 +140,7 @@ export default function Collections_Upload() {
         setFile(null);
 
         // Navigate to a collections results page (you can adjust this path)
-        navigate(
-          `/collections-results?objectKey=${encodeURIComponent(objectKey)}`
-        );
+        navigate(`/collections-results?objectKey=${encodeURIComponent(objectKey)}`);
       } else {
         const text = await s3Res.text().catch(() => "");
         console.error("S3 upload failed", s3Res.status, text);
@@ -327,9 +332,7 @@ export default function Collections_Upload() {
                   <input
                     type="checkbox"
                     checked={runOptions.runChannelAndTreatment}
-                    onChange={() =>
-                      toggleRunOption("runChannelAndTreatment")
-                    }
+                    onChange={() => toggleRunOption("runChannelAndTreatment")}
                   />
                   <span>Channel & treatment strategy</span>
                 </label>
